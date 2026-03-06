@@ -3,6 +3,17 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 Minimal MVP for collecting signups from local businesses interested in Generative Engine Optimization (GEO).
 
+## Docker:
+```bash
+docker build -t visibly .
+
+docker run -d \
+  --name visibly \
+  -p 3000:3000 \
+  -e DATABASE_URL="file:./prisma/dev.db" \
+  visibly
+```
+
 ## Quick Start
 
 ```bash
