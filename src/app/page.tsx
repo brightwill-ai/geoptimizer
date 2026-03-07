@@ -34,7 +34,7 @@ function Nav() {
           textDecoration: "none",
         }}
       >
-        Visibly
+        BrightWill
       </Link>
 
       <ul
@@ -1077,12 +1077,12 @@ function Footer() {
         className="footer-logo"
         style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em" }}
       >
-        Visibly
+        BrightWill
       </span>
       <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>
-        © 2025 Visibly. Generative Engine Optimization for local businesses.
+        © 2025 BrightWill. Generative Engine Optimization for local businesses.
       </p>
-      <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>hello@visibly.ai</p>
+      <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>hello@brightwill.ai</p>
     </footer>
   );
 }

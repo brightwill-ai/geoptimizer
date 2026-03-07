@@ -96,7 +96,7 @@ export default function SignupPage() {
             textDecoration: "none",
           }}
         >
-          Visibly
+          BrightWill
         </Link>
       </nav>
 
@@ -171,7 +171,7 @@ export default function SignupPage() {
                   color: "#0c0c0b",
                 }}
               >
-                Join the Visibly waitlist
+                Join the BrightWill waitlist
               </h1>
               <p style={{ fontSize: "0.875rem", color: "#9a9793" }}>
                 Share a few details about you and your business. We&apos;ll follow up with
@@ -267,7 +267,7 @@ export default function SignupPage() {
                     marginTop: "0.75rem",
                   }}
                 >
-                  No spam, ever. We&apos;ll only email you about Visibly and how we can improve
+                  No spam, ever. We&apos;ll only email you about BrightWill and how we can improve
                   your AI visibility.
                 </p>
               </div>
@@ -290,12 +290,12 @@ export default function SignupPage() {
         }}
       >
         <span style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em" }}>
-          Visibly
+          BrightWill
         </span>
         <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>
-          © 2025 Visibly. Generative Engine Optimization for local businesses.
+          © 2025 BrightWill. Generative Engine Optimization for local businesses.
         </p>
-        <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>hello@visibly.ai</p>
+        <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>hello@brightwill.ai</p>
       </footer>
     </div>
   );

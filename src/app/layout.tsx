@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Visibly — Get Found by AI",
+  title: "BrightWill — Get Found by AI",
   description:
     "Generative Engine Optimization for local businesses. Get your restaurant or business recommended by ChatGPT, Claude, and other AI assistants.",
   keywords: [
