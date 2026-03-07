@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
 
+env:
+  DATABASE_URL: "file:./dev.db"
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
