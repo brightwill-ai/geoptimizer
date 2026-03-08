@@ -260,8 +260,25 @@ h1 em {
   color: var(--black);
 }
 
+/* ── ANALYZE PAGE ── */
+@keyframes score-fill-global {
+  from { stroke-dashoffset: 283; }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 860px) {
+  .analyze-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .llm-tabs {
+    overflow-x: auto;
+  }
   .hero {
     grid-template-columns: 1fr !important;
     padding-top: 5rem !important;

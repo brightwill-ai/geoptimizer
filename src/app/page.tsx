@@ -63,6 +63,11 @@ function Nav() {
             Pricing
           </a>
         </li>
+        <li>
+          <Link href="/analyze" className="nav-link">
+            Free audit
+          </Link>
+        </li>
       </ul>
 
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -224,12 +229,12 @@ function Hero() {
           </p>
 
           <div className="hero-btns animate-up" style={{ animationDelay: "0.4s" }}>
-            <Link href="/signup" className="btn-pill">
+            <Link href="/analyze" className="btn-pill">
+              Free AI audit →
+            </Link>
+            <Link href="/signup" className="btn-pill-outline">
               Join waitlist
             </Link>
-            <a href="#how" className="btn-pill-outline">
-              See How It Works
-            </a>
           </div>
         </div>
 

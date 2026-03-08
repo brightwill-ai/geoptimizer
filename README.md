@@ -32,7 +32,7 @@ docker run -d --name brightwill -p 3000:3000 -e DATABASE_URL="file:./dev.db" --r
 
 ```bash
 docker build -t brightwill .
-docker run -p 3000:3000 -e DATABASE_URL="file:./dev.db" brightwill
+docker run -p 80:3000 -e DATABASE_URL="file:./dev.db" brightwill
 ```
 
 ## Tech Stack
