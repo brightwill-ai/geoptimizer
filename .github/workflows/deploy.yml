@@ -40,13 +40,11 @@ jobs:
           host: 47.251.113.72
           username: root
           password: ${{ secrets.SERVER_PASSWORD }}
+          command_timeout: 10m
           script: |
-            export PATH="/root/.nvm/versions/node/v20.20.1/bin:$PATH"
-            export DATABASE_URL="file:./dev.db"
             cd ~/geoptimizer
             git pull origin main
-            npm ci
-            npx prisma generate
-            npx prisma db push
-            npm run build
-            pm2 restart brightwill || pm2 start "npm start" --name brightwill
+            docker build -t brightwill .
+            docker stop brightwill 2>/dev/null || true
+            docker rm brightwill 2>/dev/null || true
+            docker run -d --name brightwill -p 3000:3000 -e DATABASE_URL="file:./dev.db" --restart unless-stopped brightwill
