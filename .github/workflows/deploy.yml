@@ -42,6 +42,7 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             export PATH="/root/.nvm/versions/node/v20.20.1/bin:$PATH"
+            export DATABASE_URL="file:./dev.db"
             cd ~/geoptimizer
             git pull origin main
             npm ci
