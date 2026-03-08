@@ -11,24 +11,28 @@ npx prisma db push
 npm run dev
 ```
 
-## Deploy (VPC Server)
+## Deploy
 
-Push to `main` auto-deploys via GitHub Actions. Requires `SERVER_PASSWORD` secret in GitHub repo settings.
+Push to `main` auto-deploys via GitHub Actions (Docker on VPC server).
 
-Manual deploy:
+Requires `SERVER_PASSWORD` secret in GitHub repo settings.
+
+### Manual deploy
+
 ```bash
 ssh root@47.251.113.72
 cd ~/geoptimizer
 git pull origin main
-npm ci && npx prisma generate && npx prisma db push && npm run build
-pm2 restart brightwill || pm2 start "npm start" --name brightwill
+docker build -t brightwill .
+docker stop brightwill && docker rm brightwill
+docker run -d --name brightwill -p 3000:3000 -e DATABASE_URL="file:./dev.db" --restart unless-stopped brightwill
 ```
 
-## Deploy (Docker)
+### Local Docker
 
 ```bash
 docker build -t brightwill .
-docker run -p 80:3000 -e DATABASE_URL="file:./dev.db" brightwill
+docker run -p 3000:3000 -e DATABASE_URL="file:./dev.db" brightwill
 ```
 
 ## Tech Stack
@@ -36,7 +40,7 @@ docker run -p 80:3000 -e DATABASE_URL="file:./dev.db" brightwill
 - **Framework:** Next.js 16 (App Router) + TypeScript
 - **Styling:** Tailwind CSS v4 + inline styles
 - **Database:** SQLite via Prisma
-- **Deployment:** VPC server + PM2, GitHub Actions CI/CD
+- **Deployment:** Docker on Alibaba Cloud VPC, GitHub Actions CI/CD
 
 ## Commands
 

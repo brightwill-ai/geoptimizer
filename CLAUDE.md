@@ -1,6 +1,6 @@
 # BrightWill
 
-Minimal MVP signup app for the BrightWill GEO concept. Local businesses can submit interest via a public form and their details are stored in a lightweight SQLite database.
+Minimal MVP signup app for local businesses interested in Generative Engine Optimization (GEO). Public form collects signups into a SQLite database.
 
 ## Quick Start
 
@@ -17,67 +17,104 @@ npm run dev
 - **Styling:** Tailwind CSS v4 + inline styles for landing page
 - **Database:** SQLite (`prisma/dev.db`) via Prisma ORM
 - **Auth:** None (public signup only)
-- **Deployment:** VPC server (Alibaba Cloud) via GitHub Actions + PM2
+- **Deployment:** Docker on Alibaba Cloud VPC, GitHub Actions CI/CD
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── api/signups/       # Public signup endpoint
-│   ├── signup/            # Public signup form page
-│   ├── page.tsx           # Marketing landing page (inline CSS)
-│   ├── globals.css        # Global styles & animations
-│   └── layout.tsx         # Root layout
-├── components/ui/         # Button, Input, Textarea, Card
+│   ├── api/signups/route.ts   # POST /api/signups (Zod validation)
+│   ├── signup/page.tsx        # Public signup form
+│   ├── page.tsx               # Marketing landing page (inline CSS)
+│   ├── globals.css            # Global styles & CSS animations
+│   └── layout.tsx             # Root layout + Google Fonts
+├── components/ui/             # Reusable UI (inline styles, warm neutrals)
+│   ├── button.tsx             # Variants: primary, secondary, outline
+│   ├── input.tsx              # With focus states, error handling
+│   ├── textarea.tsx           # Multi-line input
+│   ├── card.tsx               # Variants: default, elevated, interactive
+│   └── index.ts               # Barrel exports
 └── lib/
-    ├── prisma.ts          # Prisma client
-    └── utils.ts           # Helper functions
+    ├── prisma.ts              # Prisma client singleton
+    └── utils.ts               # cn(), formatDate(), slugify()
 ```
 
 ## Design System
 
 ### Typography
-- **Primary:** Instrument Sans - All UI elements, headings, body text
-- **Accent:** Instrument Serif - Italic emphasis, special callouts
+- **Primary:** Instrument Sans (400, 500, 600, 700) — all UI
+- **Accent:** Instrument Serif (italic) — special callouts
+- Loaded via Google Fonts in layout.tsx
 
 ### Colors (Warm Neutral Palette)
-```css
---bg: #f0eeea          /* Main background */
---black: #0c0c0b       /* Primary text, buttons */
---muted: #9a9793       /* Secondary text */
---border: #dddbd7      /* Borders */
---card-bg: #faf9f7     /* Card backgrounds */
+```
+Background: #f0eeea    Text: #0c0c0b    Muted: #9a9793
+Border: #dddbd7        Cards: #faf9f7
 ```
 
-### Key Patterns
-- All sections use exact CSS values via inline styles
-- Animations defined in globals.css, triggered via classNames
+### Styling Approach
+- Landing page + signup page: inline styles with exact hex values
+- UI components: inline styles (no Tailwind class approximations)
+- Animations: CSS keyframes in globals.css (up, float, ticker, reveal)
 - Responsive breakpoint: 860px
 
 ## Data Model
 
-Single Prisma model — `Signup`: id, name, email (unique), businessName?, website?, notes?, createdAt
+```prisma
+model Signup {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  businessName String?
+  website      String?
+  notes        String?
+  createdAt    DateTime @default(now())
+}
+```
 
 ## Environment Variables
 
-`DATABASE_URL` — SQLite path, e.g. `file:./dev.db` (relative to schema.prisma)
+`DATABASE_URL` — SQLite path relative to schema.prisma, e.g. `file:./dev.db`
 
-## API Endpoints
+## API
 
-- `POST /api/signups` — Create a new signup record
+- `POST /api/signups` — Validates with Zod, creates Signup record, returns `{ id, createdAt }`
+
+## Key Commands
+
+```bash
+npm run dev           # Dev server
+npm run build         # Production build
+npm run lint          # ESLint
+npm run type-check    # TypeScript check
+npx prisma studio     # Database GUI
+npx prisma db push    # Sync schema to database
+```
 
 ## Deployment
 
-**VPC Server (primary):** Push to `main` triggers GitHub Actions → lint, type-check, build → SSH deploy to `47.251.113.72` → PM2 restart.
+### CI/CD (GitHub Actions)
+Push to `main` triggers: lint → type-check → build → SSH into VPC server → docker build → docker run.
 
-**Docker (optional):**
+Requires GitHub secret: `SERVER_PASSWORD`
+
+### VPC Server (Alibaba Cloud)
+- IP: `47.251.113.72`
+- Repo on server: `~/geoptimizer`
+- Runs as Docker container named `brightwill` on port 3000
+- Container auto-restarts via `--restart unless-stopped`
+
+### Docker
 ```bash
 docker build -t brightwill .
-docker run -p 80:3000 brightwill
+docker run -d --name brightwill -p 3000:3000 -e DATABASE_URL="file:./dev.db" --restart unless-stopped brightwill
 ```
+
+### Dockerfile
+Single-stage build: `node:20-alpine` → `npm ci` → `prisma generate` → `npm run build` → `prisma db push && npm start`
 
 ## Naming
 
-- **Frontend/brand:** BrightWill
+- **Brand/frontend:** BrightWill
 - **Repo:** geoptimizer
