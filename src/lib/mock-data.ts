@@ -1,5 +1,5 @@
 // ── LLM Providers ──
-export type LLMProvider = "chatgpt" | "claude" | "gemini" | "perplexity";
+export type LLMProvider = "chatgpt" | "claude" | "gemini";
 
 export interface LLMInfo {
   id: LLMProvider;
@@ -11,7 +11,6 @@ export const LLM_PROVIDERS: LLMInfo[] = [
   { id: "chatgpt", name: "ChatGPT", color: "#10a37f" },
   { id: "claude", name: "Claude", color: "#c084fc" },
   { id: "gemini", name: "Gemini", color: "#4285f4" },
-  { id: "perplexity", name: "Perplexity", color: "#ff6b35" },
 ];
 
 // ── Metric Types ──
@@ -163,7 +162,6 @@ export function generateMockAnalysis(businessName: string): GEOAnalysis {
     chatgpt: Math.floor(65 + next() * 30),
     claude: Math.floor(55 + next() * 35),
     gemini: Math.floor(50 + next() * 35),
-    perplexity: Math.floor(40 + next() * 40),
   };
 
   function generateReport(provider: LLMInfo): LLMReport {

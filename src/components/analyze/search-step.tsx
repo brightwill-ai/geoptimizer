@@ -1,19 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 interface SearchStepProps {
-  onSubmit: (businessName: string) => void;
+  onSubmit: (businessName: string, location: string) => void;
 }
 
 export function SearchStep({ onSubmit }: SearchStepProps) {
   const [name, setName] = useState("");
+  const [location, setLocation] = useState("");
+  const [locationLoading, setLocationLoading] = useState(true);
+
+  // Auto-detect location from IP
+  useEffect(() => {
+    fetch("/api/location")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.display) setLocation(data.display);
+      })
+      .catch(() => {})
+      .finally(() => setLocationLoading(false));
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim()) onSubmit(name.trim());
+    if (name.trim() && location.trim()) onSubmit(name.trim(), location.trim());
   };
+
+  const isValid = name.trim() && location.trim();
 
   return (
     <motion.div
@@ -147,9 +162,30 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
             onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
           />
+          <input
+            type="text"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            placeholder={locationLoading ? "Detecting your location..." : "e.g. Miami, FL"}
+            style={{
+              width: "100%",
+              padding: "0.875rem 1.25rem",
+              fontSize: "1rem",
+              fontFamily: "'Instrument Sans', sans-serif",
+              borderRadius: 12,
+              border: "1px solid #dddbd7",
+              background: "#ffffff",
+              color: "#0c0c0b",
+              outline: "none",
+              boxSizing: "border-box",
+              transition: "border-color 0.15s",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
+            onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
+          />
           <button
             type="submit"
-            disabled={!name.trim()}
+            disabled={!isValid}
             style={{
               width: "100%",
               padding: "0.875rem 2rem",
@@ -158,11 +194,11 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               fontFamily: "'Instrument Sans', sans-serif",
               borderRadius: 12,
               border: "none",
-              background: name.trim() ? "#0c0c0b" : "#9a9793",
+              background: isValid ? "#0c0c0b" : "#9a9793",
               color: "#ffffff",
-              cursor: name.trim() ? "pointer" : "not-allowed",
+              cursor: isValid ? "pointer" : "not-allowed",
               transition: "all 0.15s",
-              opacity: name.trim() ? 1 : 0.6,
+              opacity: isValid ? 1 : 0.6,
             }}
           >
             Analyze my business
@@ -186,7 +222,6 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             { name: "ChatGPT", color: "#10a37f" },
             { name: "Claude", color: "#c084fc" },
             { name: "Gemini", color: "#4285f4" },
-            { name: "Perplexity", color: "#ff6b35" },
           ].map((llm) => (
             <span
               key={llm.name}

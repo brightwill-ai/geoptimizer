@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
-import { generateMockAnalysis, type GEOAnalysis } from "@/lib/mock-data";
+import { type GEOAnalysis } from "@/lib/mock-data";
 import { SearchStep } from "@/components/analyze/search-step";
 import { LoadingStep } from "@/components/analyze/loading-step";
 import { PartialReport } from "@/components/analyze/partial-report";
@@ -85,21 +85,96 @@ function Nav() {
 export default function AnalyzePage() {
   const [step, setStep] = useState<Step>("search");
   const [businessName, setBusinessName] = useState("");
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<GEOAnalysis | null>(null);
+  const [jobStatuses, setJobStatuses] = useState<Record<string, string>>({});
+  const [error, setError] = useState<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const handleSearch = (name: string) => {
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
+
+  const stopPolling = () => {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  };
+
+  const startPolling = (id: string) => {
+    stopPolling();
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/analysis/${id}`);
+        if (!res.ok) return;
+        const data = await res.json();
+
+        setJobStatuses(data.jobStatuses || {});
+
+        if (data.status === "complete" && data.result) {
+          stopPolling();
+          setAnalysis(data.result);
+          // Don't transition here — LoadingStep will call onComplete
+        } else if (data.status === "failed") {
+          stopPolling();
+          setError(data.errorMessage || "Analysis failed");
+          setStep("search");
+        }
+      } catch {
+        // Silently retry on next poll
+      }
+    }, 2000);
+  };
+
+  const handleSearch = async (name: string, location: string) => {
     setBusinessName(name);
+    setError(null);
+    setJobStatuses({});
+    setAnalysis(null);
     setStep("loading");
+
+    try {
+      const res = await fetch("/api/analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ businessName: name, location, tier: "fast" }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to start analysis");
+        setStep("search");
+        return;
+      }
+
+      setAnalysisId(data.id);
+
+      if (data.status === "complete" && data.result) {
+        // Cached result — skip loading
+        setAnalysis(data.result);
+        setStep("partial");
+      } else {
+        // Start polling
+        startPolling(data.id);
+      }
+    } catch {
+      setError("Failed to connect. Please try again.");
+      setStep("search");
+    }
   };
 
   const handleLoadingComplete = useCallback(() => {
-    setAnalysis(generateMockAnalysis(businessName));
-    setStep("partial");
-  }, [businessName]);
+    if (analysis) {
+      setStep("partial");
+    }
+  }, [analysis]);
 
-  const handleEmailSubmit = (email: string) => {
-    localStorage.setItem("brightwill_email", email);
-    localStorage.setItem("brightwill_name", email);
+  const handleEmailSubmit = () => {
     setStep("full");
   };
 
@@ -107,13 +182,33 @@ export default function AnalyzePage() {
     <div style={{ minHeight: "100vh", background: "#f0eeea" }}>
       <Nav />
       <div style={{ paddingTop: 60 }}>
+        {error && step === "search" && (
+          <div
+            style={{
+              maxWidth: 560,
+              margin: "1rem auto",
+              padding: "0.75rem 1rem",
+              borderRadius: 10,
+              background: "#fee2e2",
+              color: "#dc2626",
+              fontSize: "0.8rem",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
-          {step === "search" && <SearchStep key="search" onSubmit={handleSearch} />}
+          {step === "search" && (
+            <SearchStep key="search" onSubmit={handleSearch} />
+          )}
           {step === "loading" && (
             <LoadingStep
               key="loading"
               businessName={businessName}
               onComplete={handleLoadingComplete}
+              jobStatuses={jobStatuses}
             />
           )}
           {step === "partial" && analysis && (
@@ -126,11 +221,12 @@ export default function AnalyzePage() {
           {step === "full" && analysis && <FullReport key="full" analysis={analysis} />}
         </AnimatePresence>
 
-        {/* Email gate rendered as overlay, outside AnimatePresence for partial */}
+        {/* Email gate rendered as overlay */}
         <AnimatePresence>
-          {step === "email-gate" && (
+          {step === "email-gate" && analysisId && (
             <EmailGate
               key="email-gate"
+              analysisId={analysisId}
               onSubmit={handleEmailSubmit}
               onClose={() => setStep("partial")}
             />

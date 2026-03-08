@@ -4,17 +4,42 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 
 interface EmailGateProps {
-  onSubmit: (email: string) => void;
+  analysisId: string;
+  onSubmit: (email: string, name?: string) => void;
   onClose: () => void;
 }
 
-export function EmailGate({ onSubmit, onClose }: EmailGateProps) {
+export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) onSubmit(email.trim());
+    if (!email.trim()) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch(`/api/analysis/${analysisId}/claim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), name: name.trim() || undefined }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to submit");
+      }
+
+      onSubmit(email.trim(), name.trim() || undefined);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const isValid = email.includes("@") && email.includes(".");
@@ -140,6 +165,12 @@ export function EmailGate({ onSubmit, onClose }: EmailGateProps) {
           ))}
         </ul>
 
+        {error && (
+          <p style={{ fontSize: "0.75rem", color: "#dc2626", margin: "0 0 0.75rem 0" }}>
+            {error}
+          </p>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <input
@@ -185,7 +216,7 @@ export function EmailGate({ onSubmit, onClose }: EmailGateProps) {
           />
           <button
             type="submit"
-            disabled={!isValid}
+            disabled={!isValid || loading}
             style={{
               width: "100%",
               padding: "0.75rem",
@@ -194,14 +225,14 @@ export function EmailGate({ onSubmit, onClose }: EmailGateProps) {
               fontFamily: "'Instrument Sans', sans-serif",
               borderRadius: 10,
               border: "none",
-              background: isValid ? "#0c0c0b" : "#9a9793",
+              background: isValid && !loading ? "#0c0c0b" : "#9a9793",
               color: "#ffffff",
-              cursor: isValid ? "pointer" : "not-allowed",
-              opacity: isValid ? 1 : 0.6,
+              cursor: isValid && !loading ? "pointer" : "not-allowed",
+              opacity: isValid && !loading ? 1 : 0.6,
               transition: "all 0.15s",
             }}
           >
-            Send me the full report
+            {loading ? "Submitting..." : "Send me the full report"}
           </button>
         </form>
 

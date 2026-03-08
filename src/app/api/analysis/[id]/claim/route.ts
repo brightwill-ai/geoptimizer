@@ -1,0 +1,112 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { prisma } from "@/lib/prisma";
+import { runAnalysis } from "@/lib/agents/runner";
+import { LLM_PROVIDERS } from "@/lib/mock-data";
+
+const ClaimInput = z.object({
+  email: z.string().email(),
+  name: z.string().optional(),
+});
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const parsed = ClaimInput.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid input", details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { email, name } = parsed.data;
+
+    // Verify analysis exists
+    const analysis = await prisma.analysis.findUnique({ where: { id } });
+    if (!analysis) {
+      return NextResponse.json({ error: "Analysis not found" }, { status: 404 });
+    }
+
+    // Upsert user
+    const user = await prisma.user.upsert({
+      where: { email },
+      create: { email, name },
+      update: { name: name || undefined },
+    });
+
+    // Link analysis to user
+    await prisma.analysis.update({
+      where: { id },
+      data: { userId: user.id },
+    });
+
+    // Check for existing comprehensive report
+    const existingComprehensive = await prisma.analysis.findFirst({
+      where: {
+        businessName: analysis.businessName,
+        location: analysis.location,
+        tier: "comprehensive",
+        status: { in: ["pending", "running", "complete"] },
+        expiresAt: { gt: new Date() },
+      },
+    });
+
+    let comprehensiveAnalysisId = existingComprehensive?.id;
+
+    // Kick off comprehensive report if none exists
+    if (!existingComprehensive) {
+      const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000);
+      const comprehensive = await prisma.analysis.create({
+        data: {
+          userId: user.id,
+          businessName: analysis.businessName,
+          location: analysis.location,
+          tier: "comprehensive",
+          status: "pending",
+          expiresAt,
+          llmJobs: {
+            create: LLM_PROVIDERS.map((p) => ({
+              provider: p.id,
+              status: "pending",
+            })),
+          },
+        },
+      });
+
+      comprehensiveAnalysisId = comprehensive.id;
+
+      // Fire and forget
+      runAnalysis(
+        comprehensive.id,
+        analysis.businessName,
+        analysis.location,
+        "comprehensive"
+      ).catch((err) => {
+        console.error(`Comprehensive analysis ${comprehensive.id} failed:`, err);
+        prisma.analysis
+          .update({
+            where: { id: comprehensive.id },
+            data: { status: "failed", errorMessage: String(err) },
+          })
+          .catch(console.error);
+      });
+    }
+
+    return NextResponse.json({
+      userId: user.id,
+      comprehensiveAnalysisId,
+    });
+  } catch (err) {
+    console.error("POST /api/analysis/[id]/claim error:", err);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

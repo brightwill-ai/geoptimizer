@@ -6,41 +6,50 @@ import { motion, AnimatePresence } from "framer-motion";
 interface LoadingStepProps {
   businessName: string;
   onComplete: () => void;
+  /** Real-time job statuses from API polling. Keys: chatgpt, claude, gemini, perplexity */
+  jobStatuses?: Record<string, string>;
 }
 
-const STAGES = [
-  { message: "Searching ChatGPT", icon: "#10a37f" },
-  { message: "Querying Claude", icon: "#c084fc" },
-  { message: "Checking Gemini", icon: "#4285f4" },
-  { message: "Scanning Perplexity", icon: "#ff6b35" },
-  { message: "Analyzing citations & sentiment", icon: null },
-  { message: "Generating your report", icon: null },
+const LLM_BADGES = [
+  { id: "chatgpt", name: "ChatGPT", color: "#10a37f" },
+  { id: "claude", name: "Claude", color: "#c084fc" },
+  { id: "gemini", name: "Gemini", color: "#4285f4" },
 ];
 
-const STAGE_DURATION = 1100;
-const TOTAL_DURATION = STAGES.length * STAGE_DURATION;
+const MESSAGES = [
+  "Querying AI engines",
+  "Analyzing citations",
+  "Evaluating sentiment",
+  "Comparing competitors",
+  "Generating report",
+];
 
-export function LoadingStep({ businessName, onComplete }: LoadingStepProps) {
-  const [currentStage, setCurrentStage] = useState(0);
+export function LoadingStep({ businessName, onComplete, jobStatuses }: LoadingStepProps) {
+  const [messageIndex, setMessageIndex] = useState(0);
 
+  // Cycle through messages
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentStage((prev) => {
-        if (prev >= STAGES.length - 1) {
-          clearInterval(interval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, STAGE_DURATION);
+      setMessageIndex((prev) => (prev + 1) % MESSAGES.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
 
-    const timeout = setTimeout(onComplete, TOTAL_DURATION + 400);
+  // Compute real progress from job statuses
+  const completedCount = jobStatuses
+    ? LLM_BADGES.filter((b) => jobStatuses[b.id] === "complete" || jobStatuses[b.id] === "failed").length
+    : 0;
+  const totalJobs = LLM_BADGES.length;
+  const progress = jobStatuses ? (completedCount / totalJobs) * 100 : 0;
 
-    return () => {
-      clearInterval(interval);
-      clearTimeout(timeout);
-    };
-  }, [onComplete]);
+  // If no real statuses (mock mode), check if parent will call onComplete
+  // Otherwise auto-complete when all jobs done
+  useEffect(() => {
+    if (jobStatuses && completedCount >= totalJobs) {
+      const timer = setTimeout(onComplete, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [jobStatuses, completedCount, totalJobs, onComplete]);
 
   return (
     <motion.div
@@ -84,45 +93,54 @@ export function LoadingStep({ businessName, onComplete }: LoadingStepProps) {
         </div>
 
         {/* LLM badges */}
-        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-          {STAGES.slice(0, 4).map((stage, i) => (
-            <div
-              key={i}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "6px 14px",
-                borderRadius: 999,
-                background: currentStage >= i ? "#ffffff" : "rgba(255,255,255,0.5)",
-                border: `1px solid ${currentStage >= i ? "#dddbd7" : "transparent"}`,
-                boxShadow: currentStage === i ? "0 2px 12px rgba(0,0,0,0.08)" : "none",
-                transition: "all 0.3s ease",
-                transform: currentStage === i ? "scale(1.05)" : "scale(1)",
-              }}
-            >
-              <span
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          {LLM_BADGES.map((badge) => {
+            const status = jobStatuses?.[badge.id];
+            const isDone = status === "complete" || status === "failed";
+            const isRunning = status === "running";
+
+            return (
+              <div
+                key={badge.id}
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: stage.icon!,
-                  opacity: currentStage >= i ? 1 : 0.3,
-                  transition: "opacity 0.3s",
-                }}
-              />
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  fontWeight: 600,
-                  color: currentStage >= i ? "#0c0c0b" : "#9a9793",
-                  transition: "color 0.3s",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "6px 14px",
+                  borderRadius: 999,
+                  background: isDone ? "#ffffff" : isRunning ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)",
+                  border: `1px solid ${isDone ? "#dddbd7" : "transparent"}`,
+                  boxShadow: isRunning ? "0 2px 12px rgba(0,0,0,0.08)" : "none",
+                  transition: "all 0.3s ease",
+                  transform: isRunning ? "scale(1.05)" : "scale(1)",
                 }}
               >
-                {stage.message.split(" ").pop()}
-              </span>
-            </div>
-          ))}
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: "50%",
+                    background: badge.color,
+                    opacity: isDone ? 1 : isRunning ? 0.8 : 0.3,
+                    transition: "opacity 0.3s",
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: "0.75rem",
+                    fontWeight: 600,
+                    color: isDone ? "#0c0c0b" : isRunning ? "#3a3936" : "#9a9793",
+                    transition: "color 0.3s",
+                  }}
+                >
+                  {badge.name}
+                </span>
+                {isDone && (
+                  <span style={{ fontSize: "0.65rem", color: "#16a34a" }}>✓</span>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Progress bar */}
@@ -140,17 +158,17 @@ export function LoadingStep({ businessName, onComplete }: LoadingStepProps) {
               height: "100%",
               borderRadius: 2,
               background: "#0c0c0b",
-              transition: `width ${STAGE_DURATION}ms linear`,
-              width: `${((currentStage + 1) / STAGES.length) * 100}%`,
+              transition: "width 0.5s ease-out",
+              width: `${Math.max(progress, 5)}%`,
             }}
           />
         </div>
 
-        {/* Current stage message */}
+        {/* Current message */}
         <div style={{ height: 24, position: "relative" }}>
           <AnimatePresence mode="wait">
             <motion.p
-              key={currentStage}
+              key={messageIndex}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
@@ -161,7 +179,7 @@ export function LoadingStep({ businessName, onComplete }: LoadingStepProps) {
                 margin: 0,
               }}
             >
-              {STAGES[currentStage].message}...
+              {MESSAGES[messageIndex]}...
             </motion.p>
           </AnimatePresence>
         </div>
