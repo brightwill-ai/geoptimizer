@@ -111,6 +111,7 @@ async function runProviderAnalysis(
   provider: LLMProvider,
   businessName: string,
   location: string,
+  category: string,
   tier: "fast" | "comprehensive",
   jobId: string
 ): Promise<LLMReport> {
@@ -127,7 +128,7 @@ async function runProviderAnalysis(
     // Send all prompts to this provider
     const rawResponses: string[] = [];
     for (const promptTemplate of prompts) {
-      const prompt = promptTemplate.generate(businessName, location);
+      const prompt = promptTemplate.generate(businessName, location, category);
       const response = await queryWithRetry(provider, prompt, tier);
       rawResponses.push(response);
     }
@@ -176,9 +177,10 @@ export async function runAnalysis(
   analysisId: string,
   businessName: string,
   location: string,
+  category: string,
   tier: "fast" | "comprehensive"
 ): Promise<void> {
-  console.log(`[Analysis ${analysisId}] Starting ${tier} analysis for "${businessName}" in "${location}"`);
+  console.log(`[Analysis ${analysisId}] Starting ${tier} analysis for "${businessName}" (${category}) in "${location}"`);
 
   // Update status
   await prisma.analysis.update({
@@ -199,7 +201,7 @@ export async function runAnalysis(
         console.warn(`No job found for provider ${provider.id}`);
         return Promise.resolve(aggregateToLLMReport(provider, [], businessName));
       }
-      return runProviderAnalysis(provider.id, businessName, location, tier, job.id);
+      return runProviderAnalysis(provider.id, businessName, location, category, tier, job.id);
     })
   );
 

@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { BUSINESS_CATEGORIES } from "@/lib/agents/prompts";
 
 interface SearchStepProps {
-  onSubmit: (businessName: string, location: string) => void;
+  onSubmit: (businessName: string, location: string, category: string) => void;
 }
 
 export function SearchStep({ onSubmit }: SearchStepProps) {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [locationLoading, setLocationLoading] = useState(true);
+  const [category, setCategory] = useState("restaurant");
+  const [customCategory, setCustomCategory] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
 
   // Auto-detect location from IP
   useEffect(() => {
@@ -25,10 +29,38 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name.trim() && location.trim()) onSubmit(name.trim(), location.trim());
+    const finalCategory = showCustom ? customCategory.trim() : category;
+    if (name.trim() && location.trim() && finalCategory) {
+      onSubmit(name.trim(), location.trim(), finalCategory);
+    }
   };
 
-  const isValid = name.trim() && location.trim();
+  const handleCategoryChange = (value: string) => {
+    if (value === "__other") {
+      setShowCustom(true);
+      setCategory("");
+    } else {
+      setShowCustom(false);
+      setCustomCategory("");
+      setCategory(value);
+    }
+  };
+
+  const isValid = name.trim() && location.trim() && (showCustom ? customCategory.trim() : category);
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "0.875rem 1.25rem",
+    fontSize: "1rem",
+    fontFamily: "'Instrument Sans', sans-serif",
+    borderRadius: 12,
+    border: "1px solid #dddbd7",
+    background: "#ffffff",
+    color: "#0c0c0b",
+    outline: "none",
+    boxSizing: "border-box",
+    transition: "border-color 0.15s",
+  };
 
   return (
     <motion.div
@@ -123,7 +155,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             margin: 0,
           }}
         >
-          Enter your restaurant or business name and we&apos;ll analyze how AI
+          Enter your business name and we&apos;ll analyze how AI
           engines see, rank, and recommend you.
         </motion.p>
 
@@ -145,20 +177,8 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Hana Sushi Miami"
-            style={{
-              width: "100%",
-              padding: "0.875rem 1.25rem",
-              fontSize: "1rem",
-              fontFamily: "'Instrument Sans', sans-serif",
-              borderRadius: 12,
-              border: "1px solid #dddbd7",
-              background: "#ffffff",
-              color: "#0c0c0b",
-              outline: "none",
-              boxSizing: "border-box",
-              transition: "border-color 0.15s",
-            }}
+            placeholder="e.g. Hana Sushi, Peak Fitness, BrightSmile Dental"
+            style={inputStyle}
             onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
             onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
           />
@@ -167,22 +187,52 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder={locationLoading ? "Detecting your location..." : "e.g. Miami, FL"}
-            style={{
-              width: "100%",
-              padding: "0.875rem 1.25rem",
-              fontSize: "1rem",
-              fontFamily: "'Instrument Sans', sans-serif",
-              borderRadius: 12,
-              border: "1px solid #dddbd7",
-              background: "#ffffff",
-              color: "#0c0c0b",
-              outline: "none",
-              boxSizing: "border-box",
-              transition: "border-color 0.15s",
-            }}
+            style={inputStyle}
             onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
             onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
           />
+
+          {/* Category selector */}
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <select
+              value={showCustom ? "__other" : category}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+              style={{
+                ...inputStyle,
+                flex: showCustom ? "0 0 auto" : "1",
+                width: showCustom ? "auto" : "100%",
+                cursor: "pointer",
+                appearance: "none",
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%239a9793' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`,
+                backgroundRepeat: "no-repeat",
+                backgroundPosition: "right 1rem center",
+                paddingRight: "2.5rem",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
+              onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
+            >
+              {BUSINESS_CATEGORIES.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.label}
+                </option>
+              ))}
+              <option value="__other">Other...</option>
+            </select>
+
+            {showCustom && (
+              <input
+                type="text"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="e.g. Pet Grooming, Tutoring"
+                autoFocus
+                style={{ ...inputStyle, flex: 1 }}
+                onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
+                onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
+              />
+            )}
+          </div>
+
           <button
             type="submit"
             disabled={!isValid}

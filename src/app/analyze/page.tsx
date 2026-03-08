@@ -130,7 +130,7 @@ export default function AnalyzePage() {
     }, 2000);
   };
 
-  const handleSearch = async (name: string, location: string) => {
+  const handleSearch = async (name: string, location: string, category: string) => {
     setBusinessName(name);
     setError(null);
     setJobStatuses({});
@@ -141,7 +141,7 @@ export default function AnalyzePage() {
       const res = await fetch("/api/analysis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ businessName: name, location, tier: "fast" }),
+        body: JSON.stringify({ businessName: name, location, category, tier: "fast" }),
       });
 
       const data = await res.json();

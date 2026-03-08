@@ -7,6 +7,7 @@ import { LLM_PROVIDERS } from "@/lib/mock-data";
 const AnalysisInput = z.object({
   businessName: z.string().min(1).max(200),
   location: z.string().min(1).max(200),
+  category: z.string().min(1).max(100).default("restaurant"),
   tier: z.enum(["fast", "comprehensive"]).default("fast"),
 });
 
@@ -54,15 +55,17 @@ export async function POST(request: Request) {
       );
     }
 
-    const { businessName, location, tier } = parsed.data;
+    const { businessName, location, category, tier } = parsed.data;
     const normalizedName = businessName.trim().toLowerCase();
     const normalizedLocation = location.trim().toLowerCase();
+    const normalizedCategory = category.trim().toLowerCase();
 
-    // Cache check: recent completed analysis for same business+location+tier
+    // Cache check: recent completed analysis for same business+location+category+tier
     const cached = await prisma.analysis.findFirst({
       where: {
         businessName: normalizedName,
         location: normalizedLocation,
+        category: normalizedCategory,
         tier,
         status: "complete",
         expiresAt: { gt: new Date() },
@@ -87,6 +90,7 @@ export async function POST(request: Request) {
       data: {
         businessName: normalizedName,
         location: normalizedLocation,
+        category: normalizedCategory,
         tier,
         status: "pending",
         expiresAt,
@@ -100,7 +104,7 @@ export async function POST(request: Request) {
     });
 
     // Fire and forget — do NOT await
-    runAnalysis(analysis.id, businessName, location, tier).catch((err) => {
+    runAnalysis(analysis.id, businessName, location, category, tier).catch((err) => {
       console.error(`Analysis ${analysis.id} failed:`, err);
       prisma.analysis
         .update({

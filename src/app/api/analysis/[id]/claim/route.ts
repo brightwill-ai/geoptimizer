@@ -67,6 +67,7 @@ export async function POST(
           userId: user.id,
           businessName: analysis.businessName,
           location: analysis.location,
+          category: analysis.category,
           tier: "comprehensive",
           status: "pending",
           expiresAt,
@@ -86,6 +87,7 @@ export async function POST(
         comprehensive.id,
         analysis.businessName,
         analysis.location,
+        analysis.category,
         "comprehensive"
       ).catch((err) => {
         console.error(`Comprehensive analysis ${comprehensive.id} failed:`, err);

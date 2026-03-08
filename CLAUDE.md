@@ -84,10 +84,10 @@ Frontend polls GET /api/analysis/[id] every 2s ────────┘
 
 ### Step-by-step
 
-1. **Search step** (`search-step.tsx`): User enters business name + location. Location auto-detected via `GET /api/location` (ip-api.com).
+1. **Search step** (`search-step.tsx`): User enters business name + location + category. Location auto-detected via `GET /api/location` (ip-api.com). Category is a dropdown with 10 presets (Restaurant, Gym, Salon, HVAC, Dental, Legal, Real Estate, SaaS, E-commerce, Agency) plus "Other..." for custom text input. Category drives prompt generation so queries are domain-appropriate.
 
 2. **POST /api/analysis** (`analysis/route.ts`):
-   - Cache check: reuses existing analysis if same business+location within 24h (fast) or 72h (comprehensive)
+   - Cache check: reuses existing analysis if same business+location+category within 24h (fast) or 72h (comprehensive)
    - Rate limit: 5 per IP per hour (in-memory Map)
    - Creates 1 `Analysis` row + 3 `LLMJob` rows (one per provider)
    - Calls `runAnalysis()` **without await** (fire-and-forget background work)
@@ -115,9 +115,14 @@ Frontend polls GET /api/analysis/[id] every 2s ────────┘
 
 9. **Full report** (`full-report.tsx`): All 3 LLMs in tabs + cross-platform comparison table.
 
+### Prompts (category-aware)
+All prompts in `prompts.ts` take `(businessName, location, category)` and generate natural-language queries appropriate to the business type. Helper functions `categoryPlural()` and `categoryDescriptor()` convert category IDs to natural language (e.g. "gym" → "gyms and fitness centers", "place to work out").
+
+Categories defined in `BUSINESS_CATEGORIES` array (exported from `prompts.ts`): restaurant, gym, salon, hvac, dental, legal, realtor, saas, ecommerce, agency. Custom categories use the raw string in prompts.
+
 ### Two tiers
 - **Fast** (15-30s): 3 prompts per LLM (discovery, direct, comparison). Cache: 24h.
-- **Comprehensive** (async): 8 prompts per LLM (adds use_case, reviews, menu, rephrased). Cache: 72h.
+- **Comprehensive** (async): 8 prompts per LLM (adds use_case x2, reviews, specifics, rephrased_discovery). Cache: 72h.
 
 ## Data Model
 
@@ -131,8 +136,8 @@ model User {
 }
 
 model Analysis {
-  id, userId?, businessName, location, tier, status, resultJson?, errorMessage?,
-  startedAt, completedAt?, expiresAt, createdAt, llmJobs[]
+  id, userId?, businessName, location, category (default "restaurant"), tier, status,
+  resultJson?, errorMessage?, startedAt, completedAt?, expiresAt, createdAt, llmJobs[]
   @@index([businessName, location, tier])
 }
 
@@ -215,10 +220,19 @@ Requires GitHub secret: `SERVER_PASSWORD`
 
 ## Agent Instructions
 
-### When adding new features
-- Update this CLAUDE.md with the feature flow
-- Update `.claude/skills.md` if it affects frontend patterns
+### MANDATORY: Update documentation after every change
+After completing ANY code change — feature, bugfix, refactor, schema change, etc. — you MUST update documentation before considering the task done. This is not optional.
+
+1. **`CLAUDE.md`** (this file): Update the relevant section (architecture, data model, API reference, project structure, etc.) to reflect the change. If adding a new feature, document its full flow.
+2. **`.claude/skills.md`**: Update if the change introduces new UI patterns, components, colors, or layout conventions.
+3. **`prisma/schema.prisma`** section in this file: Update the Data Model section if any models changed.
+4. **API Reference table**: Update if any endpoints were added or modified.
+
+If you skip documentation, the next agent will make incorrect assumptions and break things. Treat docs updates as part of the implementation, not a follow-up.
+
+### Code conventions
 - `mock-data.ts` is the source of truth for LLM provider list and TypeScript types
+- `prompts.ts` exports `BUSINESS_CATEGORIES` — the source of truth for category options
 - Components that iterate `LLM_PROVIDERS` auto-adjust when providers change
 - Always run `npm run type-check` after changes
 

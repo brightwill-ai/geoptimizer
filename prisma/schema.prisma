@@ -31,6 +31,7 @@ model Analysis {
   user         User?     @relation(fields: [userId], references: [id])
   businessName String
   location     String
+  category     String    @default("restaurant")
   tier         String    @default("fast")
   status       String    @default("pending")
   resultJson   String?
