@@ -22,7 +22,7 @@ export const BUSINESS_CATEGORIES = [
 export type BusinessCategory = (typeof BUSINESS_CATEGORIES)[number]["id"] | string;
 
 // Helper: pluralize category for natural language
-function categoryPlural(category: string): string {
+export function categoryPlural(category: string): string {
   const map: Record<string, string> = {
     restaurant: "restaurants",
     gym: "gyms and fitness centers",
@@ -39,7 +39,7 @@ function categoryPlural(category: string): string {
 }
 
 // Helper: category-appropriate descriptor
-function categoryDescriptor(category: string): string {
+export function categoryDescriptor(category: string): string {
   const map: Record<string, string> = {
     restaurant: "place to eat",
     gym: "place to work out",
@@ -123,8 +123,11 @@ Return a JSON object with exactly these fields:
   "competitorsMentioned": [{"name": "business name", "context": "brief description"}],
   "factualClaims": [{"field": "address" | "services" | "specialty" | "price_range" | "hours" | "phone" | "website" | "established", "value": "claimed value"}],
   "topicsAssociated": ["topic1", "topic2"],
-  "categoryInferred": "e.g. Japanese Restaurants, Personal Injury Lawyers, CrossFit Gyms" | null
+  "categoryInferred": "e.g. Japanese Restaurants, Personal Injury Lawyers, CrossFit Gyms" | null,
+  "sourcesCited": [{"name": "Yelp", "sourceType": "review_platform"}, {"name": "Google Maps", "sourceType": "directory"}]
 }
+
+sourceType must be one of: "review_platform", "directory", "news", "social_media", "official_site", "other"
 
 Rules:
 - Only include sentimentPhrases that directly relate to "${businessName}"
@@ -132,5 +135,6 @@ Rules:
 - Be precise with rankPosition (1 = first recommended, 2 = second, etc.)
 - Extract ALL competitors mentioned in the response
 - Extract ALL factual claims about the business (services, pricing, specialties, etc.)
+- Extract ALL sources/platforms referenced (Yelp, Google Reviews, TripAdvisor, news sites, official websites, social media, etc.)
 - Return ONLY valid JSON, no other text`;
 }

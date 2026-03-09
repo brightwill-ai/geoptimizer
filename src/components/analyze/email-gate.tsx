@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 interface EmailGateProps {
   analysisId: string;
-  onSubmit: (email: string, name?: string) => void;
+  onSubmit: (comprehensiveAnalysisId: string) => void;
   onClose: () => void;
 }
 
@@ -29,12 +29,12 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
         body: JSON.stringify({ email: email.trim(), name: name.trim() || undefined }),
       });
 
+      const data = await res.json();
       if (!res.ok) {
-        const data = await res.json();
         throw new Error(data.error || "Failed to submit");
       }
 
-      onSubmit(email.trim(), name.trim() || undefined);
+      onSubmit(data.comprehensiveAnalysisId);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -43,6 +43,19 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
   };
 
   const isValid = email.includes("@") && email.includes(".");
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "0.7rem 1rem",
+    fontSize: "0.85rem",
+    fontFamily: "'Instrument Sans', sans-serif",
+    borderRadius: 8,
+    border: "1px solid #22232a",
+    background: "#1a1b21",
+    color: "#ffffff",
+    outline: "none",
+    boxSizing: "border-box",
+  };
 
   return (
     <motion.div
@@ -56,7 +69,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "rgba(12, 12, 11, 0.4)",
+        background: "rgba(0, 0, 0, 0.6)",
         backdropFilter: "blur(4px)",
         padding: "1rem",
       }}
@@ -70,13 +83,13 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
         exit={{ opacity: 0, y: 20, scale: 0.97 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         style={{
-          background: "#faf9f7",
-          borderRadius: 24,
-          border: "1px solid #dddbd7",
+          background: "#14151a",
+          borderRadius: 12,
+          border: "1px solid #22232a",
           padding: "2.5rem",
           maxWidth: 440,
           width: "100%",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
           position: "relative",
         }}
       >
@@ -97,11 +110,11 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
             alignItems: "center",
             justifyContent: "center",
             fontSize: "1.1rem",
-            color: "#9a9793",
+            color: "rgba(255,255,255,0.4)",
             transition: "color 0.15s",
           }}
-          onMouseOver={(e) => (e.currentTarget.style.color = "#0c0c0b")}
-          onMouseOut={(e) => (e.currentTarget.style.color = "#9a9793")}
+          onMouseOver={(e) => (e.currentTarget.style.color = "#ffffff")}
+          onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
         >
           ✕
         </button>
@@ -111,25 +124,16 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
             fontFamily: "'Instrument Sans', sans-serif",
             fontSize: "1.5rem",
             fontWeight: 700,
-            color: "#0c0c0b",
+            color: "#ffffff",
             margin: "0 0 0.5rem 0",
             lineHeight: 1.2,
           }}
         >
-          Unlock your complete{" "}
-          <span
-            style={{
-              fontFamily: "'Instrument Serif', serif",
-              fontStyle: "italic",
-              fontWeight: 400,
-            }}
-          >
-            GEO report
-          </span>
+          Unlock your complete GEO report
         </h2>
 
-        <p style={{ fontSize: "0.85rem", color: "#9a9793", margin: "0 0 1.5rem 0", lineHeight: 1.5 }}>
-          Get the full analysis across all AI engines — free.
+        <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.5)", margin: "0 0 1.5rem 0", lineHeight: 1.5 }}>
+          We&apos;ll run 40+ queries across all 3 AI platforms and email you when ready (typically 5-15 minutes).
         </p>
 
         {/* Benefits */}
@@ -144,10 +148,11 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
           }}
         >
           {[
-            "Analysis across ChatGPT, Claude, Gemini & Perplexity",
-            "Detailed competitor comparison",
-            "Information accuracy audit",
-            "Actionable optimization insights",
+            "Full analysis across ChatGPT, Claude & Gemini",
+            "40+ real queries with response evidence",
+            "Source influence map — what drives AI recommendations",
+            "Verification prompts you can test yourself",
+            "Actionable optimization playbook",
           ].map((item) => (
             <li
               key={item}
@@ -156,7 +161,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
                 alignItems: "flex-start",
                 gap: 8,
                 fontSize: "0.8rem",
-                color: "#3a3936",
+                color: "rgba(255,255,255,0.7)",
               }}
             >
               <span style={{ color: "#16a34a", fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✓</span>
@@ -178,20 +183,9 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name (optional)"
-            style={{
-              width: "100%",
-              padding: "0.7rem 1rem",
-              fontSize: "0.85rem",
-              fontFamily: "'Instrument Sans', sans-serif",
-              borderRadius: 10,
-              border: "1px solid #dddbd7",
-              background: "#ffffff",
-              color: "#0c0c0b",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
-            onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
+            style={inputStyle}
+            onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
+            onBlur={(e) => (e.target.style.borderColor = "#22232a")}
           />
           <input
             type="email"
@@ -199,20 +193,9 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="your@email.com"
             required
-            style={{
-              width: "100%",
-              padding: "0.7rem 1rem",
-              fontSize: "0.85rem",
-              fontFamily: "'Instrument Sans', sans-serif",
-              borderRadius: 10,
-              border: "1px solid #dddbd7",
-              background: "#ffffff",
-              color: "#0c0c0b",
-              outline: "none",
-              boxSizing: "border-box",
-            }}
-            onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
-            onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
+            style={inputStyle}
+            onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
+            onBlur={(e) => (e.target.style.borderColor = "#22232a")}
           />
           <button
             type="submit"
@@ -223,12 +206,11 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
               fontSize: "0.85rem",
               fontWeight: 600,
               fontFamily: "'Instrument Sans', sans-serif",
-              borderRadius: 10,
+              borderRadius: 8,
               border: "none",
-              background: isValid && !loading ? "#0c0c0b" : "#9a9793",
-              color: "#ffffff",
+              background: isValid && !loading ? "#ffffff" : "rgba(255,255,255,0.2)",
+              color: isValid && !loading ? "#0c0d10" : "rgba(255,255,255,0.4)",
               cursor: isValid && !loading ? "pointer" : "not-allowed",
-              opacity: isValid && !loading ? 1 : 0.6,
               transition: "all 0.15s",
             }}
           >
@@ -239,7 +221,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
         <p
           style={{
             fontSize: "0.7rem",
-            color: "#9a9793",
+            color: "rgba(255,255,255,0.3)",
             textAlign: "center",
             margin: "1rem 0 0 0",
           }}

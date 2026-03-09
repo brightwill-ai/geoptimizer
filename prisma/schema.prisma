@@ -26,21 +26,27 @@ model User {
 }
 
 model Analysis {
-  id           String    @id @default(cuid())
-  userId       String?
-  user         User?     @relation(fields: [userId], references: [id])
-  businessName String
-  location     String
-  category     String    @default("restaurant")
-  tier         String    @default("fast")
-  status       String    @default("pending")
-  resultJson   String?
-  errorMessage String?
-  startedAt    DateTime  @default(now())
-  completedAt  DateTime?
-  expiresAt    DateTime
-  createdAt    DateTime  @default(now())
-  llmJobs      LLMJob[]
+  id                        String            @id @default(cuid())
+  userId                    String?
+  user                      User?             @relation(fields: [userId], references: [id])
+  businessName              String
+  location                  String
+  category                  String            @default("restaurant")
+  tier                      String            @default("fast")
+  status                    String            @default("pending")
+  resultJson                String?
+  errorMessage              String?
+  queryCount                Int               @default(0)
+  recommendationProbability Float?
+  methodology               String?
+  shareToken                String?           @unique
+  startedAt                 DateTime          @default(now())
+  completedAt               DateTime?
+  expiresAt                 DateTime
+  createdAt                 DateTime          @default(now())
+  llmJobs                   LLMJob[]
+  queryExecutions           QueryExecution[]
+  sourceInfluences          SourceInfluence[]
 
   @@index([businessName, location, tier])
   @@index([status])
@@ -62,4 +68,58 @@ model LLMJob {
   createdAt    DateTime  @default(now())
 
   @@index([analysisId, provider])
+}
+
+model QueryTemplate {
+  id         String           @id @default(cuid())
+  category   String
+  queryType  String
+  template   String
+  tier       String           @default("free")
+  isActive   Boolean          @default(true)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  executions QueryExecution[]
+
+  @@index([category, tier, isActive])
+}
+
+model QueryExecution {
+  id                String         @id @default(cuid())
+  analysisId        String
+  analysis          Analysis       @relation(fields: [analysisId], references: [id])
+  queryTemplateId   String?
+  queryTemplate     QueryTemplate? @relation(fields: [queryTemplateId], references: [id])
+  provider          String
+  promptSent        String
+  rawResponse       String         @default("")
+  parsedJson        String?
+  modelVersion      String         @default("")
+  responseTimeMs    Int?
+  businessMentioned Boolean        @default(false)
+  mentionType       String?
+  rankPosition      Int?
+  sentiment         String?
+  status            String         @default("pending")
+  errorMessage      String?
+  createdAt         DateTime       @default(now())
+
+  @@index([analysisId, provider])
+  @@index([provider, createdAt])
+  @@index([queryTemplateId])
+}
+
+model SourceInfluence {
+  id            String   @id @default(cuid())
+  analysisId    String
+  analysis      Analysis @relation(fields: [analysisId], references: [id])
+  sourceType    String
+  sourceName    String
+  provider      String
+  citationCount Int      @default(0)
+  influence     String   @default("unknown")
+  createdAt     DateTime @default(now())
+
+  @@index([analysisId])
+  @@index([sourceType, provider])
 }

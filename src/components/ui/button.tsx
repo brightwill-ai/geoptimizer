@@ -1,7 +1,6 @@
 "use client";
 
 import { forwardRef } from "react";
-import { cn } from "@/lib/utils";
 
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -26,7 +25,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = {
       fontFamily: "'Instrument Sans', sans-serif",
       fontWeight: 500,
-      borderRadius: "999px",
+      borderRadius: "8px",
       cursor: disabled || isLoading ? "not-allowed" : "pointer",
       opacity: disabled || isLoading ? 0.5 : 1,
       transition: "all 0.15s",
@@ -39,18 +38,18 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary: {
-        background: "#0c0c0b",
-        color: "white",
+        background: "#ffffff",
+        color: "#0c0d10",
       },
       secondary: {
         background: "transparent",
-        color: "#0c0c0b",
-        border: "1px solid #dddbd7",
+        color: "#ffffff",
+        border: "1px solid #22232a",
       },
       outline: {
         background: "transparent",
-        color: "#0c0c0b",
-        border: "1px solid #c8c5c0",
+        color: "#ffffff",
+        border: "1px solid rgba(255,255,255,0.2)",
       },
     };
 
@@ -76,8 +75,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           e.currentTarget.style.opacity = "0.85";
           e.currentTarget.style.transform = "translateY(-1px)";
         } else {
-          e.currentTarget.style.borderColor = "#0c0c0b";
-          e.currentTarget.style.background = "rgba(0,0,0,0.04)";
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.4)";
+          e.currentTarget.style.background = "rgba(255,255,255,0.05)";
         }
       }
     };
@@ -89,7 +88,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         if (variant !== "primary") {
           e.currentTarget.style.background = "transparent";
           e.currentTarget.style.borderColor =
-            variant === "outline" ? "#c8c5c0" : "#dddbd7";
+            variant === "outline" ? "rgba(255,255,255,0.2)" : "#22232a";
         }
       }
     };

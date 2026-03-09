@@ -3,11 +3,14 @@ import type {
   LLMReport,
   LLMInfo,
   CitationMetrics,
+  RecommendationMetrics,
   SentimentBreakdown,
   CategoryRanking,
   TopicAssociation,
   CompetitorEntry,
   InformationAccuracy,
+  SourceCitation,
+  SourceInfluenceEntry,
   GEOAnalysis,
   LLMProvider,
 } from "@/lib/mock-data";
@@ -137,6 +140,37 @@ export function aggregateToLLMReport(
     };
   });
 
+  // Recommendation metrics
+  const totalQueries = parsed.length;
+  const mentionCount = totalMentions;
+  const recommendations: RecommendationMetrics = {
+    totalQueries,
+    mentionCount,
+    primaryRecommendationCount: primaryRecs,
+    passingMentionCount: passingMentions,
+    notMentionedCount: totalQueries - mentionCount,
+    recommendationProbability: totalQueries > 0 ? mentionCount / totalQueries : 0,
+    primaryProbability: totalQueries > 0 ? primaryRecs / totalQueries : 0,
+    mentionTrend: 0,
+  };
+
+  // Sources
+  const sourceMap = new Map<string, { type: SourceCitation["sourceType"]; count: number }>();
+  for (const p of parsed) {
+    for (const src of p.sourcesCited ?? []) {
+      const existing = sourceMap.get(src.name);
+      if (existing) {
+        existing.count++;
+      } else {
+        sourceMap.set(src.name, { type: src.sourceType, count: 1 });
+      }
+    }
+  }
+  const sources: SourceCitation[] = Array.from(sourceMap.entries())
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 10)
+    .map(([name, data]) => ({ name, sourceType: data.type, count: data.count }));
+
   // Overall score
   const overallScore = computeGEOScore(citations, sentiment, ranking, topics, accuracy, parsed.length);
 
@@ -144,14 +178,27 @@ export function aggregateToLLMReport(
     provider,
     overallScore,
     citations,
+    recommendations,
     sentiment,
     ranking,
     topics,
     competitors,
     accuracy,
+    queryResults: [],
+    sources,
   };
 }
 
+/**
+ * New GEO Score (0-100) based on recommendation probability methodology.
+ *
+ * Weights:
+ * - Recommendation probability (40%): are you being mentioned at all?
+ * - Primary recommendation rate (25%): are you the TOP recommendation?
+ * - Sentiment score (15%): when mentioned, is it positive?
+ * - Topic breadth (10%): how many query types trigger you?
+ * - Information accuracy (10%): is the AI's info correct?
+ */
 function computeGEOScore(
   citations: CitationMetrics,
   sentiment: SentimentBreakdown,
@@ -160,29 +207,29 @@ function computeGEOScore(
   accuracy: InformationAccuracy[],
   totalPrompts: number
 ): number {
+  if (totalPrompts === 0) return 0;
+
   let score = 0;
 
-  // Citation score (0-30): based on mention rate
-  const mentionRate = totalPrompts > 0 ? citations.totalMentions / totalPrompts : 0;
-  score += Math.round(mentionRate * 30);
+  // Recommendation probability (0-40): mentions / totalQueries
+  const mentionRate = citations.totalMentions / totalPrompts;
+  score += Math.round(mentionRate * 40);
 
-  // Sentiment score (0-20): based on positive percentage
-  score += Math.round((sentiment.positive / 100) * 20);
+  // Primary recommendation rate (0-25): primary recs / totalQueries
+  const primaryRate = citations.primaryRecommendations / totalPrompts;
+  score += Math.round(primaryRate * 25);
 
-  // Ranking score (0-20): higher rank = better
-  if (ranking.position > 0 && ranking.totalCompetitors > 0) {
-    const rankPct = 1 - (ranking.position - 1) / ranking.totalCompetitors;
-    score += Math.round(rankPct * 20);
-  }
+  // Sentiment score (0-15): positive percentage when mentioned
+  score += Math.round((sentiment.positive / 100) * 15);
 
-  // Topic breadth (0-15): more topics = more visibility
+  // Topic breadth (0-10): how many query types trigger you
   const topicScore = Math.min(topics.length / 8, 1);
-  score += Math.round(topicScore * 15);
+  score += Math.round(topicScore * 10);
 
-  // Accuracy (0-15): more correct fields = better
+  // Accuracy (0-10): correct fields
   const correctFields = accuracy.filter((a) => a.status === "correct").length;
   const totalFields = accuracy.length || 1;
-  score += Math.round((correctFields / totalFields) * 15);
+  score += Math.round((correctFields / totalFields) * 10);
 
   return Math.min(Math.max(score, 0), 100);
 }
@@ -192,12 +239,55 @@ function createEmptyReport(provider: LLMInfo): LLMReport {
     provider,
     overallScore: 0,
     citations: { totalMentions: 0, primaryRecommendations: 0, passingMentions: 0, mentionTrend: 0 },
+    recommendations: {
+      totalQueries: 0, mentionCount: 0, primaryRecommendationCount: 0,
+      passingMentionCount: 0, notMentionedCount: 0,
+      recommendationProbability: 0, primaryProbability: 0, mentionTrend: 0,
+    },
     sentiment: { positive: 0, neutral: 100, negative: 0, overallScore: 0, samplePhrases: [] },
     ranking: { category: "Restaurants", position: 0, totalCompetitors: 0, topQueries: [] },
     topics: [],
     competitors: [],
     accuracy: [],
+    queryResults: [],
+    sources: [],
   };
+}
+
+/**
+ * Merge per-provider sources into cross-platform SourceInfluenceEntry[].
+ */
+function buildSourceInfluences(reports: Record<string, LLMReport>): SourceInfluenceEntry[] {
+  const map = new Map<string, { type: string; providers: Set<LLMProvider>; count: number }>();
+
+  for (const [providerId, report] of Object.entries(reports)) {
+    for (const src of report.sources ?? []) {
+      const existing = map.get(src.name);
+      if (existing) {
+        existing.providers.add(providerId as LLMProvider);
+        existing.count += src.count;
+      } else {
+        map.set(src.name, {
+          type: src.sourceType,
+          providers: new Set([providerId as LLMProvider]),
+          count: src.count,
+        });
+      }
+    }
+  }
+
+  return Array.from(map.entries())
+    .sort((a, b) => b[1].count - a[1].count)
+    .slice(0, 12)
+    .map(([name, data]) => ({
+      source: name,
+      sourceType: data.type,
+      citedBy: Array.from(data.providers),
+      citationCount: data.count,
+      influence: data.count >= 6 ? "high" as const
+        : data.count >= 3 ? "medium" as const
+        : "low" as const,
+    }));
 }
 
 /**
@@ -212,18 +302,41 @@ export function assembleGEOAnalysis(
 
   const entries = Object.entries(reports) as [LLMProvider, LLMReport][];
   const best = entries.sort((a, b) => b[1].overallScore - a[1].overallScore)[0]?.[0] ?? "chatgpt";
-  const worst = entries.sort((a, b) => a[1].overallScore - b[1].overallScore)[0]?.[0] ?? "perplexity";
+  const worst = entries.sort((a, b) => a[1].overallScore - b[1].overallScore)[0]?.[0] ?? "gemini";
   const totalCitations = Object.values(reports).reduce((sum, r) => sum + r.citations.totalMentions, 0);
+
+  const allProbs = Object.values(reports).map((r) => r.recommendations.recommendationProbability);
+  const avgProb = allProbs.length > 0 ? allProbs.reduce((a, b) => a + b, 0) / allProbs.length : 0;
+  const totalQueries = Object.values(reports).reduce((sum, r) => sum + r.recommendations.totalQueries, 0);
+
+  // Collect unique query types from all reports
+  const queryTypeSet = new Set<string>();
+  for (const report of Object.values(reports)) {
+    for (const qr of report.queryResults) {
+      queryTypeSet.add(qr.queryType);
+    }
+  }
 
   return {
     businessName,
     analyzedAt: new Date().toISOString(),
     reports,
+    methodology: {
+      totalQueries,
+      providers: LLM_PROVIDERS.map((p) => p.id),
+      dateRange: { start: new Date().toISOString(), end: new Date().toISOString() },
+      queryTypes: Array.from(queryTypeSet),
+      verificationPrompts: [],
+      disclaimer: "Results reflect a statistical sample and individual queries may vary.",
+    },
+    sourceInfluences: buildSourceInfluences(reports),
     summary: {
       averageScore: avgScore,
+      averageProbability: parseFloat(avgProb.toFixed(2)),
       bestPerformer: best,
       worstPerformer: worst,
       totalCitations,
+      totalQueries,
       overallSentiment: avgScore > 65 ? "positive" : avgScore > 40 ? "neutral" : "negative",
       scoreTrend: 0,
     },

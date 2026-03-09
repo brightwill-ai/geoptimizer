@@ -8,7 +8,7 @@ export const ParsedResponseSchema = z.object({
   mentionType: z.enum(["primary_recommendation", "passing_mention", "not_mentioned"]),
   rankPosition: z.number().nullable(),
   totalInList: z.number().nullable(),
-  sentimentTowardBusiness: z.enum(["positive", "neutral", "negative"]),
+  sentimentTowardBusiness: z.enum(["positive", "neutral", "negative"]).nullable(),
   sentimentPhrases: z.array(
     z.object({
       text: z.string(),
@@ -29,6 +29,12 @@ export const ParsedResponseSchema = z.object({
   ),
   topicsAssociated: z.array(z.string()),
   categoryInferred: z.string().nullable(),
+  sourcesCited: z.array(
+    z.object({
+      name: z.string(),
+      sourceType: z.enum(["review_platform", "directory", "news", "social_media", "official_site", "other"]),
+    })
+  ).default([]),
 });
 
 export type ParsedResponse = z.infer<typeof ParsedResponseSchema>;

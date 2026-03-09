@@ -2,54 +2,60 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { LLM_PROVIDERS } from "@/lib/mock-data";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 
 interface LoadingStepProps {
   businessName: string;
   onComplete: () => void;
-  /** Real-time job statuses from API polling. Keys: chatgpt, claude, gemini, perplexity */
+  /** Real-time job statuses from API polling. Keys: chatgpt, claude, gemini */
   jobStatuses?: Record<string, string>;
+  /** Query execution progress from API polling */
+  queryProgress?: {
+    completed: number;
+    total: number;
+    currentQueryText: string | null;
+  };
+  /** "fast" shows ChatGPT only, "comprehensive" shows all 3 providers */
+  tier?: "fast" | "comprehensive";
 }
 
-const LLM_BADGES = [
-  { id: "chatgpt", name: "ChatGPT", color: "#10a37f" },
-  { id: "claude", name: "Claude", color: "#c084fc" },
-  { id: "gemini", name: "Gemini", color: "#4285f4" },
-];
+export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgress, tier = "fast" }: LoadingStepProps) {
+  const [dots, setDots] = useState("");
 
-const MESSAGES = [
-  "Querying AI engines",
-  "Analyzing citations",
-  "Evaluating sentiment",
-  "Comparing competitors",
-  "Generating report",
-];
-
-export function LoadingStep({ businessName, onComplete, jobStatuses }: LoadingStepProps) {
-  const [messageIndex, setMessageIndex] = useState(0);
-
-  // Cycle through messages
+  // Animate dots
   useEffect(() => {
     const interval = setInterval(() => {
-      setMessageIndex((prev) => (prev + 1) % MESSAGES.length);
-    }, 2500);
+      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 500);
     return () => clearInterval(interval);
   }, []);
 
-  // Compute real progress from job statuses
-  const completedCount = jobStatuses
-    ? LLM_BADGES.filter((b) => jobStatuses[b.id] === "complete" || jobStatuses[b.id] === "failed").length
-    : 0;
-  const totalJobs = LLM_BADGES.length;
-  const progress = jobStatuses ? (completedCount / totalJobs) * 100 : 0;
+  // Compute real progress from query executions
+  const qCompleted = queryProgress?.completed ?? 0;
+  const qTotal = queryProgress?.total ?? 5;
+  const progress = qTotal > 0 ? (qCompleted / qTotal) * 100 : 0;
 
-  // If no real statuses (mock mode), check if parent will call onComplete
-  // Otherwise auto-complete when all jobs done
+  const isComprehensive = tier === "comprehensive";
+  const providers = isComprehensive ? LLM_PROVIDERS : LLM_PROVIDERS.filter((p) => p.id === "chatgpt");
+
+  // Determine if all relevant jobs are done
+  const allDone = providers.every((p) => {
+    const status = jobStatuses?.[p.id];
+    return status === "complete" || status === "failed";
+  });
+  const completedCount = providers.filter((p) => {
+    const status = jobStatuses?.[p.id];
+    return status === "complete" || status === "failed";
+  }).length;
+
+  // Auto-complete when all jobs finish
   useEffect(() => {
-    if (jobStatuses && completedCount >= totalJobs) {
+    if (allDone) {
       const timer = setTimeout(onComplete, 500);
       return () => clearTimeout(timer);
     }
-  }, [jobStatuses, completedCount, totalJobs, onComplete]);
+  }, [allDone, onComplete]);
 
   return (
     <motion.div
@@ -62,7 +68,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses }: LoadingSt
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        background: "linear-gradient(180deg, #f0eeea 0%, #e8e4f0 50%, #ddd6ee 100%)",
+        background: "#0c0d10",
       }}
     >
       <div
@@ -78,109 +84,139 @@ export function LoadingStep({ businessName, onComplete, jobStatuses }: LoadingSt
       >
         {/* Business name */}
         <div>
-          <p style={{ fontSize: "0.8rem", color: "#9a9793", margin: "0 0 4px 0" }}>Analyzing</p>
+          <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", margin: "0 0 4px 0" }}>
+            {isComprehensive ? "Running comprehensive analysis" : "Analyzing"}
+          </p>
           <h2
             style={{
               fontFamily: "'Instrument Sans', sans-serif",
               fontSize: "1.5rem",
               fontWeight: 700,
-              color: "#0c0c0b",
+              color: "#ffffff",
               margin: 0,
             }}
           >
             {businessName}
           </h2>
+          {isComprehensive && (
+            <p style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.3)", margin: "6px 0 0" }}>
+              40+ queries across 3 AI platforms — this may take a few minutes
+            </p>
+          )}
         </div>
 
-        {/* LLM badges */}
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          {LLM_BADGES.map((badge) => {
-            const status = jobStatuses?.[badge.id];
-            const isDone = status === "complete" || status === "failed";
-            const isRunning = status === "running";
+        {/* Provider badges */}
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
+          {providers.map((p) => {
+            const status = jobStatuses?.[p.id];
+            const done = status === "complete" || status === "failed";
+            const running = status === "running";
 
             return (
               <div
-                key={badge.id}
+                key={p.id}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 6,
-                  padding: "6px 14px",
+                  gap: 8,
+                  padding: "8px 18px",
                   borderRadius: 999,
-                  background: isDone ? "#ffffff" : isRunning ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.5)",
-                  border: `1px solid ${isDone ? "#dddbd7" : "transparent"}`,
-                  boxShadow: isRunning ? "0 2px 12px rgba(0,0,0,0.08)" : "none",
+                  background: done ? "#14151a" : running ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${done ? "#22232a" : running ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.05)"}`,
+                  boxShadow: running ? "0 2px 12px rgba(0,0,0,0.3)" : "none",
                   transition: "all 0.3s ease",
-                  transform: isRunning ? "scale(1.05)" : "scale(1)",
                 }}
               >
-                <span
+                <ProviderLogo
+                  provider={p.id}
+                  size={16}
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: "50%",
-                    background: badge.color,
-                    opacity: isDone ? 1 : isRunning ? 0.8 : 0.3,
+                    opacity: done || running ? 1 : 0.4,
                     transition: "opacity 0.3s",
                   }}
                 />
                 <span
                   style={{
-                    fontSize: "0.75rem",
+                    fontSize: "0.8rem",
                     fontWeight: 600,
-                    color: isDone ? "#0c0c0b" : isRunning ? "#3a3936" : "#9a9793",
+                    color: done || running ? "#ffffff" : "rgba(255,255,255,0.4)",
                     transition: "color 0.3s",
                   }}
                 >
-                  {badge.name}
+                  {p.name}
                 </span>
-                {isDone && (
-                  <span style={{ fontSize: "0.65rem", color: "#16a34a" }}>✓</span>
+                {done && (
+                  <span style={{ fontSize: "0.7rem", color: status === "complete" ? "#16a34a" : "#dc2626" }}>
+                    {status === "complete" ? "✓" : "✕"}
+                  </span>
                 )}
               </div>
             );
           })}
         </div>
 
-        {/* Progress bar */}
-        <div
-          style={{
-            width: "100%",
-            height: 3,
-            borderRadius: 2,
-            background: "#dddbd7",
-            overflow: "hidden",
-          }}
-        >
+        {/* Query progress counter */}
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 8 }}>
           <div
             style={{
-              height: "100%",
-              borderRadius: 2,
-              background: "#0c0c0b",
-              transition: "width 0.5s ease-out",
-              width: `${Math.max(progress, 5)}%`,
+              fontSize: "0.85rem",
+              fontWeight: 600,
+              color: "#ffffff",
             }}
-          />
+          >
+            {isComprehensive
+              ? `${completedCount} of ${providers.length} platforms complete — query ${Math.min(qCompleted + 1, qTotal)} of ${qTotal}${dots}`
+              : `Running query ${Math.min(qCompleted + 1, qTotal)} of ${qTotal}${dots}`}
+          </div>
+
+          {/* Progress bar */}
+          <div
+            style={{
+              width: "100%",
+              height: 3,
+              borderRadius: 2,
+              background: "rgba(255,255,255,0.08)",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                borderRadius: 2,
+                background: "#ffffff",
+                transition: "width 0.5s ease-out",
+                width: `${Math.max(progress, 5)}%`,
+              }}
+            />
+          </div>
         </div>
 
-        {/* Current message */}
-        <div style={{ height: 24, position: "relative" }}>
+        {/* Current query text */}
+        <div style={{ height: 40, position: "relative", width: "100%" }}>
           <AnimatePresence mode="wait">
-            <motion.p
-              key={messageIndex}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.25 }}
-              style={{
-                fontSize: "0.85rem",
-                color: "#9a9793",
-                margin: 0,
-              }}
-            >
-              {MESSAGES[messageIndex]}...
-            </motion.p>
+            {queryProgress?.currentQueryText && (
+              <motion.p
+                key={queryProgress.currentQueryText}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                style={{
+                  fontSize: "0.8rem",
+                  color: "rgba(255,255,255,0.4)",
+                  margin: 0,
+                  fontStyle: "italic",
+                  lineHeight: 1.4,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                }}
+              >
+                &ldquo;{queryProgress.currentQueryText}&rdquo;
+              </motion.p>
+            )}
           </AnimatePresence>
         </div>
       </div>

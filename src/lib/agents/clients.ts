@@ -38,11 +38,11 @@ export const MODEL_CONFIG = {
   },
   claude: {
     fast: "claude-haiku-4-5-20251001",
-    comprehensive: "claude-sonnet-4-5-20250514",
+    comprehensive: "claude-sonnet-4-20250514",
   },
   gemini: {
     fast: "gemini-2.0-flash",
-    comprehensive: "gemini-2.5-pro-preview-06-05",
+    comprehensive: "gemini-2.0-flash",
   },
   // Parser model (always cheap)
   parser: "gpt-4o-mini",

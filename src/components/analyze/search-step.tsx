@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BUSINESS_CATEGORIES } from "@/lib/agents/prompts";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 
 interface SearchStepProps {
   onSubmit: (businessName: string, location: string, category: string) => void;
@@ -53,10 +54,10 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
     padding: "0.875rem 1.25rem",
     fontSize: "1rem",
     fontFamily: "'Instrument Sans', sans-serif",
-    borderRadius: 12,
-    border: "1px solid #dddbd7",
-    background: "#ffffff",
-    color: "#0c0c0b",
+    borderRadius: 8,
+    border: "1px solid #22232a",
+    background: "#1a1b21",
+    color: "#ffffff",
     outline: "none",
     boxSizing: "border-box",
     transition: "border-color 0.15s",
@@ -73,7 +74,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        background: "linear-gradient(180deg, #f0eeea 0%, #e8e4f0 50%, #ddd6ee 100%)",
+        background: "#0c0d10",
       }}
     >
       <div
@@ -100,7 +101,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             fontWeight: 600,
             textTransform: "uppercase",
             letterSpacing: "0.08em",
-            color: "#9a9793",
+            color: "rgba(255,255,255,0.4)",
           }}
         >
           <span
@@ -111,7 +112,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               background: "#16a34a",
             }}
           />
-          Free GEO Analysis
+          Instant AI Audit
         </motion.div>
 
         {/* Heading */}
@@ -124,22 +125,12 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             fontSize: "clamp(2rem, 5vw, 3rem)",
             fontWeight: 700,
             lineHeight: 1.1,
-            color: "#0c0c0b",
+            color: "#ffffff",
             letterSpacing: "-0.03em",
             margin: 0,
           }}
         >
-          See how AI{" "}
-          <span
-            style={{
-              fontFamily: "'Instrument Serif', serif",
-              fontStyle: "italic",
-              fontWeight: 400,
-            }}
-          >
-            recommends
-          </span>{" "}
-          your business
+          See how AI recommends your business
         </motion.h1>
 
         {/* Subtext */}
@@ -149,14 +140,14 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
           transition={{ delay: 0.3, duration: 0.5 }}
           style={{
             fontSize: "1rem",
-            color: "#9a9793",
+            color: "rgba(255,255,255,0.5)",
             lineHeight: 1.5,
             maxWidth: 420,
             margin: 0,
           }}
         >
-          Enter your business name and we&apos;ll analyze how AI
-          engines see, rank, and recommend you.
+          We run 5 real queries through ChatGPT and show you exactly
+          how likely it is to recommend your business.
         </motion.p>
 
         {/* Search Form */}
@@ -179,8 +170,8 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Hana Sushi, Peak Fitness, BrightSmile Dental"
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
-            onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
+            onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
+            onBlur={(e) => (e.target.style.borderColor = "#22232a")}
           />
           <input
             type="text"
@@ -188,8 +179,8 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             onChange={(e) => setLocation(e.target.value)}
             placeholder={locationLoading ? "Detecting your location..." : "e.g. Miami, FL"}
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
-            onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
+            onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
+            onBlur={(e) => (e.target.style.borderColor = "#22232a")}
           />
 
           {/* Category selector */}
@@ -203,13 +194,13 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 width: showCustom ? "auto" : "100%",
                 cursor: "pointer",
                 appearance: "none",
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%239a9793' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`,
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "right 1rem center",
                 paddingRight: "2.5rem",
               }}
-              onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
-              onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
+              onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
+              onBlur={(e) => (e.target.style.borderColor = "#22232a")}
             >
               {BUSINESS_CATEGORIES.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -227,8 +218,8 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 placeholder="e.g. Pet Grooming, Tutoring"
                 autoFocus
                 style={{ ...inputStyle, flex: 1 }}
-                onFocus={(e) => (e.target.style.borderColor = "#0c0c0b")}
-                onBlur={(e) => (e.target.style.borderColor = "#dddbd7")}
+                onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
+                onBlur={(e) => (e.target.style.borderColor = "#22232a")}
               />
             )}
           </div>
@@ -242,13 +233,12 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               fontSize: "0.9rem",
               fontWeight: 600,
               fontFamily: "'Instrument Sans', sans-serif",
-              borderRadius: 12,
+              borderRadius: 8,
               border: "none",
-              background: isValid ? "#0c0c0b" : "#9a9793",
-              color: "#ffffff",
+              background: isValid ? "#ffffff" : "rgba(255,255,255,0.2)",
+              color: isValid ? "#0c0d10" : "rgba(255,255,255,0.4)",
               cursor: isValid ? "pointer" : "not-allowed",
               transition: "all 0.15s",
-              opacity: isValid ? 1 : 0.6,
             }}
           >
             Analyze my business
@@ -263,38 +253,26 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 16,
+            gap: 8,
             marginTop: "1rem",
           }}
         >
-          <span style={{ fontSize: "0.72rem", color: "#9a9793" }}>Analyzed across</span>
-          {[
-            { name: "ChatGPT", color: "#10a37f" },
-            { name: "Claude", color: "#c084fc" },
-            { name: "Gemini", color: "#4285f4" },
-          ].map((llm) => (
-            <span
-              key={llm.name}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                color: "#3a3936",
-              }}
-            >
-              <span
-                style={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  background: llm.color,
-                }}
-              />
-              {llm.name}
-            </span>
-          ))}
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              fontSize: "0.75rem",
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.6)",
+            }}
+          >
+            <ProviderLogo provider="chatgpt" size={14} />
+            Powered by ChatGPT
+          </span>
+          <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.3)" }}>
+            · Free · 30 seconds
+          </span>
         </motion.div>
       </div>
     </motion.div>

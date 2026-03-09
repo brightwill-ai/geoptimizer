@@ -31,7 +31,7 @@ export function ScoreRing({
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#dddbd7"
+            stroke="rgba(255,255,255,0.08)"
             strokeWidth={strokeWidth}
           />
           {/* Fill */}
@@ -40,7 +40,7 @@ export function ScoreRing({
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#0c0c0b"
+            stroke="#ffffff"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -62,17 +62,17 @@ export function ScoreRing({
             fontFamily: "var(--font-sans, 'Instrument Sans', sans-serif)",
             fontSize: size * 0.28,
             fontWeight: 700,
-            color: "#0c0c0b",
+            color: "#ffffff",
           }}
         >
           {score}
         </div>
       </div>
       {label && (
-        <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#0c0c0b" }}>{label}</span>
+        <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#ffffff" }}>{label}</span>
       )}
       {sublabel && (
-        <span style={{ fontSize: "0.75rem", color: "#9a9793" }}>{sublabel}</span>
+        <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{sublabel}</span>
       )}
       <style jsx>{`
         @keyframes score-fill {

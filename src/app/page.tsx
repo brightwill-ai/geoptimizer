@@ -2,8 +2,134 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { ProviderLogo } from "@/components/ui/provider-logo";
 
-// Navigation Component
+// ── Shared scroll-reveal hook ──
+function useReveal(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add("visible");
+        });
+      },
+      { threshold }
+    );
+    const targets = el.querySelectorAll(
+      ".reveal, .reveal-scale, .reveal-left, .reveal-right, .reveal-blur"
+    );
+    targets.forEach((t) => observer.observe(t));
+    return () => observer.disconnect();
+  }, [ref, threshold]);
+}
+
+// ── Animated Counter ──
+function AnimatedCounter({
+  end,
+  suffix = "",
+  duration = 1800,
+}: {
+  end: number;
+  suffix?: string;
+  duration?: number;
+}) {
+  const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !started) setStarted(true);
+      },
+      { threshold: 0.5 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [started]);
+
+  useEffect(() => {
+    if (!started) return;
+    const startTime = performance.now();
+    const tick = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * end));
+      if (progress < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [started, end, duration]);
+
+  return (
+    <span ref={ref}>
+      {count}
+      {suffix}
+    </span>
+  );
+}
+
+// ── Probability Ring ──
+function ProbabilityRing({
+  value,
+  size = 72,
+}: {
+  value: number;
+  size?: number;
+}) {
+  const strokeWidth = 6;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / 100) * circumference;
+  const color = value >= 60 ? "#16a34a" : value >= 30 ? "#d97706" : "#dc2626";
+
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke="rgba(255,255,255,0.08)"
+          strokeWidth={strokeWidth}
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1)" }}
+        />
+      </svg>
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: size * 0.22,
+          fontWeight: 700,
+          color: "#ffffff",
+        }}
+      >
+        {value}%
+      </div>
+    </div>
+  );
+}
+
+// ── Navigation ──
 function Nav() {
   return (
     <nav
@@ -18,9 +144,9 @@ function Nav() {
         justifyContent: "space-between",
         padding: "0 2.5rem",
         height: "60px",
-        background: "rgba(240,238,234,0.88)",
+        background: "rgba(12,13,16,0.85)",
         backdropFilter: "blur(16px)",
-        borderBottom: "1px solid #dddbd7",
+        borderBottom: "1px solid #22232a",
       }}
     >
       <Link
@@ -30,7 +156,7 @@ function Nav() {
           fontWeight: 700,
           fontSize: "1.05rem",
           letterSpacing: "-0.02em",
-          color: "#0c0c0b",
+          color: "#ffffff",
           textDecoration: "none",
         }}
       >
@@ -48,147 +174,125 @@ function Nav() {
           transform: "translateX(-50%)",
         }}
       >
-        <li>
-          <a href="#features" className="nav-link">
-            Features
-          </a>
-        </li>
-        <li>
-          <a href="#how" className="nav-link">
-            How it works
-          </a>
-        </li>
-        <li>
-          <a href="#pricing" className="nav-link">
-            Pricing
-          </a>
-        </li>
-        <li>
-          <Link href="/analyze" className="nav-link">
-            Free audit
-          </Link>
-        </li>
+        <li><a href="#features" className="nav-link">Features</a></li>
+        <li><a href="#how" className="nav-link">How it works</a></li>
+        <li><a href="#pricing" className="nav-link">Pricing</a></li>
       </ul>
 
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-        <Link href="/signup" className="btn-pill">
-          Join waitlist
+        <Link href="/analyze" className="btn-pill">
+          Get free audit
         </Link>
       </div>
     </nav>
   );
 }
 
-// Globe Card Component
-function GlobeCard() {
+// ── Hero Report Mockup (replaces GlobeCard) ──
+function HeroReportMockup() {
+  const queries = [
+    { text: "Best sushi in Miami", mentioned: true },
+    { text: "Where to get omakase near downtown Miami", mentioned: true },
+    { text: "Top Japanese restaurants Brickell", mentioned: false },
+    { text: "Romantic dinner spots Miami Beach", mentioned: true },
+  ];
+
   return (
     <div
-      className="globe-card"
       style={{
-        background: "linear-gradient(145deg, #dce8f5 0%, #ede8f8 50%, #f5e8e8 100%)",
-        borderRadius: "28px",
-        padding: "3rem 2rem",
-        aspectRatio: "1 / 1.05",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        position: "relative",
-        overflow: "hidden",
-        border: "1px solid rgba(255,255,255,0.8)",
-        boxShadow: "0 2px 40px rgba(0,0,0,0.06)",
+        background: "#14151a",
+        borderRadius: 12,
+        border: "1px solid rgba(255,255,255,0.08)",
+        padding: "1.75rem",
+        maxWidth: 440,
+        width: "100%",
+        boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
       }}
     >
-      <div
-        className="globe-wrap"
-        style={{
-          position: "relative",
-          width: "220px",
-          height: "220px",
-          marginBottom: "2rem",
-        }}
-      >
-        {/* Globe sphere */}
-        <div
-          className="globe-sphere"
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1.25rem" }}>
+        <ProviderLogo provider="chatgpt" size={16} />
+        <span
           style={{
-            width: "220px",
-            height: "220px",
-            borderRadius: "50%",
-            background:
-              "radial-gradient(circle at 38% 38%, rgba(255,255,255,0.9) 0%, rgba(180,210,245,0.6) 40%, rgba(200,185,235,0.4) 70%, rgba(235,185,185,0.3) 100%)",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            boxShadow:
-              "inset -15px -15px 40px rgba(150,130,200,0.2), 0 8px 40px rgba(150,130,200,0.15)",
-          }}
-        />
-
-        {/* Globe grid */}
-        <div
-          className="globe-grid"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "220px",
-            height: "220px",
-            borderRadius: "50%",
-            overflow: "hidden",
+            fontSize: "0.72rem",
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            color: "rgba(255,255,255,0.4)",
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              background: `
-                repeating-linear-gradient(0deg, transparent, transparent 30px, rgba(100,130,180,0.15) 30px, rgba(100,130,180,0.15) 31px),
-                repeating-linear-gradient(90deg, transparent, transparent 30px, rgba(100,130,180,0.15) 30px, rgba(100,130,180,0.15) 31px)
-              `,
-              borderRadius: "50%",
-            }}
-          />
-        </div>
+          ChatGPT Audit &mdash; Hana Sushi Miami
+        </span>
+      </div>
 
-        {/* AI Labels */}
-        <div className="ai-label" style={{ top: "-12px", right: "-20px", animationDelay: "0s" }}>
-          <span className="ai-dot" style={{ background: "#10a37f" }} />
-          ChatGPT
-        </div>
-        <div className="ai-label" style={{ bottom: "30px", left: "-30px", animationDelay: "1s" }}>
-          <span className="ai-dot" style={{ background: "#c084fc" }} />
-          Claude
-        </div>
-        <div className="ai-label" style={{ bottom: "-14px", right: "0px", animationDelay: "2s" }}>
-          <span className="ai-dot" style={{ background: "#4285f4" }} />
-          Gemini
-        </div>
-        <div className="ai-label" style={{ top: "60px", left: "-40px", animationDelay: "1.5s" }}>
-          <span className="ai-dot" style={{ background: "#ff6b35" }} />
-          Perplexity
+      {/* Probability */}
+      <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1.5rem" }}>
+        <ProbabilityRing value={60} size={72} />
+        <div>
+          <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#ffffff" }}>
+            60% probability
+          </div>
+          <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>
+            Recommended in 3 of 5 queries
+          </div>
         </div>
       </div>
 
-      <p
-        className="globe-caption"
+      {/* Query evidence */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {queries.map((item, i) => (
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "7px 10px",
+              borderRadius: 8,
+              background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "transparent",
+            }}
+          >
+            <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.7)" }}>
+              &ldquo;{item.text}&rdquo;
+            </span>
+            <span
+              style={{
+                padding: "2px 8px",
+                borderRadius: 999,
+                background: item.mentioned ? "rgba(22,163,74,0.15)" : "rgba(220,38,38,0.15)",
+                color: item.mentioned ? "#4ade80" : "#f87171",
+                fontSize: "0.65rem",
+                fontWeight: 600,
+                flexShrink: 0,
+                marginLeft: 10,
+              }}
+            >
+              {item.mentioned ? "Recommended" : "Not mentioned"}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <div
         style={{
-          fontSize: "0.78rem",
-          color: "#9a9793",
-          letterSpacing: "0.04em",
-          textAlign: "center",
+          marginTop: "1rem",
+          paddingTop: "0.75rem",
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          fontSize: "0.7rem",
+          color: "rgba(255,255,255,0.3)",
         }}
       >
-        Your business, surfaced across every AI platform.
-      </p>
+        Based on 5 real ChatGPT queries
+      </div>
     </div>
   );
 }
 
-// Hero Section
+// ── Hero Section (DARK) ──
 function Hero() {
   return (
-    <section style={{ background: "#f0eeea" }}>
+    <section style={{ background: "#0c0d10" }}>
       <div
         className="hero"
         style={{
@@ -197,118 +301,202 @@ function Hero() {
           gridTemplateColumns: "1fr 1fr",
           gap: "3rem",
           alignItems: "center",
-          padding: "7rem 2.5rem 4rem",
-          maxWidth: "1200px",
+          padding: "8rem 2.5rem 5rem",
+          maxWidth: "1140px",
           margin: "0 auto",
         }}
       >
-        <div className="hero-left" style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          <span className="eyebrow animate-up" style={{ animationDelay: "0.1s" }}>
-            <span
-              style={{
-                width: "5px",
-                height: "5px",
-                background: "#0c0c0b",
-                borderRadius: "50%",
-              }}
-            />
-            Generative Engine Optimization
+        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+          <span
+            className="animate-up"
+            style={{
+              animationDelay: "0.1s",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              fontSize: "0.72rem",
+              fontWeight: 600,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.4)",
+              marginBottom: "1.5rem",
+            }}
+          >
+            <span style={{ width: 5, height: 5, background: "#ffffff", borderRadius: "50%" }} />
+            AI Visibility Audit
           </span>
 
-          <h1 className="animate-up" style={{ animationDelay: "0.2s" }}>
+          <h1
+            className="animate-up"
+            style={{
+              animationDelay: "0.2s",
+              fontFamily: "'Instrument Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: "clamp(2.8rem, 4.5vw, 4rem)",
+              lineHeight: 1.05,
+              letterSpacing: "-0.04em",
+              marginBottom: "1.25rem",
+              color: "#ffffff",
+            }}
+          >
             Get your business
             <br />
-            <em>recommended</em>
+            recommended
             <br />
             by AI.
           </h1>
 
-          <p className="hero-sub animate-up" style={{ animationDelay: "0.3s" }}>
-            When someone asks ChatGPT or Google AI for the best restaurant near them, make sure
-            yours is the answer.
+          <p
+            className="animate-up"
+            style={{
+              animationDelay: "0.3s",
+              fontSize: "1rem",
+              color: "rgba(255,255,255,0.5)",
+              lineHeight: 1.65,
+              maxWidth: "40ch",
+              marginBottom: "2rem",
+            }}
+          >
+            We query ChatGPT, Claude, and Gemini with real customer questions
+            and measure how often they recommend your business. See your results
+            in 30 seconds.
           </p>
 
-          <div className="hero-btns animate-up" style={{ animationDelay: "0.4s" }}>
-            <Link href="/analyze" className="btn-pill">
-              Free AI audit →
+          <div className="animate-up" style={{ animationDelay: "0.4s", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+            <Link href="/analyze" className="btn-outline-light" style={{ gap: "0.4rem" }}>
+              Run free audit <span style={{ marginLeft: 2 }}>&rarr;</span>
             </Link>
-            <Link href="/signup" className="btn-pill-outline">
-              Join waitlist
-            </Link>
+            <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.3)" }}>
+              No signup. Real AI responses.
+            </span>
           </div>
         </div>
 
-        <div className="hero-right animate-up" style={{ animationDelay: "0.3s" }}>
-          <GlobeCard />
+        <div className="hero-right animate-up" style={{ animationDelay: "0.3s", display: "flex", justifyContent: "flex-end" }}>
+          <HeroReportMockup />
         </div>
       </div>
     </section>
   );
 }
 
-// Logos Strip
-function LogosStrip() {
-  const logos = [
-    "ChatGPT",
-    "Claude",
-    "Gemini",
-    "Perplexity",
-    "Copilot",
-    "Meta AI",
-    "Grok",
-    "You.com",
+// ── Platform Bar (replaces LogosStrip) ──
+function PlatformBar() {
+  const platforms = [
+    { name: "ChatGPT", color: "#10a37f" },
+    { name: "Claude", color: "#c084fc" },
+    { name: "Gemini", color: "#4285f4" },
   ];
 
   return (
     <div
-      className="logos-strip"
       style={{
-        borderTop: "1px solid #dddbd7",
-        borderBottom: "1px solid #dddbd7",
-        background: "#faf9f7",
-        padding: "1.4rem 2.5rem",
-        display: "flex",
-        alignItems: "center",
-        gap: "2rem",
-        overflow: "hidden",
+        borderBottom: "1px solid #22232a",
+        background: "#0c0d10",
+        padding: "1.1rem 2.5rem",
       }}
     >
-      <span
-        className="logos-label"
+      <div
         style={{
-          fontSize: "0.72rem",
-          letterSpacing: "0.08em",
-          textTransform: "uppercase",
-          color: "#9a9793",
-          whiteSpace: "nowrap",
-          flexShrink: 0,
+          maxWidth: "1140px",
+          margin: "0 auto",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "2.5rem",
         }}
       >
-        Optimized for
-      </span>
-      <div className="logos-scroll" style={{ overflow: "hidden", flex: 1 }}>
-        <div
-          className="logos-track"
+        <span
           style={{
-            display: "flex",
-            gap: "3.5rem",
-            alignItems: "center",
-            animation: "ticker 22s linear infinite",
+            fontSize: "0.72rem",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.4)",
+            fontWeight: 500,
           }}
         >
-          {[...logos, ...logos].map((logo, i) => (
-            <span
+          Analyzes responses from
+        </span>
+        {platforms.map((p) => (
+          <div
+            key={p.name}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <ProviderLogo provider={p.name.toLowerCase()} size={18} />
+            <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>
+              {p.name}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Stats Section ──
+function Stats() {
+  const ref = useRef<HTMLDivElement>(null);
+  useReveal(ref);
+
+  const stats = [
+    { value: 100, suffix: "M+", label: "Daily AI searches your customers are making" },
+    { value: 40, suffix: "+", label: "Real queries per comprehensive audit" },
+    { value: 3, suffix: "", label: "AI platforms tested simultaneously" },
+  ];
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        background: "#0c0d10",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "1140px",
+          margin: "0 auto",
+          padding: "5rem 2.5rem",
+        }}
+      >
+        <div
+          className="stats-grid"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 0,
+          }}
+        >
+          {stats.map((stat, i) => (
+            <div
               key={i}
+              className={`reveal-scale stagger-${i + 1}`}
               style={{
-                fontWeight: 600,
-                fontSize: "0.85rem",
-                color: "#b8b5b0",
-                whiteSpace: "nowrap",
-                letterSpacing: "-0.01em",
+                textAlign: "center",
+                padding: "1.5rem 2rem",
+                borderRight: i < 2 ? "1px solid #22232a" : "none",
               }}
             >
-              {logo}
-            </span>
+              <div
+                style={{
+                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontWeight: 700,
+                  fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
+                  letterSpacing: "-0.05em",
+                  lineHeight: 1,
+                  color: "#ffffff",
+                  marginBottom: "0.5rem",
+                }}
+              >
+                <AnimatedCounter end={stat.value} suffix={stat.suffix} />
+              </div>
+              <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.4 }}>
+                {stat.label}
+              </p>
+            </div>
           ))}
         </div>
       </div>
@@ -316,212 +504,190 @@ function LogosStrip() {
   );
 }
 
-// Dashboard Mockup for Features
-function DashboardMockup() {
+// ── How We Measure Section ──
+function HowWeMeasure() {
+  const ref = useRef<HTMLDivElement>(null);
+  useReveal(ref);
+
   return (
     <div
-      className="dash-card"
+      ref={ref}
       style={{
-        background: "white",
-        borderRadius: "16px",
-        padding: "1.25rem 1.5rem",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
-        maxWidth: "320px",
-        margin: "0 auto",
+        background: "#0c0d10",
       }}
     >
       <div
-        className="dash-header"
         style={{
-          fontSize: "0.7rem",
-          fontWeight: 600,
-          letterSpacing: "0.06em",
-          textTransform: "uppercase",
-          color: "#9a9793",
-          marginBottom: "1rem",
-          display: "flex",
-          justifyContent: "space-between",
-        }}
-      >
-        <span>GEO Score</span>
-        <span style={{ color: "#2d6a4f", fontSize: "0.7rem" }}>↑ 12 pts this month</span>
-      </div>
-
-      <div
-        className="dash-score-row"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1rem",
-          marginBottom: "1.25rem",
+          maxWidth: "1140px",
+          margin: "0 auto",
+          padding: "6rem 2.5rem",
         }}
       >
         <div
-          className="dash-score-circle"
+          className="measure-grid"
           style={{
-            width: "56px",
-            height: "56px",
-            borderRadius: "50%",
-            background: "conic-gradient(#0c0c0b 0% 78%, #e8e5e0 78% 100%)",
-            display: "flex",
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "4rem",
             alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
-            position: "relative",
           }}
         >
-          <div
-            style={{
-              position: "absolute",
-              fontSize: "0.8rem",
-              fontWeight: 700,
-              color: "#0c0c0b",
-              background: "white",
-              width: "40px",
-              height: "40px",
-              borderRadius: "50%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            78
-          </div>
-        </div>
-        <div className="dash-score-info" style={{ fontSize: "0.78rem" }}>
-          <div className="dash-score-label" style={{ fontWeight: 600, color: "#0c0c0b" }}>
-            Hana Sushi Miami
-          </div>
-          <div className="dash-score-sub" style={{ color: "#9a9793" }}>
-            GEO visibility score
-          </div>
-        </div>
-      </div>
-
-      <div className="dash-bars" style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-        {[
-          { label: "ChatGPT", pct: 84 },
-          { label: "Claude", pct: 71 },
-          { label: "Gemini", pct: 68 },
-          { label: "Perplexity", pct: 55 },
-        ].map((item) => (
-          <div
-            key={item.label}
-            className="dash-bar-row"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "0.75rem",
-              fontSize: "0.72rem",
-            }}
-          >
-            <span
-              className="dash-bar-label"
-              style={{ color: "#9a9793", width: "60px", flexShrink: 0 }}
-            >
-              {item.label}
-            </span>
-            <div
-              className="dash-bar-track"
+          {/* Left */}
+          <div className="reveal-left">
+            <p
               style={{
-                flex: 1,
-                height: "5px",
-                background: "#ece9e4",
-                borderRadius: "999px",
-                overflow: "hidden",
+                fontSize: "0.72rem",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.4)",
+                marginBottom: "0.75rem",
+                fontWeight: 600,
+              }}
+            >
+              Our methodology
+            </p>
+            <h2
+              style={{
+                fontFamily: "'Instrument Sans', sans-serif",
+                fontWeight: 700,
+                fontSize: "clamp(1.8rem, 3vw, 2.4rem)",
+                letterSpacing: "-0.04em",
+                lineHeight: 1.1,
+                marginBottom: "1.5rem",
+                color: "#ffffff",
+              }}
+            >
+              Recommendation probability, not rank.
+            </h2>
+            <p
+              style={{
+                fontSize: "0.95rem",
+                color: "rgba(255,255,255,0.6)",
+                lineHeight: 1.65,
+                marginBottom: "1.5rem",
+              }}
+            >
+              AI responses change with every query. A single test tells you nothing.
+              We run dozens of real queries and measure the actual probability that each
+              AI engine recommends your business.
+            </p>
+            <Link href="/analyze" className="btn-pill-dark" style={{ display: "inline-flex", gap: "0.4rem" }}>
+              Try it free <span>&rarr;</span>
+            </Link>
+            <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", marginTop: "0.75rem" }}>
+              Transparent methodology. Every query visible.
+            </p>
+          </div>
+
+          {/* Right */}
+          <div className="reveal-right">
+            <div
+              style={{
+                background: "#14151a",
+                borderRadius: 12,
+                border: "1px solid #22232a",
+                padding: "1.75rem",
               }}
             >
               <div
-                className="dash-bar-fill"
                 style={{
-                  height: "100%",
-                  background: "#0c0c0b",
-                  borderRadius: "999px",
-                  width: `${item.pct}%`,
-                  transition: "width 1s ease",
+                  fontSize: "0.72rem",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
+                  color: "rgba(255,255,255,0.4)",
+                  marginBottom: "1rem",
                 }}
-              />
+              >
+                Example: Hana Sushi, Miami FL
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1.25rem" }}>
+                <ProbabilityRing value={60} size={72} />
+                <div>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#ffffff" }}>
+                    60% probability
+                  </div>
+                  <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>
+                    ChatGPT recommends in 3 of 5 queries
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  { query: "Best sushi in Miami", mentioned: true },
+                  { query: "Where to get omakase near downtown Miami", mentioned: true },
+                  { query: "Top Japanese restaurants Brickell", mentioned: false },
+                  { query: "Romantic dinner spots Miami Beach", mentioned: true },
+                  { query: "Best lunch spots near me Miami", mentioned: false },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "7px 10px",
+                      borderRadius: 8,
+                      background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "transparent",
+                    }}
+                  >
+                    <span style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.6)" }}>
+                      &ldquo;{item.query}&rdquo;
+                    </span>
+                    <span
+                      style={{
+                        padding: "2px 10px",
+                        borderRadius: 999,
+                        background: item.mentioned ? "rgba(22,163,74,0.15)" : "rgba(220,38,38,0.15)",
+                        color: item.mentioned ? "#4ade80" : "#f87171",
+                        fontSize: "0.68rem",
+                        fontWeight: 600,
+                        flexShrink: 0,
+                        marginLeft: 10,
+                      }}
+                    >
+                      {item.mentioned ? "Recommended" : "Not mentioned"}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <span
-              className="dash-bar-pct"
-              style={{ color: "#3a3936", fontWeight: 500, width: "30px", textAlign: "right" }}
-            >
-              {item.pct}%
-            </span>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );
 }
 
-// Features Section
-function Features() {
-  const [activeFeature, setActiveFeature] = useState(0);
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  const features = [
-    {
-      title: "AI-Optimized Profiles",
-      body: "We structure your business data in formats that AI models understand best — schema markup, entity relationships, and natural language descriptions that increase your recommendation probability.",
-    },
-    {
-      title: "GEO Visibility Score",
-      body: "Track exactly how often your business appears in AI-generated recommendations across ChatGPT, Claude, Gemini, and Perplexity. Watch your score improve month over month.",
-    },
-    {
-      title: "Citation Building",
-      body: "AI models cite authoritative sources. We get your business mentioned on the high-trust sites and directories that AI models use as training and retrieval sources.",
-    },
-    {
-      title: "AI-First Content",
-      body: "Monthly content written to answer exactly how customers phrase local discovery queries to AI — 'best omakase near downtown', 'most romantic dinner spot in Brickell'.",
-    },
-    {
-      title: "Competitive Intelligence",
-      body: "See which competitors are being recommended over you, and exactly what signals are driving their rankings. Then we close the gap.",
-    },
-  ];
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    const reveals = sectionRef.current?.querySelectorAll(".reveal");
-    reveals?.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
+// ── Report Showcase (DARK, wider, 2-column) ──
+function ReportShowcase() {
+  const ref = useRef<HTMLDivElement>(null);
+  useReveal(ref);
 
   return (
     <div
-      id="features"
-      className="section-wrap"
+      ref={ref}
       style={{
-        maxWidth: "1200px",
-        margin: "0 auto",
+        background: "linear-gradient(180deg, #0c0d10 0%, #14151a 100%)",
         padding: "6rem 2.5rem",
       }}
-      ref={sectionRef}
     >
-      <div
-        className="features-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "5rem",
-          alignItems: "start",
-        }}
-      >
-        <div className="features-left reveal">
+      <div style={{ maxWidth: "1140px", margin: "0 auto" }}>
+        <div className="reveal-scale" style={{ textAlign: "center", marginBottom: "3rem" }}>
+          <p
+            style={{
+              fontSize: "0.72rem",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.4)",
+              marginBottom: "0.75rem",
+              fontWeight: 600,
+            }}
+          >
+            Free audit output
+          </p>
           <h2
             style={{
               fontFamily: "'Instrument Sans', sans-serif",
@@ -529,301 +695,664 @@ function Features() {
               fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
               letterSpacing: "-0.04em",
               lineHeight: 1.1,
-              marginBottom: "2.5rem",
+              color: "#ffffff",
             }}
           >
-            Everything your business needs
-            <br />
-            to win in AI search.
+            Your report, in 30 seconds.
           </h2>
+        </div>
 
-          <div>
-            {features.map((feature, i) => (
+        {/* 2-column report mockup */}
+        <div
+          className="reveal-scale stagger-2 report-showcase-grid"
+          style={{
+            maxWidth: 960,
+            margin: "0 auto",
+            display: "grid",
+            gridTemplateColumns: "1.2fr 1fr",
+            gap: "1.25rem",
+          }}
+        >
+          {/* Left: Probability + Evidence */}
+          <div
+            style={{
+              background: "#14151a",
+              borderRadius: 12,
+              border: "1px solid rgba(255,255,255,0.06)",
+              padding: "2rem",
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1.5rem" }}>
+              <ProviderLogo provider="chatgpt" size={16} />
+              <span style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)" }}>
+                ChatGPT Audit &mdash; Hana Sushi Miami
+              </span>
+            </div>
+
+            {/* Probability */}
+            <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "2rem" }}>
+              <ProbabilityRing value={60} size={88} />
+              <div>
+                <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>
+                  Recommendation probability
+                </div>
+                <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#ffffff", lineHeight: 1.2 }}>
+                  60%
+                </div>
+                <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>
+                  Mentioned in 3 of 5 queries
+                </div>
+              </div>
+            </div>
+
+            {/* Query evidence */}
+            <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem" }}>
+              Query evidence
+            </div>
+            {[
+              { q: "Best sushi in Miami", mentioned: true },
+              { q: "Where to get omakase near downtown", mentioned: true },
+              { q: "Top Japanese restaurants Brickell", mentioned: false },
+              { q: "Romantic dinner spots Miami Beach", mentioned: true },
+              { q: "Best lunch spots near me Miami", mentioned: false },
+            ].map((item, i) => (
               <div
                 key={i}
-                className={`feature-item ${activeFeature === i ? "active" : ""}`}
-                onClick={() => setActiveFeature(i)}
                 style={{
-                  borderTop: "1px solid #dddbd7",
-                  padding: "1.25rem 0",
-                  cursor: "pointer",
-                  borderBottom: i === features.length - 1 ? "1px solid #dddbd7" : "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "7px 10px",
+                  borderRadius: 8,
+                  background: i % 2 === 0 ? "rgba(255,255,255,0.03)" : "transparent",
+                  marginBottom: 4,
                 }}
               >
-                <div
-                  className="feature-title"
+                <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.6)" }}>
+                  &ldquo;{item.q}&rdquo;
+                </span>
+                <span
                   style={{
-                    fontSize: "0.95rem",
+                    fontSize: "0.62rem",
                     fontWeight: 600,
-                    color: activeFeature === i ? "#0c0c0b" : "#9a9793",
-                    transition: "color 0.2s",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    background: item.mentioned ? "rgba(22,163,74,0.15)" : "rgba(220,38,38,0.15)",
+                    color: item.mentioned ? "#4ade80" : "#f87171",
+                    flexShrink: 0,
+                    marginLeft: 8,
                   }}
                 >
-                  {feature.title}
-                  <span
-                    className="feature-arrow"
-                    style={{
-                      fontSize: "0.7rem",
-                      transition: "transform 0.3s",
-                      transform: activeFeature === i ? "rotate(90deg)" : "none",
-                    }}
-                  >
-                    ›
-                  </span>
-                </div>
-                <div
-                  className="feature-body"
-                  style={{
-                    fontSize: "0.875rem",
-                    color: "#9a9793",
-                    lineHeight: 1.65,
-                    maxHeight: activeFeature === i ? "100px" : "0",
-                    overflow: "hidden",
-                    transition: "max-height 0.35s ease, padding 0.35s ease",
-                    paddingTop: activeFeature === i ? "0.6rem" : "0",
-                  }}
-                >
-                  {feature.body}
-                </div>
+                  {item.mentioned ? "Recommended" : "Not mentioned"}
+                </span>
               </div>
             ))}
           </div>
-        </div>
 
-        <div className="features-right reveal" style={{ position: "sticky", top: "5rem" }}>
-          <div
-            className="feature-card"
-            style={{
-              borderRadius: "24px",
-              overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.7)",
-              boxShadow: "0 2px 30px rgba(0,0,0,0.06)",
-              transition: "opacity 0.3s",
-            }}
-          >
+          {/* Right: Competitors + Sentiment */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+            {/* Competitors */}
             <div
-              className="feature-card-inner"
               style={{
-                background: "linear-gradient(150deg, #d8edf8 0%, #e8d8f8 100%)",
-                padding: "2rem",
-                minHeight: "380px",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                position: "relative",
+                background: "#14151a",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.06)",
+                padding: "1.5rem",
+                flex: 1,
               }}
             >
-              <DashboardMockup />
+              <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "1rem" }}>
+                Who AI recommends instead
+              </div>
+              {[
+                { name: "Sushi Garage", mentions: 4 },
+                { name: "Azabu Miami", mentions: 3 },
+                { name: "Naoe", mentions: 3 },
+                { name: "Hana Sushi", mentions: 3, self: true },
+                { name: "Zuma Miami", mentions: 2 },
+              ].map((c) => (
+                <div
+                  key={c.name}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "6px 0",
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "0.82rem",
+                      color: c.self ? "#ffffff" : "rgba(255,255,255,0.6)",
+                      fontWeight: c.self ? 600 : 400,
+                    }}
+                  >
+                    {c.name}
+                    {c.self && (
+                      <span style={{ fontSize: "0.62rem", color: "rgba(255,255,255,0.3)", marginLeft: 6 }}>
+                        (you)
+                      </span>
+                    )}
+                  </span>
+                  <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>
+                    {c.mentions}/5 queries
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Sentiment */}
+            <div
+              style={{
+                background: "#14151a",
+                borderRadius: 12,
+                border: "1px solid rgba(255,255,255,0.06)",
+                padding: "1.5rem",
+              }}
+            >
+              <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "1rem" }}>
+                Sentiment when mentioned
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "#4ade80" }}>78%</span>
+                <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.5)" }}>positive</span>
+              </div>
+              <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", background: "rgba(255,255,255,0.08)" }}>
+                <div style={{ width: "78%", background: "#16a34a", borderRadius: "3px 0 0 3px" }} />
+                <div style={{ width: "15%", background: "#d97706" }} />
+                <div style={{ width: "7%", background: "#dc2626", borderRadius: "0 3px 3px 0" }} />
+              </div>
+              <div style={{ display: "flex", gap: 16, marginTop: 8, fontSize: "0.68rem", color: "rgba(255,255,255,0.3)" }}>
+                <span>78% positive</span>
+                <span>15% neutral</span>
+                <span>7% negative</span>
+              </div>
             </div>
           </div>
+        </div>
+
+        {/* CTA */}
+        <div className="reveal-scale stagger-3" style={{ textAlign: "center", marginTop: "2.5rem" }}>
+          <Link
+            href="/analyze"
+            className="btn-pill-white"
+            style={{
+              background: "#ffffff",
+              color: "#0c0d10",
+              border: "none",
+              padding: "0.7rem 2rem",
+              borderRadius: 8,
+              fontFamily: "'Instrument Sans', sans-serif",
+              fontSize: "0.9rem",
+              fontWeight: 600,
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.4rem",
+              transition: "opacity 0.15s, transform 0.15s",
+              textDecoration: "none",
+            }}
+          >
+            Get your free report &rarr;
+          </Link>
+          <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.3)", marginTop: "0.75rem" }}>
+            Results in 30 seconds. No signup.
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-// How It Works Section
+// ── Features Section ──
+function Features() {
+  const ref = useRef<HTMLDivElement>(null);
+  useReveal(ref);
+
+  const features = [
+    {
+      title: "AI Recommendation Tracking",
+      body: "Track exactly how often your business appears in AI-generated recommendations across ChatGPT, Claude, and Gemini. See your recommendation probability backed by real data.",
+      visual: "probability",
+    },
+    {
+      title: "Query Evidence",
+      body: "See exactly what AI says about your business. Every query, every response, every mention \u2014 with full transparency into what drives AI recommendations.",
+      visual: "evidence",
+    },
+    {
+      title: "Source Influence Analysis",
+      body: "AI models cite authoritative sources. Understand which directories, review sites, and content platforms influence your AI visibility the most.",
+      visual: "citations",
+    },
+    {
+      title: "Competitive Intelligence",
+      body: "See which competitors are being recommended over you, and exactly what signals drive their rankings. Identify gaps and opportunities.",
+      visual: "competitors",
+    },
+  ];
+
+  return (
+    <div
+      id="features"
+      ref={ref}
+      style={{
+        background: "#0c0d10",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "1140px",
+          margin: "0 auto",
+          padding: "6rem 2.5rem",
+        }}
+      >
+        <div className="reveal-scale" style={{ marginBottom: "3.5rem", maxWidth: 600 }}>
+          <p
+            style={{
+              fontSize: "0.72rem",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.4)",
+              marginBottom: "0.75rem",
+              fontWeight: 600,
+            }}
+          >
+            Platform
+          </p>
+          <h2
+            style={{
+              fontFamily: "'Instrument Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.1,
+              color: "#ffffff",
+            }}
+          >
+            What your audit reveals.
+          </h2>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          {features.map((feature, i) => (
+            <div
+              key={i}
+              className={`reveal-scale feature-card-new stagger-${(i % 5) + 1}`}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "2.5rem",
+                alignItems: "center",
+                background: "#14151a",
+                borderRadius: 12,
+                border: "1px solid #22232a",
+                padding: "2.5rem",
+                transition: "transform 0.3s ease, box-shadow 0.3s ease",
+              }}
+            >
+              <div style={{ order: i % 2 === 0 ? 0 : 1 }}>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: 36,
+                    height: 36,
+                    borderRadius: 8,
+                    background: "rgba(255,255,255,0.06)",
+                    marginBottom: "1rem",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    color: "rgba(255,255,255,0.4)",
+                  }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+                <h3
+                  style={{
+                    fontFamily: "'Instrument Sans', sans-serif",
+                    fontSize: "1.25rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    marginBottom: "0.75rem",
+                    color: "#ffffff",
+                  }}
+                >
+                  {feature.title}
+                </h3>
+                <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.65 }}>
+                  {feature.body}
+                </p>
+              </div>
+              <div style={{ order: i % 2 === 0 ? 1 : 0 }}>
+                <FeatureVisual type={feature.visual} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Feature Card Visuals ──
+function FeatureVisual({ type }: { type: string }) {
+  const cardStyle: React.CSSProperties = {
+    background: "rgba(255,255,255,0.03)",
+    borderRadius: 10,
+    padding: "1.5rem",
+    minHeight: 200,
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "center",
+    border: "1px solid rgba(255,255,255,0.06)",
+  };
+
+  switch (type) {
+    case "probability":
+      return (
+        <div style={cardStyle}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem" }}>
+            <ProbabilityRing value={72} size={64} />
+            <div>
+              <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#ffffff" }}>72% probability</div>
+              <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>ChatGPT recommendation rate</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[
+              { label: "Claude", pct: 58, color: "#c084fc" },
+              { label: "Gemini", pct: 65, color: "#4285f4" },
+            ].map((p) => (
+              <div
+                key={p.label}
+                style={{
+                  flex: 1,
+                  background: "rgba(255,255,255,0.04)",
+                  borderRadius: 8,
+                  padding: "0.6rem 0.75rem",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
+                  <ProviderLogo provider={p.label.toLowerCase()} size={12} />
+                  <span style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.4)" }}>{p.label}</span>
+                </div>
+                <span style={{ fontSize: "1rem", fontWeight: 700, color: "#ffffff" }}>{p.pct}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+
+    case "evidence":
+      return (
+        <div style={cardStyle}>
+          {[
+            { q: "Best sushi in Miami", status: "Recommended", color: "#4ade80", bg: "rgba(22,163,74,0.15)" },
+            { q: "Top restaurants Brickell", status: "Mentioned", color: "#fbbf24", bg: "rgba(217,119,6,0.15)" },
+            { q: "Where to eat near me", status: "Not mentioned", color: "#f87171", bg: "rgba(220,38,38,0.15)" },
+          ].map((item, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "0.6rem 0.75rem",
+                borderRadius: 6,
+                background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "transparent",
+                marginBottom: 4,
+              }}
+            >
+              <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.6)" }}>&ldquo;{item.q}&rdquo;</span>
+              <span
+                style={{
+                  fontSize: "0.65rem",
+                  fontWeight: 600,
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  background: item.bg,
+                  color: item.color,
+                  flexShrink: 0,
+                  marginLeft: 8,
+                }}
+              >
+                {item.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+
+    case "citations":
+      return (
+        <div style={cardStyle}>
+          <div style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem" }}>
+            Source influence
+          </div>
+          {[
+            { name: "Google Business Profile", score: 92 },
+            { name: "Yelp", score: 78 },
+            { name: "TripAdvisor", score: 61 },
+            { name: "Local blogs", score: 34 },
+          ].map((src) => (
+            <div key={src.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.6)", width: 120, flexShrink: 0 }}>{src.name}</span>
+              <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ width: `${src.score}%`, height: "100%", background: "#ffffff", borderRadius: 2 }} />
+              </div>
+              <span style={{ fontSize: "0.68rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", width: 28, textAlign: "right" }}>{src.score}</span>
+            </div>
+          ))}
+        </div>
+      );
+
+    case "competitors":
+      return (
+        <div style={cardStyle}>
+          <div style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem" }}>
+            Competitive landscape
+          </div>
+          {[
+            { name: "Your business", pct: 72, highlight: true },
+            { name: "Competitor A", pct: 65, highlight: false },
+            { name: "Competitor B", pct: 48, highlight: false },
+            { name: "Competitor C", pct: 31, highlight: false },
+          ].map((c) => (
+            <div key={c.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <span style={{ fontSize: "0.72rem", color: c.highlight ? "#ffffff" : "rgba(255,255,255,0.4)", fontWeight: c.highlight ? 600 : 400, width: 100, flexShrink: 0 }}>
+                {c.name}
+              </span>
+              <div style={{ flex: 1, height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 3, overflow: "hidden" }}>
+                <div
+                  style={{
+                    width: `${c.pct}%`,
+                    height: "100%",
+                    background: c.highlight ? "#ffffff" : "rgba(255,255,255,0.2)",
+                    borderRadius: 3,
+                  }}
+                />
+              </div>
+              <span style={{ fontSize: "0.72rem", fontWeight: 600, color: c.highlight ? "#ffffff" : "rgba(255,255,255,0.4)", width: 32, textAlign: "right" }}>
+                {c.pct}%
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+
+    default:
+      return <div style={cardStyle} />;
+  }
+}
+
+// ── How It Works Section ──
 function HowItWorks() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    const reveals = sectionRef.current?.querySelectorAll(".reveal");
-    reveals?.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
+  const ref = useRef<HTMLDivElement>(null);
+  useReveal(ref);
 
   const steps = [
     {
       num: "01",
-      title: "Create your profile.",
-      desc: "Tell us about your business. Our onboarding captures every detail AI models use to evaluate and recommend local businesses.",
+      title: "Enter your business name.",
+      desc: "Tell us your business name and location. We query ChatGPT with 5 real customer questions and show you exactly what it says.",
     },
     {
       num: "02",
-      title: "We optimize for AI.",
-      desc: "We build your GEO foundation — schema, citations, content, and structured data — across every major AI platform simultaneously.",
+      title: "See your probability score.",
+      desc: "Your recommendation probability \u2014 the percentage of queries where AI mentions your business. With full evidence: every query, every response.",
     },
     {
       num: "03",
-      title: "Get discovered.",
-      desc: "Watch your GEO score rise. Track how often AI recommends you vs. competitors. Get monthly reports with clear next steps.",
+      title: "Get the comprehensive audit.",
+      desc: "40+ queries across ChatGPT, Claude, and Gemini. Source influence mapping. Competitor analysis. Shareable report.",
     },
   ];
 
   return (
     <div
       id="how"
-      className="section-wrap"
+      ref={ref}
       style={{
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "6rem 2.5rem",
+        background: "#0c0d10",
       }}
-      ref={sectionRef}
     >
-      <div className="hiw-header reveal" style={{ marginBottom: "4rem" }}>
-        <p
-          style={{
-            fontSize: "0.75rem",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "#9a9793",
-            marginBottom: "0.75rem",
-            fontWeight: 500,
-          }}
-        >
-          The process
-        </p>
-        <h2
-          style={{
-            fontFamily: "'Instrument Sans', sans-serif",
-            fontWeight: 700,
-            fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
-            letterSpacing: "-0.04em",
-            lineHeight: 1.1,
-          }}
-        >
-          Up and running.
-          <br />
-          In 48 hours.
-        </h2>
-      </div>
-
       <div
-        className="steps-row reveal"
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 0,
+          maxWidth: "1140px",
+          margin: "0 auto",
+          padding: "6rem 2.5rem",
         }}
       >
-        {steps.map((step, i) => (
-          <div
-            key={i}
-            className="step-col"
+        <div className="reveal-scale" style={{ marginBottom: "3.5rem" }}>
+          <p
             style={{
-              padding:
-                i === 0
-                  ? "2rem 2rem 2rem 0"
-                  : i === 1
-                    ? "2rem 2rem"
-                    : "2rem 0 2rem 2rem",
-              borderRight: i < 2 ? "1px solid #dddbd7" : "none",
+              fontSize: "0.72rem",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.4)",
+              marginBottom: "0.75rem",
+              fontWeight: 600,
             }}
           >
-            <span
-              className="step-num"
-              style={{
-                fontFamily: "'Instrument Serif', serif",
-                fontSize: "6rem",
-                lineHeight: 1,
-                color: "#e0ddd8",
-                marginBottom: "1rem",
-                display: "block",
-              }}
-            >
-              {step.num}
-            </span>
+            The process
+          </p>
+          <h2
+            style={{
+              fontFamily: "'Instrument Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.1,
+              color: "#ffffff",
+            }}
+          >
+            See how AI sees you.
+            <br />
+            In 30 seconds.
+          </h2>
+        </div>
+
+        <div
+          className="steps-row"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 0,
+          }}
+        >
+          {steps.map((step, i) => (
             <div
-              className="step-title"
+              key={i}
+              className={`step-col reveal-scale stagger-${i + 1}`}
               style={{
-                fontWeight: 700,
-                fontSize: "1rem",
-                letterSpacing: "-0.02em",
-                marginBottom: "0.5rem",
+                padding:
+                  i === 0 ? "2rem 2rem 2rem 0" : i === 1 ? "2rem 2rem" : "2rem 0 2rem 2rem",
+                borderRight: i < 2 ? "1px solid #22232a" : "none",
               }}
             >
-              {step.title}
+              <span
+                style={{
+                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontSize: "5rem",
+                  lineHeight: 1,
+                  fontWeight: 700,
+                  color: "rgba(255,255,255,0.08)",
+                  marginBottom: "1rem",
+                  display: "block",
+                }}
+              >
+                {step.num}
+              </span>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: "1rem",
+                  letterSpacing: "-0.02em",
+                  marginBottom: "0.5rem",
+                  color: "#ffffff",
+                }}
+              >
+                {step.title}
+              </div>
+              <p style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.65 }}>
+                {step.desc}
+              </p>
             </div>
-            <p
-              className="step-desc"
-              style={{
-                fontSize: "0.875rem",
-                color: "#9a9793",
-                lineHeight: 1.65,
-              }}
-            >
-              {step.desc}
-            </p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-// Pricing Section
+// ── Pricing Section ──
 function Pricing() {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    const reveals = sectionRef.current?.querySelectorAll(".reveal");
-    reveals?.forEach((el) => observer.observe(el));
-
-    return () => observer.disconnect();
-  }, []);
+  const ref = useRef<HTMLDivElement>(null);
+  useReveal(ref);
 
   const plans = [
     {
-      name: "Starter",
-      price: "299",
+      name: "Free Audit",
+      price: "0",
+      href: "/analyze",
       features: [
-        "Full GEO audit report",
-        "Schema & structured data",
-        "5 AI directory submissions",
-        "1 AI-optimized content piece/mo",
-        "Monthly snapshot report",
+        "5 real ChatGPT queries",
+        "Recommendation probability score",
+        "Query evidence with responses",
+        "Competitor snapshot",
+        "Sentiment analysis",
       ],
     },
     {
-      name: "Growth",
-      price: "599",
+      name: "Full Audit",
+      price: "399",
       featured: true,
+      href: "/analyze",
       features: [
-        "Everything in Starter",
-        "Ongoing citation building",
-        "4 AI content pieces/mo",
-        "Review generation strategy",
-        "Competitor gap analysis",
-        "Bi-weekly check-in call",
+        "40+ queries across 3 AI engines",
+        "ChatGPT, Claude & Gemini analysis",
+        "Source influence map",
+        "Verification prompts",
+        "Actionable optimization playbook",
+        "Shareable report link",
       ],
     },
     {
-      name: "Dominate",
-      price: "1,199",
+      name: "Management",
+      price: "299",
+      href: "/signup",
       features: [
-        "Everything in Growth",
-        "Full-service management",
-        "8 AI content pieces/mo",
-        "Priority AI model monitoring",
+        "Monthly comprehensive audits",
+        "Citation building & submissions",
+        "AI-optimized content creation",
+        "Structured data management",
+        "Review velocity strategy",
         "Dedicated account manager",
-        "Weekly reporting dashboard",
       ],
     },
   ];
@@ -831,595 +1360,317 @@ function Pricing() {
   return (
     <div
       id="pricing"
-      className="section-wrap"
+      ref={ref}
       style={{
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "6rem 2.5rem",
+        background: "#0c0d10",
       }}
-      ref={sectionRef}
     >
-      <div className="pricing-header reveal" style={{ marginBottom: "3rem" }}>
+      <div
+        style={{
+          maxWidth: "1140px",
+          margin: "0 auto",
+          padding: "6rem 2.5rem",
+        }}
+      >
+        <div className="reveal-scale" style={{ marginBottom: "3rem" }}>
+          <h2
+            style={{
+              fontFamily: "'Instrument Sans', sans-serif",
+              fontWeight: 700,
+              fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.1,
+              marginBottom: "0.5rem",
+              color: "#ffffff",
+            }}
+          >
+            Simple pricing.
+            <br />
+            No surprises.
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.95rem" }}>
+            No contracts. Cancel any time. Results typically visible in 30-60 days.
+          </p>
+        </div>
+
+        <div
+          className="plans"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: "1rem",
+          }}
+        >
+          {plans.map((plan, i) => (
+            <div
+              key={plan.name}
+              className={`plan reveal-scale stagger-${i + 1}`}
+              style={{
+                background: "#14151a",
+                border: plan.featured ? "1px solid rgba(255,255,255,0.15)" : "1px solid #22232a",
+                borderRadius: 12,
+                padding: "2rem",
+                position: "relative",
+                transition: "transform 0.2s, box-shadow 0.2s",
+              }}
+            >
+              {plan.featured && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "-11px",
+                    left: "1.5rem",
+                    background: "#ffffff",
+                    color: "#0c0d10",
+                    fontSize: "0.7rem",
+                    fontWeight: 600,
+                    letterSpacing: "0.06em",
+                    textTransform: "uppercase",
+                    padding: "0.25rem 0.75rem",
+                    borderRadius: 999,
+                  }}
+                >
+                  Recommended
+                </div>
+              )}
+
+              <div
+                style={{
+                  fontSize: "0.78rem",
+                  fontWeight: 600,
+                  letterSpacing: "0.06em",
+                  textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.5)",
+                  marginBottom: "1rem",
+                }}
+              >
+                {plan.name}
+              </div>
+
+              <div
+                style={{
+                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontSize: "2.4rem",
+                  fontWeight: 700,
+                  letterSpacing: "-0.04em",
+                  lineHeight: 1,
+                  marginBottom: "0.2rem",
+                  color: "#ffffff",
+                }}
+              >
+                <sup style={{ fontSize: "1rem", verticalAlign: "super" }}>$</sup>
+                {plan.price}
+              </div>
+              <div
+                style={{
+                  fontSize: "0.8rem",
+                  color: "rgba(255,255,255,0.4)",
+                  marginBottom: "1.5rem",
+                }}
+              >
+                {plan.price === "0" ? "forever" : plan.name === "Full Audit" ? "one-time" : "per month"}
+              </div>
+
+              <div
+                style={{
+                  height: "1px",
+                  background: "rgba(255,255,255,0.1)",
+                  marginBottom: "1.5rem",
+                }}
+              />
+
+              <ul
+                style={{
+                  listStyle: "none",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "0.6rem",
+                  marginBottom: "1.75rem",
+                  padding: 0,
+                }}
+              >
+                {plan.features.map((feature, fi) => (
+                  <li
+                    key={fi}
+                    style={{
+                      fontSize: "0.855rem",
+                      color: "rgba(255,255,255,0.7)",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.55rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: "#ffffff",
+                        fontWeight: 700,
+                        flexShrink: 0,
+                        marginTop: "1px",
+                      }}
+                    >
+                      &#10003;
+                    </span>
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                href={plan.href}
+                className={plan.featured ? "plan-btn-featured" : "plan-btn"}
+                style={{
+                  width: "100%",
+                  padding: "0.7rem",
+                  borderRadius: 8,
+                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: plan.featured ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.15)",
+                  background: plan.featured ? "#ffffff" : "transparent",
+                  color: plan.featured ? "#0c0d10" : "#ffffff",
+                  transition: "all 0.15s",
+                  textAlign: "center",
+                  textDecoration: "none",
+                  display: "block",
+                }}
+              >
+                {plan.price === "0" ? "Try free audit" : plan.name === "Management" ? "Contact us" : "Get started"}
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── CTA Section (DARK, no globe) ──
+function CTA() {
+  return (
+    <div
+      style={{
+        background: "#0c0d10",
+        padding: "6rem 2.5rem",
+        textAlign: "center",
+      }}
+    >
+      <div style={{ maxWidth: 560, margin: "0 auto" }}>
+        <p
+          style={{
+            fontSize: "0.72rem",
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.4)",
+            marginBottom: "0.75rem",
+            fontWeight: 600,
+          }}
+        >
+          Free audit
+        </p>
         <h2
           style={{
             fontFamily: "'Instrument Sans', sans-serif",
             fontWeight: 700,
-            fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
+            fontSize: "clamp(2.2rem, 4vw, 3.2rem)",
             letterSpacing: "-0.04em",
             lineHeight: 1.1,
-            marginBottom: "0.5rem",
+            color: "#ffffff",
+            marginBottom: "1.25rem",
           }}
         >
-          Simple pricing.
-          <br />
-          No surprises.
+          See how AI sees your business.
         </h2>
-        <p style={{ color: "#9a9793", fontSize: "0.95rem" }}>
-          No contracts. Cancel any time. Results typically visible in 30–60 days.
+        <p style={{ fontSize: "0.95rem", color: "rgba(255,255,255,0.5)", marginBottom: "2rem" }}>
+          Real queries. Real responses. No signup required.
+        </p>
+        <Link
+          href="/analyze"
+          className="btn-pill-white"
+          style={{
+            background: "#ffffff",
+            color: "#0c0d10",
+            border: "none",
+            padding: "0.75rem 2rem",
+            borderRadius: 8,
+            fontFamily: "'Instrument Sans', sans-serif",
+            fontSize: "0.95rem",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+            transition: "opacity 0.15s, transform 0.15s",
+            textDecoration: "none",
+          }}
+        >
+          Run your free audit &rarr;
+        </Link>
+        <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.3)", marginTop: "0.75rem" }}>
+          Results in 30 seconds
         </p>
       </div>
-
-      <div
-        className="plans reveal"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: "1rem",
-        }}
-      >
-        {plans.map((plan) => (
-          <div
-            key={plan.name}
-            className={`plan ${plan.featured ? "featured" : ""}`}
-            style={{
-              background: plan.featured ? "#ffffff" : "#faf9f7",
-              border: plan.featured ? "1px solid #0c0c0b" : "1px solid #dddbd7",
-              borderRadius: "20px",
-              padding: "2rem",
-              position: "relative",
-              transition: "transform 0.2s, box-shadow 0.2s",
-            }}
-          >
-            {plan.featured && (
-              <div
-                className="plan-badge"
-                style={{
-                  position: "absolute",
-                  top: "-11px",
-                  left: "1.5rem",
-                  background: "#0c0c0b",
-                  color: "white",
-                  fontSize: "0.7rem",
-                  fontWeight: 600,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  padding: "0.25rem 0.75rem",
-                  borderRadius: "999px",
-                }}
-              >
-                Most Popular
-              </div>
-            )}
-
-            <div
-              className="plan-name"
-              style={{
-                fontSize: "0.78rem",
-                fontWeight: 600,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: "#9a9793",
-                marginBottom: "1rem",
-              }}
-            >
-              {plan.name}
-            </div>
-
-            <div
-              className="plan-price"
-              style={{
-                fontFamily: "'Instrument Sans', sans-serif",
-                fontSize: "2.4rem",
-                fontWeight: 700,
-                letterSpacing: "-0.04em",
-                lineHeight: 1,
-                marginBottom: "0.2rem",
-              }}
-            >
-              <sup style={{ fontSize: "1rem", verticalAlign: "super" }}>$</sup>
-              {plan.price}
-            </div>
-            <div
-              className="plan-mo"
-              style={{ fontSize: "0.8rem", color: "#9a9793", marginBottom: "1.5rem" }}
-            >
-              per month
-            </div>
-
-            <div
-              className="plan-divider"
-              style={{ height: "1px", background: "#dddbd7", marginBottom: "1.5rem" }}
-            />
-
-            <ul
-              className="plan-features"
-              style={{
-                listStyle: "none",
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.6rem",
-                marginBottom: "1.75rem",
-                padding: 0,
-              }}
-            >
-              {plan.features.map((feature, i) => (
-                <li
-                  key={i}
-                  style={{
-                    fontSize: "0.855rem",
-                    color: "#3a3936",
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: "0.55rem",
-                  }}
-                >
-                  <span
-                    style={{
-                      color: "#0c0c0b",
-                      fontWeight: 700,
-                      flexShrink: 0,
-                      marginTop: "1px",
-                    }}
-                  >
-                    ✓
-                  </span>
-                  {feature}
-                </li>
-              ))}
-            </ul>
-
-            <Link
-              href="/signup"
-              className={plan.featured ? "plan-btn-featured" : "plan-btn"}
-              style={{
-                width: "100%",
-                padding: "0.7rem",
-                borderRadius: "999px",
-                fontFamily: "'Instrument Sans', sans-serif",
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                cursor: "pointer",
-                border: plan.featured ? "1px solid #0c0c0b" : "1px solid #c8c5c0",
-                background: plan.featured ? "#0c0c0b" : "transparent",
-                color: plan.featured ? "white" : "#0c0c0b",
-                transition: "all 0.15s",
-              }}
-            >
-              Get started
-            </Link>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
 
-// CTA Section
-function CTA() {
-  return (
-    <div
-      className="cta-block"
-      style={{
-        background: "#0c0c0b",
-        padding: "7rem 2.5rem",
-        textAlign: "center",
-      }}
-    >
-      <h2
-        style={{
-          fontFamily: "'Instrument Sans', sans-serif",
-          fontWeight: 700,
-          fontSize: "clamp(2.2rem, 4vw, 3.5rem)",
-          letterSpacing: "-0.04em",
-          lineHeight: 1.1,
-          color: "white",
-          marginBottom: "2rem",
-        }}
-      >
-        The window is open.
-        <br />
-        <em
-          style={{
-            fontFamily: "'Instrument Serif', serif",
-            fontStyle: "italic",
-            fontWeight: 400,
-          }}
-        >
-          Move first.
-        </em>
-      </h2>
-      <Link
-        href="/signup"
-        className="btn-pill-white"
-        style={{
-          background: "white",
-          color: "#0c0c0b",
-          border: "none",
-          padding: "0.75rem 2rem",
-          borderRadius: "999px",
-          fontFamily: "'Instrument Sans', sans-serif",
-          fontSize: "0.95rem",
-          fontWeight: 600,
-          cursor: "pointer",
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.4rem",
-          transition: "opacity 0.15s, transform 0.15s",
-        }}
-      >
-        Start Free Trial →
-      </Link>
-    </div>
-  );
-}
-
-// Footer
+// ── Footer (DARK) ──
 function Footer() {
   return (
     <footer
       style={{
-        borderTop: "1px solid #dddbd7",
+        borderTop: "1px solid #22232a",
         padding: "1.5rem 2.5rem",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
         flexWrap: "wrap",
         gap: "1rem",
-        background: "#faf9f7",
+        background: "#0c0d10",
       }}
     >
-      <span
-        className="footer-logo"
-        style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em" }}
-      >
+      <span style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em", color: "#ffffff" }}>
         BrightWill
       </span>
-      <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>
-        © 2025 BrightWill. Generative Engine Optimization for local businesses.
+      <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.3)" }}>
+        &copy; 2025 BrightWill. Generative Engine Optimization for local businesses.
       </p>
-      <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>hello@brightwill.ai</p>
+      <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.3)" }}>hello@brightwill.ai</p>
     </footer>
   );
 }
 
-// Signup Modal
-function SignupModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const [submitted, setSubmitted] = useState(false);
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className="modal-overlay"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 200,
-        background: "rgba(12,12,11,0.5)",
-        backdropFilter: "blur(6px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div
-        className="modal"
-        style={{
-          background: "#faf9f7",
-          borderRadius: "24px",
-          padding: "2.5rem",
-          width: "min(480px, 90vw)",
-          border: "1px solid #dddbd7",
-          boxShadow: "0 30px 80px rgba(0,0,0,0.12)",
-          position: "relative",
-        }}
-      >
-        <button
-          onClick={onClose}
-          className="modal-close"
-          style={{
-            position: "absolute",
-            top: "1.25rem",
-            right: "1.25rem",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontSize: "1.2rem",
-            color: "#9a9793",
-          }}
-        >
-          ✕
-        </button>
-
-        <h3
-          style={{
-            fontFamily: "'Instrument Sans', sans-serif",
-            fontWeight: 700,
-            fontSize: "1.5rem",
-            letterSpacing: "-0.03em",
-            marginBottom: "0.35rem",
-          }}
-        >
-          Start your free trial.
-        </h3>
-        <p style={{ fontSize: "0.875rem", color: "#9a9793", marginBottom: "1.5rem" }}>
-          We&apos;ll reach out within 24 hours with a free GEO visibility audit.
-        </p>
-
-        <form
-          className="modal-form"
-          onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}
-        >
-          <div
-            className="field-row-2"
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}
-          >
-            <div>
-              <label
-                style={{
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                  color: "#3a3936",
-                  display: "block",
-                  marginBottom: "0.3rem",
-                }}
-              >
-                First name
-              </label>
-              <input
-                type="text"
-                placeholder="Jane"
-                style={{
-                  width: "100%",
-                  background: "white",
-                  border: "1px solid #dddbd7",
-                  borderRadius: "10px",
-                  padding: "0.7rem 0.9rem",
-                  fontFamily: "'Instrument Sans', sans-serif",
-                  fontSize: "0.875rem",
-                  color: "#0c0c0b",
-                  outline: "none",
-                }}
-              />
-            </div>
-            <div>
-              <label
-                style={{
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                  color: "#3a3936",
-                  display: "block",
-                  marginBottom: "0.3rem",
-                }}
-              >
-                Last name
-              </label>
-              <input
-                type="text"
-                placeholder="Smith"
-                style={{
-                  width: "100%",
-                  background: "white",
-                  border: "1px solid #dddbd7",
-                  borderRadius: "10px",
-                  padding: "0.7rem 0.9rem",
-                  fontFamily: "'Instrument Sans', sans-serif",
-                  fontSize: "0.875rem",
-                  color: "#0c0c0b",
-                  outline: "none",
-                }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                color: "#3a3936",
-                display: "block",
-                marginBottom: "0.3rem",
-              }}
-            >
-              Business email
-            </label>
-            <input
-              type="email"
-              placeholder="jane@yourbusiness.com"
-              style={{
-                width: "100%",
-                background: "white",
-                border: "1px solid #dddbd7",
-                borderRadius: "10px",
-                padding: "0.7rem 0.9rem",
-                fontFamily: "'Instrument Sans', sans-serif",
-                fontSize: "0.875rem",
-                color: "#0c0c0b",
-                outline: "none",
-              }}
-            />
-          </div>
-
-          <div>
-            <label
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 500,
-                color: "#3a3936",
-                display: "block",
-                marginBottom: "0.3rem",
-              }}
-            >
-              Business name
-            </label>
-            <input
-              type="text"
-              placeholder="Hana Sushi Miami"
-              style={{
-                width: "100%",
-                background: "white",
-                border: "1px solid #dddbd7",
-                borderRadius: "10px",
-                padding: "0.7rem 0.9rem",
-                fontFamily: "'Instrument Sans', sans-serif",
-                fontSize: "0.875rem",
-                color: "#0c0c0b",
-                outline: "none",
-              }}
-            />
-          </div>
-
-          <div
-            className="field-row-2"
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}
-          >
-            <div>
-              <label
-                style={{
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                  color: "#3a3936",
-                  display: "block",
-                  marginBottom: "0.3rem",
-                }}
-              >
-                Business type
-              </label>
-              <select
-                style={{
-                  width: "100%",
-                  background: "white",
-                  border: "1px solid #dddbd7",
-                  borderRadius: "10px",
-                  padding: "0.7rem 0.9rem",
-                  fontFamily: "'Instrument Sans', sans-serif",
-                  fontSize: "0.875rem",
-                  color: "#0c0c0b",
-                  outline: "none",
-                  appearance: "none",
-                }}
-              >
-                <option value="">Select…</option>
-                <option>Restaurant</option>
-                <option>Café / Coffee Shop</option>
-                <option>Bar / Nightlife</option>
-                <option>Retail</option>
-                <option>Health & Wellness</option>
-                <option>Professional Service</option>
-              </select>
-            </div>
-            <div>
-              <label
-                style={{
-                  fontSize: "0.75rem",
-                  fontWeight: 500,
-                  color: "#3a3936",
-                  display: "block",
-                  marginBottom: "0.3rem",
-                }}
-              >
-                City
-              </label>
-              <input
-                type="text"
-                placeholder="Miami, FL"
-                style={{
-                  width: "100%",
-                  background: "white",
-                  border: "1px solid #dddbd7",
-                  borderRadius: "10px",
-                  padding: "0.7rem 0.9rem",
-                  fontFamily: "'Instrument Sans', sans-serif",
-                  fontSize: "0.875rem",
-                  color: "#0c0c0b",
-                  outline: "none",
-                }}
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            className="modal-submit"
-            style={{
-              width: "100%",
-              marginTop: "0.25rem",
-              background: submitted ? "#2d6a4f" : "#0c0c0b",
-              color: "white",
-              border: "none",
-              padding: "0.85rem",
-              borderRadius: "999px",
-              fontFamily: "'Instrument Sans', sans-serif",
-              fontSize: "0.9rem",
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            {submitted ? "✓ You're on the list!" : "Get my free audit →"}
-          </button>
-
-          <p
-            className="modal-fine"
-            style={{ fontSize: "0.72rem", color: "#9a9793", textAlign: "center", marginTop: "0.5rem" }}
-          >
-            No credit card. No commitment.
-          </p>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-// Section Divider
+// ── Section Divider ──
 function SectionDivider() {
   return (
     <div
-      className="section-divider"
       style={{
         height: "1px",
-        background: "#dddbd7",
-        maxWidth: "1200px",
+        background: "#22232a",
+        maxWidth: "1140px",
         margin: "0 auto",
       }}
     />
   );
 }
 
-// Main Page
+// ── Main Page ──
 export default function Home() {
   return (
-    <>
+    <div style={{ background: "#0c0d10" }}>
       <Nav />
       <Hero />
-      <LogosStrip />
+      <PlatformBar />
+      <Stats />
       <SectionDivider />
+      <HowWeMeasure />
+      <ReportShowcase />
       <Features />
       <SectionDivider />
       <HowItWorks />
-      <SectionDivider />
       <Pricing />
       <CTA />
       <Footer />
-    </>
+    </div>
   );
 }

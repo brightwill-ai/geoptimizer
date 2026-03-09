@@ -12,9 +12,9 @@ export function MetricCard({ label, value, sublabel, trend, children }: MetricCa
   return (
     <div
       style={{
-        background: "#ffffff",
-        borderRadius: 16,
-        border: "1px solid #dddbd7",
+        background: "#14151a",
+        borderRadius: 12,
+        border: "1px solid #22232a",
         padding: "1.25rem",
         display: "flex",
         flexDirection: "column",
@@ -28,7 +28,7 @@ export function MetricCard({ label, value, sublabel, trend, children }: MetricCa
             fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
-            color: "#9a9793",
+            color: "rgba(255,255,255,0.4)",
           }}
         >
           {label}
@@ -52,14 +52,14 @@ export function MetricCard({ label, value, sublabel, trend, children }: MetricCa
         style={{
           fontSize: "1.75rem",
           fontWeight: 700,
-          color: "#0c0c0b",
+          color: "#ffffff",
           lineHeight: 1,
         }}
       >
         {value}
       </span>
       {sublabel && (
-        <span style={{ fontSize: "0.75rem", color: "#9a9793" }}>{sublabel}</span>
+        <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{sublabel}</span>
       )}
       {children}
     </div>

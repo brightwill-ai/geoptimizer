@@ -21,45 +21,63 @@ function rankColor(position: number): string {
 }
 
 export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
+  const available = LLM_PROVIDERS.filter((p) => analysis.reports[p.id]);
+
+  const safeGet = (id: LLMProvider) => analysis.reports[id];
+
   const metrics: {
     label: string;
     getValue: (id: LLMProvider) => string;
     getColor: (id: LLMProvider) => string;
   }[] = [
     {
-      label: "GEO Score",
-      getValue: (id) => `${analysis.reports[id].overallScore}/100`,
-      getColor: (id) => scoreColor(analysis.reports[id].overallScore, 100),
+      label: "Recommendation Probability",
+      getValue: (id) => { const r = safeGet(id); return r ? `${Math.round(r.recommendations.recommendationProbability * 100)}%` : "—"; },
+      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.recommendations.recommendationProbability * 100, 100) : "rgba(255,255,255,0.4)"; },
     },
     {
-      label: "Citations",
-      getValue: (id) => `${analysis.reports[id].citations.totalMentions}`,
-      getColor: (id) => scoreColor(analysis.reports[id].citations.totalMentions, 100),
+      label: "GEO Score",
+      getValue: (id) => { const r = safeGet(id); return r ? `${r.overallScore}/100` : "—"; },
+      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.overallScore, 100) : "rgba(255,255,255,0.4)"; },
+    },
+    {
+      label: "Queries Mentioned In",
+      getValue: (id) => { const r = safeGet(id); return r ? `${r.recommendations.mentionCount} of ${r.recommendations.totalQueries}` : "—"; },
+      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.recommendations.mentionCount, r.recommendations.totalQueries) : "rgba(255,255,255,0.4)"; },
     },
     {
       label: "Sentiment",
-      getValue: (id) => `${analysis.reports[id].sentiment.positive}%`,
-      getColor: (id) => scoreColor(analysis.reports[id].sentiment.positive, 100),
+      getValue: (id) => { const r = safeGet(id); return r ? `${r.sentiment.positive}%` : "—"; },
+      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.sentiment.positive, 100) : "rgba(255,255,255,0.4)"; },
     },
     {
       label: "Ranking",
-      getValue: (id) => `#${analysis.reports[id].ranking.position} of ${analysis.reports[id].ranking.totalCompetitors}`,
-      getColor: (id) => rankColor(analysis.reports[id].ranking.position),
+      getValue: (id) => { const r = safeGet(id); return r ? `#${r.ranking.position} of ${r.ranking.totalCompetitors}` : "—"; },
+      getColor: (id) => { const r = safeGet(id); return r ? rankColor(r.ranking.position) : "rgba(255,255,255,0.4)"; },
     },
     {
       label: "Accuracy",
       getValue: (id) => {
-        const acc = analysis.reports[id].accuracy;
-        const correct = acc.filter((a) => a.status === "correct").length;
-        return `${Math.round((correct / acc.length) * 100)}%`;
+        const r = safeGet(id);
+        if (!r || r.accuracy.length === 0) return "—";
+        const correct = r.accuracy.filter((a) => a.status === "correct").length;
+        return `${Math.round((correct / r.accuracy.length) * 100)}%`;
       },
       getColor: (id) => {
-        const acc = analysis.reports[id].accuracy;
-        const correct = acc.filter((a) => a.status === "correct").length;
-        return scoreColor(correct, acc.length);
+        const r = safeGet(id);
+        if (!r || r.accuracy.length === 0) return "rgba(255,255,255,0.4)";
+        const correct = r.accuracy.filter((a) => a.status === "correct").length;
+        return scoreColor(correct, r.accuracy.length);
       },
     },
+    {
+      label: "Sources Cited",
+      getValue: (id) => { const r = safeGet(id); return r?.sources?.length ? `${r.sources.length}` : "—"; },
+      getColor: (id) => { const r = safeGet(id); return r?.sources?.length ? scoreColor(r.sources.length, 8) : "rgba(255,255,255,0.4)"; },
+    },
   ];
+
+  void available; // available providers tracked for future use
 
   return (
     <div style={{ overflowX: "auto" }}>
@@ -76,10 +94,10 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
               style={{
                 textAlign: "left",
                 padding: "10px 12px",
-                borderBottom: "1px solid #dddbd7",
+                borderBottom: "1px solid #22232a",
                 fontSize: "0.7rem",
                 fontWeight: 500,
-                color: "#9a9793",
+                color: "rgba(255,255,255,0.4)",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
               }}
@@ -92,9 +110,9 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
                 style={{
                   textAlign: "center",
                   padding: "10px 12px",
-                  borderBottom: "1px solid #dddbd7",
+                  borderBottom: "1px solid #22232a",
                   fontWeight: 600,
-                  color: "#0c0c0b",
+                  color: "#ffffff",
                   fontSize: "0.8rem",
                 }}
               >
@@ -120,8 +138,8 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
               <td
                 style={{
                   padding: "10px 12px",
-                  borderBottom: "1px solid #f0eeea",
-                  color: "#3a3936",
+                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  color: "rgba(255,255,255,0.7)",
                   fontWeight: 500,
                 }}
               >
@@ -133,7 +151,7 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
                   style={{
                     textAlign: "center",
                     padding: "10px 12px",
-                    borderBottom: "1px solid #f0eeea",
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
                     fontWeight: 600,
                     color: m.getColor(p.id),
                   }}

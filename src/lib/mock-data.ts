@@ -13,7 +13,51 @@ export const LLM_PROVIDERS: LLMInfo[] = [
   { id: "gemini", name: "Gemini", color: "#4285f4" },
 ];
 
-// ── Metric Types ──
+// ── Recommendation Probability (core metric) ──
+export interface RecommendationMetrics {
+  totalQueries: number;
+  mentionCount: number;
+  primaryRecommendationCount: number;
+  passingMentionCount: number;
+  notMentionedCount: number;
+  recommendationProbability: number; // 0-1
+  primaryProbability: number;        // 0-1
+  mentionTrend: number;              // % change from previous audit
+}
+
+// ── Per-Query Result (for evidence table) ──
+export interface QueryResult {
+  queryText: string;
+  queryType: string;
+  provider: LLMProvider;
+  businessMentioned: boolean;
+  mentionType: "primary_recommendation" | "passing_mention" | "not_mentioned";
+  rankPosition: number | null;
+  sentiment: "positive" | "neutral" | "negative" | null;
+  rawResponseExcerpt: string; // first ~500 chars for display
+  timestamp: string;
+}
+
+// ── Methodology Transparency ──
+export interface MethodologySection {
+  totalQueries: number;
+  providers: LLMProvider[];
+  dateRange: { start: string; end: string };
+  queryTypes: string[];
+  verificationPrompts: { prompt: string; expectedResult: string }[];
+  disclaimer: string;
+}
+
+// ── Source Influence ──
+export interface SourceInfluenceEntry {
+  source: string;
+  sourceType: string;
+  citedBy: LLMProvider[];
+  citationCount: number;
+  influence: "high" | "medium" | "low" | "unknown";
+}
+
+// ── Legacy alias for backward compatibility ──
 export interface CitationMetrics {
   totalMentions: number;
   primaryRecommendations: number;
@@ -55,16 +99,26 @@ export interface InformationAccuracy {
   status: "correct" | "incorrect" | "outdated" | "missing";
 }
 
+// ── Source Citation (per-provider) ──
+export interface SourceCitation {
+  name: string;
+  sourceType: "review_platform" | "directory" | "news" | "social_media" | "official_site" | "other";
+  count: number;
+}
+
 // ── Per-LLM Report ──
 export interface LLMReport {
   provider: LLMInfo;
   overallScore: number; // 0-100
   citations: CitationMetrics;
+  recommendations: RecommendationMetrics;
   sentiment: SentimentBreakdown;
   ranking: CategoryRanking;
   topics: TopicAssociation[];
   competitors: CompetitorEntry[];
   accuracy: InformationAccuracy[];
+  queryResults: QueryResult[];
+  sources: SourceCitation[];
 }
 
 // ── Full Analysis ──
@@ -72,11 +126,15 @@ export interface GEOAnalysis {
   businessName: string;
   analyzedAt: string;
   reports: Record<LLMProvider, LLMReport>;
+  methodology: MethodologySection;
+  sourceInfluences: SourceInfluenceEntry[];
   summary: {
     averageScore: number;
+    averageProbability: number; // 0-1
     bestPerformer: LLMProvider;
     worstPerformer: LLMProvider;
     totalCitations: number;
+    totalQueries: number;
     overallSentiment: "positive" | "neutral" | "negative";
     scoreTrend: number;
   };
@@ -244,6 +302,12 @@ export function generateMockAnalysis(businessName: string): GEOAnalysis {
     const category = pickFromArray(categoryOptions, seed, idx++);
     const totalInCategory = 30 + Math.floor(next() * 40);
 
+    // Mock recommendation metrics
+    const mockTotalQueries = 5;
+    const mockMentionCount = Math.floor(1 + next() * 4);
+    const mockPrimaryCount = Math.floor(next() * mockMentionCount);
+    const mockPassingCount = mockMentionCount - mockPrimaryCount;
+
     return {
       provider,
       overallScore: score,
@@ -252,6 +316,16 @@ export function generateMockAnalysis(businessName: string): GEOAnalysis {
         primaryRecommendations: Math.floor(mentionBase * primaryPct),
         passingMentions: Math.floor(mentionBase * (1 - primaryPct)),
         mentionTrend: Math.floor(-10 + next() * 30),
+      },
+      recommendations: {
+        totalQueries: mockTotalQueries,
+        mentionCount: mockMentionCount,
+        primaryRecommendationCount: mockPrimaryCount,
+        passingMentionCount: mockPassingCount,
+        notMentionedCount: mockTotalQueries - mockMentionCount,
+        recommendationProbability: mockMentionCount / mockTotalQueries,
+        primaryProbability: mockPrimaryCount / mockTotalQueries,
+        mentionTrend: 0,
       },
       sentiment: {
         positive: posBase,
@@ -269,6 +343,15 @@ export function generateMockAnalysis(businessName: string): GEOAnalysis {
       topics,
       competitors,
       accuracy,
+      queryResults: [],
+      sources: ([
+        { name: "Google Reviews", sourceType: "review_platform" as const, count: Math.floor(2 + next() * 6) },
+        { name: "Yelp", sourceType: "review_platform" as const, count: Math.floor(1 + next() * 5) },
+        { name: "TripAdvisor", sourceType: "review_platform" as const, count: Math.floor(next() * 4) },
+        { name: "Google Maps", sourceType: "directory" as const, count: Math.floor(1 + next() * 4) },
+        { name: "Official Website", sourceType: "official_site" as const, count: Math.floor(next() * 3) },
+        { name: "Local News", sourceType: "news" as const, count: Math.floor(next() * 2) },
+      ] satisfies SourceCitation[]).filter((s) => s.count > 0),
     };
   }
 
@@ -283,15 +366,30 @@ export function generateMockAnalysis(businessName: string): GEOAnalysis {
   const worst = (Object.entries(scoresByProvider) as [LLMProvider, number][]).sort((a, b) => a[1] - b[1])[0][0];
   const totalCitations = Object.values(reports).reduce((sum, r) => sum + r.citations.totalMentions, 0);
 
+  const allProbs = Object.values(reports).map((r) => r.recommendations.recommendationProbability);
+  const avgProb = allProbs.length > 0 ? allProbs.reduce((a, b) => a + b, 0) / allProbs.length : 0;
+  const totalQueries = Object.values(reports).reduce((sum, r) => sum + r.recommendations.totalQueries, 0);
+
   return {
     businessName,
     analyzedAt: new Date().toISOString(),
     reports,
+    methodology: {
+      totalQueries,
+      providers: LLM_PROVIDERS.map((p) => p.id),
+      dateRange: { start: new Date().toISOString(), end: new Date().toISOString() },
+      queryTypes: ["discovery", "direct", "comparison", "use_case", "reviews"],
+      verificationPrompts: [],
+      disclaimer: "Results reflect a statistical sample and individual queries may vary.",
+    },
+    sourceInfluences: [],
     summary: {
       averageScore: avgScore,
+      averageProbability: parseFloat(avgProb.toFixed(2)),
       bestPerformer: best,
       worstPerformer: worst,
       totalCitations,
+      totalQueries,
       overallSentiment: avgScore > 65 ? "positive" : avgScore > 40 ? "neutral" : "negative",
       scoreTrend: Math.floor(-5 + next() * 20),
     },

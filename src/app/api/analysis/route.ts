@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { runAnalysis } from "@/lib/agents/runner";
+import { runFreeAudit, runComprehensiveAudit } from "@/lib/agents/runner";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
 
 const AnalysisInput = z.object({
@@ -86,6 +86,11 @@ export async function POST(request: Request) {
     const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000);
 
     // Create analysis and LLM jobs
+    // Free tier: 1 job (ChatGPT only). Comprehensive: 3 jobs (all providers).
+    const providers = tier === "fast"
+      ? [LLM_PROVIDERS[0]] // ChatGPT only
+      : LLM_PROVIDERS;
+
     const analysis = await prisma.analysis.create({
       data: {
         businessName: normalizedName,
@@ -95,7 +100,7 @@ export async function POST(request: Request) {
         status: "pending",
         expiresAt,
         llmJobs: {
-          create: LLM_PROVIDERS.map((p) => ({
+          create: providers.map((p) => ({
             provider: p.id,
             status: "pending",
           })),
@@ -103,8 +108,12 @@ export async function POST(request: Request) {
       },
     });
 
-    // Fire and forget — do NOT await
-    runAnalysis(analysis.id, businessName, location, category, tier).catch((err) => {
+    // Fire and forget — use the appropriate runner for the tier
+    const runner = tier === "fast"
+      ? runFreeAudit(analysis.id, businessName, location, normalizedCategory)
+      : runComprehensiveAudit(analysis.id, businessName, location, normalizedCategory);
+
+    runner.catch((err) => {
       console.error(`Analysis ${analysis.id} failed:`, err);
       prisma.analysis
         .update({

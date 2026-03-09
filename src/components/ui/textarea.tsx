@@ -24,7 +24,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
               display: "block",
               fontSize: "0.75rem",
               fontWeight: 500,
-              color: error ? "#dc2626" : "#3a3936",
+              color: error ? "#dc2626" : "rgba(255,255,255,0.6)",
               marginBottom: "0.3rem",
             }}
           >
@@ -35,18 +35,18 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={textareaId}
           style={{
             width: "100%",
-            background: "white",
-            border: `1px solid ${error ? "#dc2626" : isFocused ? "#0c0c0b" : "#dddbd7"}`,
-            borderRadius: "10px",
+            background: "#1a1b21",
+            border: `1px solid ${error ? "#dc2626" : isFocused ? "rgba(255,255,255,0.3)" : "#22232a"}`,
+            borderRadius: "8px",
             padding: "0.7rem 0.9rem",
             fontFamily: "'Instrument Sans', sans-serif",
             fontSize: "0.875rem",
-            color: "#0c0c0b",
+            color: "#ffffff",
             outline: "none",
             transition: "border-color 0.15s",
             resize: "none",
           }}
-          className={cn("placeholder:text-[#c0bdb8]", className)}
+          className={cn("placeholder:text-[rgba(255,255,255,0.25)]", className)}
           ref={ref}
           onFocus={(e) => {
             setIsFocused(true);
@@ -62,7 +62,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           <p
             style={{
               fontSize: "0.72rem",
-              color: error ? "#dc2626" : "#9a9793",
+              color: error ? "#dc2626" : "rgba(255,255,255,0.4)",
               marginTop: "0.3rem",
             }}
           >

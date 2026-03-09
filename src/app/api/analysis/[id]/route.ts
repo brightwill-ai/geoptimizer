@@ -19,6 +19,16 @@ export async function GET(
             completedAt: true,
           },
         },
+        queryExecutions: {
+          select: {
+            id: true,
+            provider: true,
+            promptSent: true,
+            status: true,
+            businessMentioned: true,
+          },
+          orderBy: { createdAt: "asc" },
+        },
       },
     });
 
@@ -38,6 +48,13 @@ export async function GET(
       {} as Record<string, string>
     );
 
+    // Query execution progress
+    const totalQueries = analysis.queryCount || analysis.queryExecutions.length;
+    const completedQueries = analysis.queryExecutions.filter(
+      (q: { status: string }) => q.status === "complete" || q.status === "failed"
+    ).length;
+    const currentQuery = analysis.queryExecutions.find((q: { status: string }) => q.status === "pending");
+
     const response: Record<string, unknown> = {
       id: analysis.id,
       status: analysis.status,
@@ -46,6 +63,11 @@ export async function GET(
       location: analysis.location,
       progress: `${completedJobs.length} of ${totalJobs}`,
       jobStatuses,
+      queryProgress: {
+        completed: completedQueries,
+        total: totalQueries,
+        currentQueryText: currentQuery?.promptSent || null,
+      },
       createdAt: analysis.createdAt,
     };
 

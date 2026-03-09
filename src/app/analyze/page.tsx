@@ -26,9 +26,9 @@ function Nav() {
         justifyContent: "space-between",
         padding: "0 2.5rem",
         height: "60px",
-        background: "rgba(240,238,234,0.88)",
+        background: "rgba(12,13,16,0.88)",
         backdropFilter: "blur(16px)",
-        borderBottom: "1px solid #dddbd7",
+        borderBottom: "1px solid #22232a",
       }}
     >
       <Link
@@ -38,7 +38,7 @@ function Nav() {
           fontWeight: 700,
           fontSize: "1.05rem",
           letterSpacing: "-0.02em",
-          color: "#0c0c0b",
+          color: "#ffffff",
           textDecoration: "none",
         }}
       >
@@ -88,6 +88,12 @@ export default function AnalyzePage() {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<GEOAnalysis | null>(null);
   const [jobStatuses, setJobStatuses] = useState<Record<string, string>>({});
+  const [queryProgress, setQueryProgress] = useState<{
+    completed: number;
+    total: number;
+    currentQueryText: string | null;
+  }>({ completed: 0, total: 5, currentQueryText: null });
+  const [tier, setTier] = useState<"fast" | "comprehensive">("fast");
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -114,6 +120,7 @@ export default function AnalyzePage() {
         const data = await res.json();
 
         setJobStatuses(data.jobStatuses || {});
+        if (data.queryProgress) setQueryProgress(data.queryProgress);
 
         if (data.status === "complete" && data.result) {
           stopPolling();
@@ -132,8 +139,10 @@ export default function AnalyzePage() {
 
   const handleSearch = async (name: string, location: string, category: string) => {
     setBusinessName(name);
+    setTier("fast");
     setError(null);
     setJobStatuses({});
+    setQueryProgress({ completed: 0, total: 5, currentQueryText: null });
     setAnalysis(null);
     setStep("loading");
 
@@ -170,16 +179,21 @@ export default function AnalyzePage() {
 
   const handleLoadingComplete = useCallback(() => {
     if (analysis) {
-      setStep("partial");
+      setStep(tier === "comprehensive" ? "full" : "partial");
     }
-  }, [analysis]);
+  }, [analysis, tier]);
 
-  const handleEmailSubmit = () => {
-    setStep("full");
+  const handleEmailSubmit = (comprehensiveAnalysisId: string) => {
+    setTier("comprehensive");
+    setAnalysisId(comprehensiveAnalysisId);
+    setAnalysis(null);
+    setQueryProgress({ completed: 0, total: 100, currentQueryText: null });
+    setStep("loading");
+    startPolling(comprehensiveAnalysisId);
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f0eeea" }}>
+    <div style={{ minHeight: "100vh", background: "#0c0d10" }}>
       <Nav />
       <div style={{ paddingTop: 60 }}>
         {error && step === "search" && (
@@ -188,8 +202,8 @@ export default function AnalyzePage() {
               maxWidth: 560,
               margin: "1rem auto",
               padding: "0.75rem 1rem",
-              borderRadius: 10,
-              background: "#fee2e2",
+              borderRadius: 8,
+              background: "rgba(220,38,38,0.15)",
               color: "#dc2626",
               fontSize: "0.8rem",
               textAlign: "center",
@@ -209,6 +223,8 @@ export default function AnalyzePage() {
               businessName={businessName}
               onComplete={handleLoadingComplete}
               jobStatuses={jobStatuses}
+              queryProgress={queryProgress}
+              tier={tier}
             />
           )}
           {step === "partial" && analysis && (

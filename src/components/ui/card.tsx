@@ -9,21 +9,18 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ style, variant = "default", children, ...props }, ref) => {
     const baseStyles = {
-      background: "#faf9f7",
-      borderRadius: "24px",
-      border: "1px solid #dddbd7",
+      background: "#14151a",
+      borderRadius: "12px",
+      border: "1px solid #22232a",
       transition: "all 0.3s ease-out",
     };
 
     const variantStyles = {
-      default: {
-        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-      },
+      default: {},
       elevated: {
-        boxShadow: "0 10px 40px rgba(0,0,0,0.08)",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
       },
       interactive: {
-        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
         cursor: "pointer",
       },
     };
@@ -65,10 +62,10 @@ const CardTitle = forwardRef<
   <h3
     ref={ref}
     style={{
-      fontFamily: "'Instrument Serif', serif",
+      fontFamily: "'Instrument Sans', sans-serif",
       fontSize: "1.5rem",
       fontWeight: 600,
-      color: "#0c0c0b",
+      color: "#ffffff",
       lineHeight: 1.3,
       ...style,
     }}
@@ -84,7 +81,7 @@ const CardDescription = forwardRef<
   <p
     ref={ref}
     style={{
-      color: "#9a9793",
+      color: "rgba(255,255,255,0.4)",
       marginTop: "0.375rem",
       fontSize: "0.875rem",
       ...style,
@@ -110,7 +107,7 @@ const CardFooter = forwardRef<
     ref={ref}
     style={{
       padding: "1rem 1.5rem 1.5rem",
-      borderTop: "1px solid #dddbd7",
+      borderTop: "1px solid #22232a",
       display: "flex",
       alignItems: "center",
       ...style,

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { runAnalysis } from "@/lib/agents/runner";
+import { runComprehensiveAudit } from "@/lib/agents/runner";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
 
 const ClaimInput = z.object({
@@ -83,13 +83,12 @@ export async function POST(
       comprehensiveAnalysisId = comprehensive.id;
 
       // Fire and forget
-      runAnalysis(
+      runComprehensiveAudit(
         comprehensive.id,
         analysis.businessName,
         analysis.location,
-        analysis.category,
-        "comprehensive"
-      ).catch((err) => {
+        analysis.category
+      ).catch((err: unknown) => {
         console.error(`Comprehensive analysis ${comprehensive.id} failed:`, err);
         prisma.analysis
           .update({

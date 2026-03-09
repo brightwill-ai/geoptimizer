@@ -66,7 +66,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f0eeea" }}>
+    <div style={{ minHeight: "100vh", background: "#0c0d10" }}>
       {/* Simple Nav */}
       <nav
         style={{
@@ -80,9 +80,9 @@ export default function SignupPage() {
           justifyContent: "space-between",
           padding: "0 2.5rem",
           height: "60px",
-          background: "rgba(240,238,234,0.88)",
+          background: "rgba(12,13,16,0.88)",
           backdropFilter: "blur(16px)",
-          borderBottom: "1px solid #dddbd7",
+          borderBottom: "1px solid #22232a",
         }}
       >
         <Link
@@ -92,7 +92,7 @@ export default function SignupPage() {
             fontWeight: 700,
             fontSize: "1.05rem",
             letterSpacing: "-0.02em",
-            color: "#0c0c0b",
+            color: "#ffffff",
             textDecoration: "none",
           }}
         >
@@ -122,15 +122,15 @@ export default function SignupPage() {
                 display: "inline-flex",
                 alignItems: "center",
                 fontSize: "0.875rem",
-                color: "#9a9793",
+                color: "rgba(255,255,255,0.4)",
                 textDecoration: "none",
                 transition: "color 0.15s",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.color = "#0c0c0b";
+                e.currentTarget.style.color = "#ffffff";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.color = "#9a9793";
+                e.currentTarget.style.color = "rgba(255,255,255,0.4)";
               }}
             >
               <svg
@@ -153,11 +153,10 @@ export default function SignupPage() {
           {/* Form Card */}
           <div
             style={{
-              background: "#faf9f7",
-              borderRadius: "24px",
+              background: "#14151a",
+              borderRadius: "12px",
               padding: "2.5rem",
-              border: "1px solid #dddbd7",
-              boxShadow: "0 2px 30px rgba(0,0,0,0.06)",
+              border: "1px solid #22232a",
             }}
           >
             <div style={{ marginBottom: "2rem" }}>
@@ -168,12 +167,12 @@ export default function SignupPage() {
                   fontSize: "1.5rem",
                   letterSpacing: "-0.03em",
                   marginBottom: "0.35rem",
-                  color: "#0c0c0b",
+                  color: "#ffffff",
                 }}
               >
                 Join the BrightWill waitlist
               </h1>
-              <p style={{ fontSize: "0.875rem", color: "#9a9793" }}>
+              <p style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.4)" }}>
                 Share a few details about you and your business. We&apos;ll follow up with
                 a short email and a free GEO visibility check.
               </p>
@@ -186,9 +185,9 @@ export default function SignupPage() {
               {error && (
                 <div
                   style={{
-                    borderRadius: "10px",
-                    border: "1px solid #fecaca",
-                    background: "#fef2f2",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(220,38,38,0.3)",
+                    background: "rgba(220,38,38,0.1)",
                     padding: "0.75rem 1rem",
                     fontSize: "0.875rem",
                     color: "#dc2626",
@@ -201,12 +200,12 @@ export default function SignupPage() {
               {success && (
                 <div
                   style={{
-                    borderRadius: "10px",
-                    border: "1px solid #a7f3d0",
-                    background: "#d1fae5",
+                    borderRadius: "8px",
+                    border: "1px solid rgba(22,163,74,0.3)",
+                    background: "rgba(22,163,74,0.1)",
                     padding: "0.75rem 1rem",
                     fontSize: "0.875rem",
-                    color: "#065f46",
+                    color: "#16a34a",
                   }}
                 >
                   ✓ You&apos;re on the list! We&apos;ll reach out soon with next steps.
@@ -262,7 +261,7 @@ export default function SignupPage() {
                 <p
                   style={{
                     fontSize: "0.72rem",
-                    color: "#9a9793",
+                    color: "rgba(255,255,255,0.3)",
                     textAlign: "center",
                     marginTop: "0.75rem",
                   }}
@@ -279,23 +278,23 @@ export default function SignupPage() {
       {/* Simple Footer */}
       <footer
         style={{
-          borderTop: "1px solid #dddbd7",
+          borderTop: "1px solid #22232a",
           padding: "1.5rem 2.5rem",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
           gap: "1rem",
-          background: "#faf9f7",
+          background: "#0c0d10",
         }}
       >
-        <span style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em" }}>
+        <span style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em", color: "#ffffff" }}>
           BrightWill
         </span>
-        <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>
+        <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>
           © 2025 BrightWill. Generative Engine Optimization for local businesses.
         </p>
-        <p style={{ fontSize: "0.78rem", color: "#9a9793" }}>hello@brightwill.ai</p>
+        <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>hello@brightwill.ai</p>
       </footer>
     </div>
   );
