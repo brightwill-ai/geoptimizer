@@ -64,7 +64,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
               alignItems: "center",
               gap: 6,
               fontSize: "0.72rem",
-              fontWeight: 600,
+              fontWeight: 500,
               textTransform: "uppercase",
               letterSpacing: "0.08em",
               color: "rgba(255,255,255,0.4)",
@@ -75,9 +75,9 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           </div>
           <h1
             style={{
-              fontFamily: "'Instrument Sans', sans-serif",
+              fontFamily: "var(--font-sans)",
               fontSize: "1.75rem",
-              fontWeight: 700,
+              fontWeight: 500,
               color: "#ffffff",
               margin: 0,
             }}
@@ -192,7 +192,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             <h3
               style={{
                 fontSize: "0.8rem",
-                fontWeight: 600,
+                fontWeight: 500,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 color: "rgba(255,255,255,0.4)",
@@ -221,7 +221,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             <h3
               style={{
                 fontSize: "0.8rem",
-                fontWeight: 600,
+                fontWeight: 500,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
                 color: "rgba(255,255,255,0.4)",
@@ -318,9 +318,9 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             </p>
             <h3
               style={{
-                fontFamily: "'Instrument Sans', sans-serif",
+                fontFamily: "var(--font-sans)",
                 fontSize: "1.1rem",
-                fontWeight: 700,
+                fontWeight: 500,
                 color: "#ffffff",
                 margin: "4px 0 0",
               }}
@@ -341,7 +341,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1rem" }}>
                   <ProviderLogo provider={provider.id} size={18} />
-                  <h2 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: "1.1rem", fontWeight: 700, color: "#ffffff", margin: 0 }}>
+                  <h2 style={{ fontFamily: "var(--font-sans)", fontSize: "1.1rem", fontWeight: 500, color: "#ffffff", margin: 0 }}>
                     {provider.name} Analysis
                   </h2>
                 </div>
@@ -374,7 +374,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                   }}
                 >
                   <ProviderLogo provider={provider.id} size={14} />
-                  <span style={{ fontSize: "0.78rem", fontWeight: 600, color: "#ffffff" }}>
+                  <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "#ffffff" }}>
                     Unlock {provider.name}
                   </span>
                 </div>
@@ -397,7 +397,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             >
               {/* Fake cross-platform source influence */}
               <div style={{ background: "#14151a", borderRadius: 12, border: "1px solid #22232a", padding: "1.5rem" }}>
-                <h3 style={{ fontSize: "0.8rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>
+                <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>
                   Cross-Platform Source Influence
                 </h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -419,20 +419,20 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
 
               {/* Fake methodology */}
               <div style={{ background: "#14151a", borderRadius: 12, border: "1px solid #22232a", padding: "1.5rem" }}>
-                <h3 style={{ fontSize: "0.8rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>
+                <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>
                   Full Methodology & Verification
                 </h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#fff" }}>100+</div>
+                    <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#fff" }}>100+</div>
                     <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>Total queries</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#fff" }}>3</div>
+                    <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#fff" }}>3</div>
                     <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>AI platforms</div>
                   </div>
                   <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#fff" }}>8</div>
+                    <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#fff" }}>8</div>
                     <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>Query types</div>
                   </div>
                 </div>
@@ -462,12 +462,12 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                   cursor: "pointer",
                   boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
                   transition: "opacity 0.15s",
-                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontFamily: "var(--font-sans)",
                 }}
                 onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
                 onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
               >
-                <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0c0d10" }}>
+                <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "#0c0d10" }}>
                   Unlock full cross-platform report
                 </span>
               </button>
@@ -507,8 +507,8 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           style={{
             padding: "0.6rem 1.5rem",
             fontSize: "0.85rem",
-            fontWeight: 600,
-            fontFamily: "'Instrument Sans', sans-serif",
+            fontWeight: 500,
+            fontFamily: "var(--font-sans)",
             borderRadius: 8,
             border: "none",
             background: "#ffffff",

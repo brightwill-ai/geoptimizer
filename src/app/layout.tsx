@@ -1,5 +1,28 @@
 import type { Metadata } from "next";
+import { Instrument_Sans, Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
+
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-instrument-sans",
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-instrument-serif",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["200", "300"],
+  display: "swap",
+  variable: "--font-display",
+});
 
 export const metadata: Metadata = {
   title: "BrightWill — Get Found by AI",
@@ -22,13 +45,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body className="antialiased">
+      <body className={`${instrumentSans.variable} ${instrumentSerif.variable} ${inter.variable} antialiased`}>
         {children}
       </body>
     </html>

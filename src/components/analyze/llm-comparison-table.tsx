@@ -111,7 +111,7 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
                   textAlign: "center",
                   padding: "10px 12px",
                   borderBottom: "1px solid #22232a",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: "#ffffff",
                   fontSize: "0.8rem",
                 }}
@@ -152,7 +152,7 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
                     textAlign: "center",
                     padding: "10px 12px",
                     borderBottom: "1px solid rgba(255,255,255,0.04)",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     color: m.getColor(p.id),
                   }}
                 >

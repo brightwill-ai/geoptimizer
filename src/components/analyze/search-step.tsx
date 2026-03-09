@@ -1,12 +1,59 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { BUSINESS_CATEGORIES } from "@/lib/agents/prompts";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 
 interface SearchStepProps {
   onSubmit: (businessName: string, location: string, category: string) => void;
+}
+
+const DEMO_PROMPTS = [
+  "best sushi restaurant in miami for date night",
+  "most trusted family dentist in brooklyn with transparent pricing",
+  "top emergency plumber near austin open now",
+  "best pilates studio in seattle for beginners",
+];
+
+function useTypewriter(lines: string[]) {
+  const [lineIndex, setLineIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (lines.length === 0) return;
+
+    const line = lines[lineIndex] ?? "";
+    const doneTyping = charIndex === line.length;
+    const doneDeleting = charIndex === 0;
+
+    let delay = deleting ? 18 : 30;
+    if (!deleting && doneTyping) delay = 1000;
+    if (deleting && doneDeleting) delay = 220;
+
+    const timer = setTimeout(() => {
+      if (!deleting) {
+        if (doneTyping) {
+          setDeleting(true);
+        } else {
+          setCharIndex((prev) => prev + 1);
+        }
+        return;
+      }
+
+      if (doneDeleting) {
+        setDeleting(false);
+        setLineIndex((prev) => (prev + 1) % lines.length);
+      } else {
+        setCharIndex((prev) => Math.max(prev - 1, 0));
+      }
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [lines, lineIndex, charIndex, deleting]);
+
+  return lines[lineIndex]?.slice(0, charIndex) ?? "";
 }
 
 export function SearchStep({ onSubmit }: SearchStepProps) {
@@ -16,6 +63,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
   const [category, setCategory] = useState("restaurant");
   const [customCategory, setCustomCategory] = useState("");
   const [showCustom, setShowCustom] = useState(false);
+  const typedPrompt = useTypewriter(DEMO_PROMPTS);
 
   // Auto-detect location from IP
   useEffect(() => {
@@ -40,27 +88,28 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
     if (value === "__other") {
       setShowCustom(true);
       setCategory("");
-    } else {
-      setShowCustom(false);
-      setCustomCategory("");
-      setCategory(value);
+      return;
     }
+
+    setShowCustom(false);
+    setCustomCategory("");
+    setCategory(value);
   };
 
   const isValid = name.trim() && location.trim() && (showCustom ? customCategory.trim() : category);
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
-    padding: "0.875rem 1.25rem",
-    fontSize: "1rem",
-    fontFamily: "'Instrument Sans', sans-serif",
-    borderRadius: 8,
+    padding: "0.84rem 1rem",
+    fontSize: "0.88rem",
+    fontFamily: "var(--font-sans)",
+    borderRadius: 10,
     border: "1px solid #22232a",
     background: "#1a1b21",
     color: "#ffffff",
     outline: "none",
     boxSizing: "border-box",
-    transition: "border-color 0.15s",
+    transition: "border-color 0.15s, background 0.15s",
   };
 
   return (
@@ -73,117 +122,203 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "2rem",
+        padding: "2rem 1.5rem",
         background: "#0c0d10",
       }}
     >
       <div
         style={{
-          maxWidth: 560,
+          maxWidth: 1040,
           width: "100%",
-          textAlign: "center",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: "1.5rem",
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "1rem",
         }}
+        className="analyze-grid"
       >
-        {/* Eyebrow */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
+          transition={{ delay: 0.08, duration: 0.45 }}
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: "0.72rem",
-            fontWeight: 600,
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            color: "rgba(255,255,255,0.4)",
+            borderRadius: 12,
+            border: "1px solid #22232a",
+            background: "#14151a",
+            padding: "1.2rem",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            minHeight: 430,
           }}
         >
-          <span
+          <div>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                fontSize: "0.72rem",
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.4)",
+              }}
+            >
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#16a34a",
+                }}
+              />
+              Instant AI Audit
+            </div>
+
+            <h1
+              style={{
+                marginTop: "0.7rem",
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(1.9rem, 3vw, 2.7rem)",
+                fontWeight: 300,
+                lineHeight: 1.02,
+                color: "#ffffff",
+                letterSpacing: "-0.04em",
+              }}
+            >
+              See how AI recommends your business
+            </h1>
+
+            <p
+              style={{
+                marginTop: "0.8rem",
+                fontSize: "0.9rem",
+                color: "rgba(255,255,255,0.55)",
+                lineHeight: 1.5,
+                maxWidth: 450,
+              }}
+            >
+              We run 5 live ChatGPT queries, score recommendation probability, then let you unlock the full
+              cross-platform report.
+            </p>
+          </div>
+
+          <div
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: "50%",
-              background: "#16a34a",
+              marginTop: "1rem",
+              padding: "0.9rem",
+              borderRadius: 10,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.02)",
             }}
-          />
-          Instant AI Audit
+          >
+            <p
+              style={{
+                fontSize: "0.66rem",
+                color: "rgba(255,255,255,0.5)",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+              }}
+            >
+              Live query example
+            </p>
+            <div
+              aria-live="polite"
+              style={{
+                marginTop: "0.5rem",
+                minHeight: 38,
+                borderRadius: 8,
+                border: "1px solid rgba(255,255,255,0.08)",
+                padding: "0.62rem 0.72rem",
+                fontSize: "0.82rem",
+                color: "rgba(255,255,255,0.86)",
+                lineHeight: 1.4,
+                background: "rgba(255,255,255,0.02)",
+              }}
+            >
+              <span>{typedPrompt}</span>
+              <span className="bw-typing-caret" aria-hidden>
+                |
+              </span>
+            </div>
+
+            <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <ProviderLogo provider="chatgpt" size={14} />
+              <ProviderLogo provider="claude" size={14} style={{ opacity: 0.5 }} />
+              <ProviderLogo provider="gemini" size={14} style={{ opacity: 0.5 }} />
+              <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>Fast mode now, full mode after unlock</span>
+            </div>
+          </div>
         </motion.div>
 
-        {/* Heading */}
-        <motion.h1
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          style={{
-            fontFamily: "'Instrument Sans', sans-serif",
-            fontSize: "clamp(2rem, 5vw, 3rem)",
-            fontWeight: 700,
-            lineHeight: 1.1,
-            color: "#ffffff",
-            letterSpacing: "-0.03em",
-            margin: 0,
-          }}
-        >
-          See how AI recommends your business
-        </motion.h1>
-
-        {/* Subtext */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          style={{
-            fontSize: "1rem",
-            color: "rgba(255,255,255,0.5)",
-            lineHeight: 1.5,
-            maxWidth: 420,
-            margin: 0,
-          }}
-        >
-          We run 5 real queries through ChatGPT and show you exactly
-          how likely it is to recommend your business.
-        </motion.p>
-
-        {/* Search Form */}
         <motion.form
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
+          transition={{ delay: 0.12, duration: 0.45 }}
           onSubmit={handleSubmit}
           style={{
-            width: "100%",
+            borderRadius: 12,
+            border: "1px solid #22232a",
+            background: "#14151a",
+            padding: "1.2rem",
             display: "flex",
             flexDirection: "column",
             gap: "0.75rem",
-            marginTop: "0.5rem",
           }}
         >
+          <p
+            style={{
+              fontSize: "0.68rem",
+              fontWeight: 500,
+              color: "rgba(255,255,255,0.5)",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+            }}
+          >
+            Business Inputs
+          </p>
+
+          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
+            Business Name
+          </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Hana Sushi, Peak Fitness, BrightSmile Dental"
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
-            onBlur={(e) => (e.target.style.borderColor = "#22232a")}
+            onFocus={(e) => {
+              e.target.style.borderColor = "rgba(255,255,255,0.3)";
+              e.target.style.background = "rgba(255,255,255,0.05)";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#22232a";
+              e.target.style.background = "#1a1b21";
+            }}
           />
+
+          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
+            Location
+          </label>
           <input
             type="text"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder={locationLoading ? "Detecting your location..." : "e.g. Miami, FL"}
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
-            onBlur={(e) => (e.target.style.borderColor = "#22232a")}
+            onFocus={(e) => {
+              e.target.style.borderColor = "rgba(255,255,255,0.3)";
+              e.target.style.background = "rgba(255,255,255,0.05)";
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#22232a";
+              e.target.style.background = "#1a1b21";
+            }}
           />
 
-          {/* Category selector */}
+          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
+            Category
+          </label>
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <select
               value={showCustom ? "__other" : category}
@@ -199,8 +334,14 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 backgroundPosition: "right 1rem center",
                 paddingRight: "2.5rem",
               }}
-              onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
-              onBlur={(e) => (e.target.style.borderColor = "#22232a")}
+              onFocus={(e) => {
+                e.target.style.borderColor = "rgba(255,255,255,0.3)";
+                e.target.style.backgroundColor = "rgba(255,255,255,0.05)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#22232a";
+                e.target.style.backgroundColor = "#1a1b21";
+              }}
             >
               {BUSINESS_CATEGORIES.map((cat) => (
                 <option key={cat.id} value={cat.id}>
@@ -218,8 +359,14 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 placeholder="e.g. Pet Grooming, Tutoring"
                 autoFocus
                 style={{ ...inputStyle, flex: 1 }}
-                onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
-                onBlur={(e) => (e.target.style.borderColor = "#22232a")}
+                onFocus={(e) => {
+                  e.target.style.borderColor = "rgba(255,255,255,0.3)";
+                  e.target.style.background = "rgba(255,255,255,0.05)";
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = "#22232a";
+                  e.target.style.background = "#1a1b21";
+                }}
               />
             )}
           </div>
@@ -229,51 +376,26 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             disabled={!isValid}
             style={{
               width: "100%",
-              padding: "0.875rem 2rem",
+              marginTop: "0.25rem",
+              padding: "0.84rem 1rem",
               fontSize: "0.9rem",
-              fontWeight: 600,
-              fontFamily: "'Instrument Sans', sans-serif",
-              borderRadius: 8,
+              fontWeight: 500,
+              fontFamily: "var(--font-sans)",
+              borderRadius: 10,
               border: "none",
               background: isValid ? "#ffffff" : "rgba(255,255,255,0.2)",
               color: isValid ? "#0c0d10" : "rgba(255,255,255,0.4)",
               cursor: isValid ? "pointer" : "not-allowed",
-              transition: "all 0.15s",
+              transition: "all 0.2s",
             }}
           >
             Analyze my business
           </button>
-        </motion.form>
 
-        {/* AI logos */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            marginTop: "1rem",
-          }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              color: "rgba(255,255,255,0.6)",
-            }}
-          >
-            <ProviderLogo provider="chatgpt" size={14} />
-            Powered by ChatGPT
-          </span>
-          <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.3)" }}>
-            · Free · 30 seconds
-          </span>
-        </motion.div>
+          <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.32)", marginTop: "0.25rem" }}>
+            Free fast audit now. Full 3-platform report unlocks after preview.
+          </p>
+        </motion.form>
       </div>
     </motion.div>
   );

@@ -80,7 +80,7 @@ export function QueryTypeBreakdown({ queryResults, businessName, blurred }: Quer
         <h3
           style={{
             fontSize: "0.8rem",
-            fontWeight: 600,
+            fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
             color: "rgba(255,255,255,0.4)",
@@ -106,14 +106,14 @@ export function QueryTypeBreakdown({ queryResults, businessName, blurred }: Quer
         }}
       >
         <div>
-          <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#ffffff" }}>
+          <div style={{ fontSize: "1.1rem", fontWeight: 500, color: "#ffffff" }}>
             {Math.round(avgMentionRate * 100)}%
           </div>
           <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>Avg mention rate</div>
         </div>
         {bestType && (
           <div>
-            <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#16a34a" }}>
+            <div style={{ fontSize: "0.8rem", fontWeight: 500, color: "#16a34a" }}>
               {bestType.label}
             </div>
             <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>
@@ -123,7 +123,7 @@ export function QueryTypeBreakdown({ queryResults, businessName, blurred }: Quer
         )}
         {worstType && worstType.type !== bestType?.type && (
           <div>
-            <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#dc2626" }}>
+            <div style={{ fontSize: "0.8rem", fontWeight: 500, color: "#dc2626" }}>
               {worstType.label}
             </div>
             <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>
@@ -157,7 +157,7 @@ export function QueryTypeBreakdown({ queryResults, businessName, blurred }: Quer
                   <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>
                     {t.mentioned}/{t.total}
                   </span>
-                  <span style={{ fontSize: "0.8rem", fontWeight: 700, color, width: 36, textAlign: "right" }}>
+                  <span style={{ fontSize: "0.8rem", fontWeight: 500, color, width: 36, textAlign: "right" }}>
                     {Math.round(mentionPct)}%
                   </span>
                 </div>

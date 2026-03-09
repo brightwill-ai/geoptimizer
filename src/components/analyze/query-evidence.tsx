@@ -87,7 +87,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
         <h3
           style={{
             fontSize: "0.8rem",
-            fontWeight: 600,
+            fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
             color: "rgba(255,255,255,0.4)",
@@ -161,7 +161,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "0.7rem",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     color: "rgba(255,255,255,0.4)",
                     flexShrink: 0,
                   }}
@@ -193,7 +193,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                     background: mentionBg,
                     color: mentionColor,
                     fontSize: "0.68rem",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     whiteSpace: "nowrap",
                     flexShrink: 0,
                   }}
@@ -252,7 +252,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                           <div
                             style={{
                               fontSize: "0.65rem",
-                              fontWeight: 600,
+                              fontWeight: 500,
                               color: "rgba(255,255,255,0.35)",
                               marginBottom: 6,
                               textTransform: "uppercase",
@@ -314,7 +314,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                           <div
                             style={{
                               fontSize: "0.65rem",
-                              fontWeight: 600,
+                              fontWeight: 500,
                               color: providerColor,
                               marginBottom: 6,
                               textTransform: "uppercase",

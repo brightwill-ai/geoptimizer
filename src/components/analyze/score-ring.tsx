@@ -59,9 +59,9 @@ export function ScoreRing({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            fontFamily: "var(--font-sans, 'Instrument Sans', sans-serif)",
+            fontFamily: "var(--font-sans, var(--font-sans))",
             fontSize: size * 0.28,
-            fontWeight: 700,
+            fontWeight: 500,
             color: "#ffffff",
           }}
         >
@@ -69,7 +69,7 @@ export function ScoreRing({
         </div>
       </div>
       {label && (
-        <span style={{ fontSize: "0.875rem", fontWeight: 600, color: "#ffffff" }}>{label}</span>
+        <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "#ffffff" }}>{label}</span>
       )}
       {sublabel && (
         <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{sublabel}</span>

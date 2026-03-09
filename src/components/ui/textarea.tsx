@@ -39,7 +39,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
             border: `1px solid ${error ? "#dc2626" : isFocused ? "rgba(255,255,255,0.3)" : "#22232a"}`,
             borderRadius: "8px",
             padding: "0.7rem 0.9rem",
-            fontFamily: "'Instrument Sans', sans-serif",
+            fontFamily: "var(--font-sans)",
             fontSize: "0.875rem",
             color: "#ffffff",
             outline: "none",

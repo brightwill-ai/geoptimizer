@@ -65,7 +65,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
                     borderRadius: 999,
                     background: "#ffffff",
                     color: "#0c0d10",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
                   }}
@@ -98,7 +98,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
             <span
               style={{
                 fontSize: "0.8rem",
-                fontWeight: 600,
+                fontWeight: 500,
                 color: "#ffffff",
                 textAlign: "right",
               }}

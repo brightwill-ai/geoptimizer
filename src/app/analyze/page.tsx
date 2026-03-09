@@ -34,8 +34,8 @@ function Nav() {
       <Link
         href="/"
         style={{
-          fontFamily: "'Instrument Sans', sans-serif",
-          fontWeight: 700,
+          fontFamily: "var(--font-sans)",
+          fontWeight: 500,
           fontSize: "1.05rem",
           letterSpacing: "-0.02em",
           color: "#ffffff",

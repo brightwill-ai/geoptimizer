@@ -90,8 +90,8 @@ export default function PublicReportPage() {
         <Link
           href="/"
           style={{
-            fontFamily: "'Instrument Sans', sans-serif",
-            fontWeight: 700,
+            fontFamily: "var(--font-sans)",
+            fontWeight: 500,
             fontSize: "1.05rem",
             letterSpacing: "-0.02em",
             color: "#ffffff",
@@ -105,8 +105,8 @@ export default function PublicReportPage() {
           style={{
             padding: "0.5rem 1.25rem",
             fontSize: "0.8rem",
-            fontWeight: 600,
-            fontFamily: "'Instrument Sans', sans-serif",
+            fontWeight: 500,
+            fontFamily: "var(--font-sans)",
             borderRadius: 8,
             border: "none",
             background: "#ffffff",
@@ -144,9 +144,9 @@ export default function PublicReportPage() {
             <div style={{ textAlign: "center", maxWidth: 400 }}>
               <h2
                 style={{
-                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "1.5rem",
-                  fontWeight: 700,
+                  fontWeight: 500,
                   color: "#ffffff",
                   margin: "0 0 0.5rem",
                 }}
@@ -161,8 +161,8 @@ export default function PublicReportPage() {
                 style={{
                   padding: "0.7rem 2rem",
                   fontSize: "0.85rem",
-                  fontWeight: 600,
-                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontWeight: 500,
+                  fontFamily: "var(--font-sans)",
                   borderRadius: 8,
                   border: "none",
                   background: "#ffffff",

@@ -23,7 +23,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles = {
-      fontFamily: "'Instrument Sans', sans-serif",
+      fontFamily: "var(--font-sans)",
       fontWeight: 500,
       borderRadius: "8px",
       cursor: disabled || isLoading ? "not-allowed" : "pointer",
@@ -65,7 +65,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       lg: {
         padding: "0.75rem 2rem",
         fontSize: "0.95rem",
-        fontWeight: 600,
+        fontWeight: 500,
       },
     };
 

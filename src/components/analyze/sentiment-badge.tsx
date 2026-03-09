@@ -32,7 +32,7 @@ export function SentimentBadge({ sentiment, size = "sm" }: SentimentBadgeProps) 
         background: c.bg,
         color: c.text,
         fontSize: isSmall ? "0.7rem" : "0.8rem",
-        fontWeight: 600,
+        fontWeight: 500,
         lineHeight: 1.4,
       }}
     >

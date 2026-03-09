@@ -49,7 +49,7 @@ export function RecommendationHero({
       <div
         style={{
           fontSize: "0.72rem",
-          fontWeight: 600,
+          fontWeight: 500,
           textTransform: "uppercase",
           letterSpacing: "0.08em",
           color: "rgba(255,255,255,0.4)",
@@ -98,9 +98,9 @@ export function RecommendationHero({
         >
           <span
             style={{
-              fontFamily: "'Instrument Sans', sans-serif",
+              fontFamily: "var(--font-sans)",
               fontSize: "2.5rem",
-              fontWeight: 700,
+              fontWeight: 500,
               color: "#ffffff",
               lineHeight: 1,
             }}
@@ -120,7 +120,7 @@ export function RecommendationHero({
           borderRadius: 999,
           background: bgColor,
           fontSize: "0.75rem",
-          fontWeight: 600,
+          fontWeight: 500,
           color,
         }}
       >

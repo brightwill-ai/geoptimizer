@@ -70,7 +70,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, providerName, bl
         <h3
           style={{
             fontSize: "0.8rem",
-            fontWeight: 600,
+            fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
             color: "rgba(255,255,255,0.4)",
@@ -148,7 +148,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, providerName, bl
               <span
                 style={{
                   fontSize: "0.65rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   padding: "2px 8px",
                   borderRadius: 999,
                   background: `${influenceColor}20`,

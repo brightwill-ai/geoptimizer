@@ -48,7 +48,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
     width: "100%",
     padding: "0.7rem 1rem",
     fontSize: "0.85rem",
-    fontFamily: "'Instrument Sans', sans-serif",
+    fontFamily: "var(--font-sans)",
     borderRadius: 8,
     border: "1px solid #22232a",
     background: "#1a1b21",
@@ -121,9 +121,9 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
 
         <h2
           style={{
-            fontFamily: "'Instrument Sans', sans-serif",
+            fontFamily: "var(--font-sans)",
             fontSize: "1.5rem",
-            fontWeight: 700,
+            fontWeight: 500,
             color: "#ffffff",
             margin: "0 0 0.5rem 0",
             lineHeight: 1.2,
@@ -164,7 +164,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
                 color: "rgba(255,255,255,0.7)",
               }}
             >
-              <span style={{ color: "#16a34a", fontWeight: 700, flexShrink: 0, marginTop: 1 }}>✓</span>
+              <span style={{ color: "#16a34a", fontWeight: 500, flexShrink: 0, marginTop: 1 }}>✓</span>
               {item}
             </li>
           ))}
@@ -204,8 +204,8 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
               width: "100%",
               padding: "0.75rem",
               fontSize: "0.85rem",
-              fontWeight: 600,
-              fontFamily: "'Instrument Sans', sans-serif",
+              fontWeight: 500,
+              fontFamily: "var(--font-sans)",
               borderRadius: 8,
               border: "none",
               background: isValid && !loading ? "#ffffff" : "rgba(255,255,255,0.2)",

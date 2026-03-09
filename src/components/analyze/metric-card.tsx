@@ -37,7 +37,7 @@ export function MetricCard({ label, value, sublabel, trend, children }: MetricCa
           <span
             style={{
               fontSize: "0.72rem",
-              fontWeight: 600,
+              fontWeight: 500,
               color: trend >= 0 ? "#16a34a" : "#dc2626",
               display: "flex",
               alignItems: "center",
@@ -51,7 +51,7 @@ export function MetricCard({ label, value, sublabel, trend, children }: MetricCa
       <span
         style={{
           fontSize: "1.75rem",
-          fontWeight: 700,
+          fontWeight: 500,
           color: "#ffffff",
           lineHeight: 1,
         }}

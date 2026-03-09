@@ -59,7 +59,7 @@ export function FullReport({ analysis }: FullReportProps) {
               alignItems: "center",
               gap: 8,
               fontSize: "0.72rem",
-              fontWeight: 600,
+              fontWeight: 500,
               textTransform: "uppercase",
               letterSpacing: "0.08em",
               color: "rgba(255,255,255,0.4)",
@@ -70,9 +70,9 @@ export function FullReport({ analysis }: FullReportProps) {
 
           <h1
             style={{
-              fontFamily: "'Instrument Sans', sans-serif",
+              fontFamily: "var(--font-sans)",
               fontSize: "2rem",
-              fontWeight: 700,
+              fontWeight: 500,
               color: "#ffffff",
               margin: 0,
             }}
@@ -103,7 +103,7 @@ export function FullReport({ analysis }: FullReportProps) {
                   />
                   <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                     <ProviderLogo provider={p.id} size={14} />
-                    <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#ffffff" }}>{p.name}</span>
+                    <span style={{ fontSize: "0.8rem", fontWeight: 500, color: "#ffffff" }}>{p.name}</span>
                   </div>
                   <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.4)" }}>
                     {pctVal}% probability
@@ -121,7 +121,7 @@ export function FullReport({ analysis }: FullReportProps) {
               padding: "8px 20px",
               border: "1px solid #22232a",
               fontSize: "0.8rem",
-              fontWeight: 600,
+              fontWeight: 500,
               color: "#ffffff",
               display: "inline-flex",
               alignItems: "center",
@@ -153,7 +153,7 @@ export function FullReport({ analysis }: FullReportProps) {
           <h3
             style={{
               fontSize: "0.8rem",
-              fontWeight: 600,
+              fontWeight: 500,
               textTransform: "uppercase",
               letterSpacing: "0.05em",
               color: "rgba(255,255,255,0.4)",
@@ -172,19 +172,19 @@ export function FullReport({ analysis }: FullReportProps) {
             className="analyze-grid"
           >
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#ffffff" }}>
+              <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff" }}>
                 {analysis.methodology.totalQueries}
               </div>
               <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>Total queries</div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#ffffff" }}>
+              <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff" }}>
                 {analysis.methodology.providers.length}
               </div>
               <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>AI platforms</div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#ffffff" }}>
+              <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff" }}>
                 {analysis.methodology.queryTypes.length}
               </div>
               <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>Query types</div>
@@ -228,7 +228,7 @@ export function FullReport({ analysis }: FullReportProps) {
           <h3
             style={{
               fontSize: "0.8rem",
-              fontWeight: 600,
+              fontWeight: 500,
               textTransform: "uppercase",
               letterSpacing: "0.05em",
               color: "rgba(255,255,255,0.4)",
@@ -277,7 +277,7 @@ export function FullReport({ analysis }: FullReportProps) {
                   padding: "0.75rem 1.25rem",
                   fontSize: "0.85rem",
                   fontWeight: activeTab === p.id ? 600 : 400,
-                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontFamily: "var(--font-sans)",
                   color: activeTab === p.id ? "#ffffff" : "rgba(255,255,255,0.4)",
                   background: "none",
                   border: "none",
@@ -426,7 +426,7 @@ export function FullReport({ analysis }: FullReportProps) {
               <h3
                 style={{
                   fontSize: "0.8rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
                   color: "rgba(255,255,255,0.4)",
@@ -457,7 +457,7 @@ export function FullReport({ analysis }: FullReportProps) {
               <h3
                 style={{
                   fontSize: "0.8rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
                   color: "rgba(255,255,255,0.4)",
@@ -482,7 +482,7 @@ export function FullReport({ analysis }: FullReportProps) {
               <h3
                 style={{
                   fontSize: "0.8rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
                   color: "rgba(255,255,255,0.4)",
@@ -556,7 +556,7 @@ export function FullReport({ analysis }: FullReportProps) {
               <h3
                 style={{
                   fontSize: "0.8rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
                   color: "rgba(255,255,255,0.4)",
@@ -606,7 +606,7 @@ export function FullReport({ analysis }: FullReportProps) {
           <h3
             style={{
               fontSize: "0.8rem",
-              fontWeight: 600,
+              fontWeight: 500,
               textTransform: "uppercase",
               letterSpacing: "0.05em",
               color: "rgba(255,255,255,0.4)",
@@ -628,7 +628,7 @@ export function FullReport({ analysis }: FullReportProps) {
               <div
                 style={{
                   fontSize: "0.75rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: "#16a34a",
                   marginBottom: 8,
                   display: "flex",
@@ -656,7 +656,7 @@ export function FullReport({ analysis }: FullReportProps) {
               <div
                 style={{
                   fontSize: "0.75rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: "#d97706",
                   marginBottom: 8,
                   display: "flex",
@@ -684,7 +684,7 @@ export function FullReport({ analysis }: FullReportProps) {
               <div
                 style={{
                   fontSize: "0.75rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: "#dc2626",
                   marginBottom: 8,
                   display: "flex",

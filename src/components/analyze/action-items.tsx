@@ -295,12 +295,12 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
         <h3
           style={{
             fontSize: "0.8rem",
-            fontWeight: 600,
+            fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
             color: "rgba(255,255,255,0.4)",
             margin: "0 0 0.25rem 0",
-            fontFamily: "'Instrument Sans', sans-serif",
+            fontFamily: "var(--font-sans)",
           }}
         >
           Action Items
@@ -311,7 +311,7 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
             color: "rgba(255,255,255,0.6)",
             margin: 0,
             lineHeight: 1.5,
-            fontFamily: "'Instrument Sans', sans-serif",
+            fontFamily: "var(--font-sans)",
           }}
         >
           {recommendations.length} prioritized recommendations based on your
@@ -361,9 +361,9 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "0.82rem",
-                  fontWeight: 700,
+                  fontWeight: 500,
                   color: "rgba(255,255,255,0.3)",
-                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontFamily: "var(--font-sans)",
                 }}
               >
                 {index + 1}
@@ -390,11 +390,11 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                       borderRadius: 999,
                       background: config.bg,
                       fontSize: "0.68rem",
-                      fontWeight: 600,
+                      fontWeight: 500,
                       color: config.color,
                       textTransform: "uppercase",
                       letterSpacing: "0.04em",
-                      fontFamily: "'Instrument Sans', sans-serif",
+                      fontFamily: "var(--font-sans)",
                     }}
                   >
                     {config.label}
@@ -411,7 +411,7 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                       fontSize: "0.68rem",
                       fontWeight: 500,
                       color: "rgba(255,255,255,0.5)",
-                      fontFamily: "'Instrument Sans', sans-serif",
+                      fontFamily: "var(--font-sans)",
                     }}
                   >
                     {item.category}
@@ -426,7 +426,7 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                     color: "#ffffff",
                     lineHeight: 1.5,
                     margin: "0 0 6px 0",
-                    fontFamily: "'Instrument Sans', sans-serif",
+                    fontFamily: "var(--font-sans)",
                   }}
                 >
                   {item.action}
@@ -439,7 +439,7 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                     color: "rgba(255,255,255,0.4)",
                     lineHeight: 1.45,
                     margin: 0,
-                    fontFamily: "'Instrument Sans', sans-serif",
+                    fontFamily: "var(--font-sans)",
                   }}
                 >
                   {item.reason}

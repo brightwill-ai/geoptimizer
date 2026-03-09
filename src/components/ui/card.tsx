@@ -62,9 +62,9 @@ const CardTitle = forwardRef<
   <h3
     ref={ref}
     style={{
-      fontFamily: "'Instrument Sans', sans-serif",
+      fontFamily: "var(--font-sans)",
       fontSize: "1.5rem",
-      fontWeight: 600,
+      fontWeight: 500,
       color: "#ffffff",
       lineHeight: 1.3,
       ...style,

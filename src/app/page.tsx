@@ -26,6 +26,51 @@ function useReveal(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
   }, [ref, threshold]);
 }
 
+function useTypewriter(lines: string[]) {
+  const [lineIndex, setLineIndex] = useState(0);
+  const [charIndex, setCharIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (lines.length === 0) return;
+
+    const line = lines[lineIndex] ?? "";
+    const doneTyping = charIndex === line.length;
+    const doneDeleting = charIndex === 0;
+
+    let delay = deleting ? 18 : 30;
+    if (!deleting && doneTyping) delay = 1000;
+    if (deleting && doneDeleting) delay = 220;
+
+    const timer = setTimeout(() => {
+      if (!deleting) {
+        if (doneTyping) {
+          setDeleting(true);
+        } else {
+          setCharIndex((prev) => prev + 1);
+        }
+        return;
+      }
+
+      if (doneDeleting) {
+        setDeleting(false);
+        setLineIndex((prev) => (prev + 1) % lines.length);
+      } else {
+        setCharIndex((prev) => Math.max(prev - 1, 0));
+      }
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [lines, lineIndex, charIndex, deleting]);
+
+  return {
+    lineIndex,
+    typedText: lines[lineIndex]?.slice(0, charIndex) ?? "",
+    charIndex,
+    lineLength: lines[lineIndex]?.length ?? 0,
+  };
+}
+
 // ── Animated Counter ──
 function AnimatedCounter({
   end,
@@ -120,7 +165,7 @@ function ProbabilityRing({
           alignItems: "center",
           justifyContent: "center",
           fontSize: size * 0.22,
-          fontWeight: 700,
+          fontWeight: 500,
           color: "#ffffff",
         }}
       >
@@ -156,8 +201,8 @@ function Nav() {
           display: "flex",
           alignItems: "center",
           gap: "0.5rem",
-          fontFamily: "'Instrument Sans', sans-serif",
-          fontWeight: 700,
+          fontFamily: "var(--font-sans)",
+          fontWeight: 500,
           fontSize: "1.05rem",
           letterSpacing: "-0.02em",
           color: "#ffffff",
@@ -207,6 +252,8 @@ function HeroReportMockup() {
     { text: "Top Japanese restaurants Brickell", mentioned: false },
     { text: "Romantic dinner spots Miami Beach", mentioned: true },
   ];
+  const { lineIndex, typedText } = useTypewriter(queries.map((query) => query.text));
+  const activeQuery = queries[lineIndex % queries.length] ?? queries[0];
 
   return (
     <div
@@ -226,7 +273,7 @@ function HeroReportMockup() {
         <span
           style={{
             fontSize: "0.72rem",
-            fontWeight: 600,
+            fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.06em",
             color: "rgba(255,255,255,0.4)",
@@ -240,7 +287,7 @@ function HeroReportMockup() {
       <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1.5rem" }}>
         <ProbabilityRing value={60} size={72} />
         <div>
-          <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#ffffff" }}>
+          <div style={{ fontSize: "1.1rem", fontWeight: 500, color: "#ffffff" }}>
             60% probability
           </div>
           <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>
@@ -251,7 +298,40 @@ function HeroReportMockup() {
 
       {/* Query evidence */}
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {queries.map((item, i) => (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "7px 10px",
+            borderRadius: 8,
+            background: "rgba(255,255,255,0.05)",
+            minHeight: 34,
+          }}
+        >
+          <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.84)" }} aria-live="polite">
+            &ldquo;{typedText}&rdquo;
+            <span className="bw-typing-caret" aria-hidden>
+              |
+            </span>
+          </span>
+          <span
+            style={{
+              padding: "2px 8px",
+              borderRadius: 999,
+              background: activeQuery.mentioned ? "rgba(22,163,74,0.15)" : "rgba(220,38,38,0.15)",
+              color: activeQuery.mentioned ? "#4ade80" : "#f87171",
+              fontSize: "0.65rem",
+              fontWeight: 500,
+              flexShrink: 0,
+              marginLeft: 10,
+            }}
+          >
+            {activeQuery.mentioned ? "Recommended" : "Not mentioned"}
+          </span>
+        </div>
+
+        {queries.slice(1).map((item, i) => (
           <div
             key={i}
             style={{
@@ -273,7 +353,7 @@ function HeroReportMockup() {
                 background: item.mentioned ? "rgba(22,163,74,0.15)" : "rgba(220,38,38,0.15)",
                 color: item.mentioned ? "#4ade80" : "#f87171",
                 fontSize: "0.65rem",
-                fontWeight: 600,
+                fontWeight: 500,
                 flexShrink: 0,
                 marginLeft: 10,
               }}
@@ -326,7 +406,7 @@ function Hero() {
               alignItems: "center",
               gap: "0.5rem",
               fontSize: "0.72rem",
-              fontWeight: 600,
+              fontWeight: 500,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               color: "rgba(255,255,255,0.4)",
@@ -341,8 +421,8 @@ function Hero() {
             className="animate-up"
             style={{
               animationDelay: "0.2s",
-              fontFamily: "'Instrument Sans', sans-serif",
-              fontWeight: 700,
+              fontFamily: "var(--font-display)",
+              fontWeight: 300,
               fontSize: "clamp(2.8rem, 4.5vw, 4rem)",
               lineHeight: 1.05,
               letterSpacing: "-0.04em",
@@ -438,7 +518,7 @@ function PlatformBar() {
           >
             <span style={{ width: 3, height: 20, borderRadius: 2, background: p.color, flexShrink: 0 }} />
             <ProviderLogo provider={p.name.toLowerCase()} size={18} />
-            <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>
+            <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "rgba(255,255,255,0.6)" }}>
               {p.name}
             </span>
           </div>
@@ -490,8 +570,8 @@ function Stats() {
             >
               <div
                 style={{
-                  fontFamily: "'Instrument Sans', sans-serif",
-                  fontWeight: 700,
+                  fontFamily: "var(--font-sans)",
+                  fontWeight: 500,
                   fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
                   letterSpacing: "-0.05em",
                   lineHeight: 1,
@@ -546,15 +626,15 @@ function HowWeMeasure() {
                 textTransform: "uppercase",
                 color: "rgba(255,255,255,0.4)",
                 marginBottom: "0.75rem",
-                fontWeight: 600,
+                fontWeight: 500,
               }}
             >
-              Our methodology
+              How it works
             </p>
             <h2
               style={{
-                fontFamily: "'Instrument Sans', sans-serif",
-                fontWeight: 700,
+                fontFamily: "var(--font-display)",
+                fontWeight: 300,
                 fontSize: "clamp(1.8rem, 3vw, 2.4rem)",
                 letterSpacing: "-0.04em",
                 lineHeight: 1.1,
@@ -580,7 +660,7 @@ function HowWeMeasure() {
               Try it free <span>&rarr;</span>
             </Link>
             <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", marginTop: "0.75rem" }}>
-              Transparent methodology. Every query visible.
+              Transparent process. Every query visible.
             </p>
           </div>
 
@@ -597,7 +677,7 @@ function HowWeMeasure() {
               <div
                 style={{
                   fontSize: "0.72rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                   color: "rgba(255,255,255,0.4)",
@@ -610,7 +690,7 @@ function HowWeMeasure() {
               <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1.25rem" }}>
                 <ProbabilityRing value={60} size={72} />
                 <div>
-                  <div style={{ fontSize: "1.1rem", fontWeight: 700, color: "#ffffff" }}>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 500, color: "#ffffff" }}>
                     60% probability
                   </div>
                   <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>
@@ -648,7 +728,7 @@ function HowWeMeasure() {
                         background: item.mentioned ? "rgba(22,163,74,0.15)" : "rgba(220,38,38,0.15)",
                         color: item.mentioned ? "#4ade80" : "#f87171",
                         fontSize: "0.68rem",
-                        fontWeight: 600,
+                        fontWeight: 500,
                         flexShrink: 0,
                         marginLeft: 10,
                       }}
@@ -688,15 +768,15 @@ function ReportShowcase() {
               textTransform: "uppercase",
               color: "rgba(255,255,255,0.4)",
               marginBottom: "0.75rem",
-              fontWeight: 600,
+              fontWeight: 500,
             }}
           >
             Free audit output
           </p>
           <h2
             style={{
-              fontFamily: "'Instrument Sans', sans-serif",
-              fontWeight: 700,
+              fontFamily: "var(--font-display)",
+              fontWeight: 300,
               fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
               letterSpacing: "-0.04em",
               lineHeight: 1.1,
@@ -730,7 +810,7 @@ function ReportShowcase() {
             {/* Header */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: "1.5rem" }}>
               <ProviderLogo provider="chatgpt" size={16} />
-              <span style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)" }}>
+              <span style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)" }}>
                 ChatGPT Audit &mdash; Hana Sushi Miami
               </span>
             </div>
@@ -739,10 +819,10 @@ function ReportShowcase() {
             <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginBottom: "2rem" }}>
               <ProbabilityRing value={60} size={88} />
               <div>
-                <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>
+                <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>
                   Recommendation probability
                 </div>
-                <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#ffffff", lineHeight: 1.2 }}>
+                <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff", lineHeight: 1.2 }}>
                   60%
                 </div>
                 <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>
@@ -752,7 +832,7 @@ function ReportShowcase() {
             </div>
 
             {/* Query evidence */}
-            <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem" }}>
+            <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem" }}>
               Query evidence
             </div>
             {[
@@ -780,7 +860,7 @@ function ReportShowcase() {
                 <span
                   style={{
                     fontSize: "0.62rem",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     padding: "2px 8px",
                     borderRadius: 999,
                     background: item.mentioned ? "rgba(22,163,74,0.15)" : "rgba(220,38,38,0.15)",
@@ -807,7 +887,7 @@ function ReportShowcase() {
                 flex: 1,
               }}
             >
-              <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "1rem" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "1rem" }}>
                 Who AI recommends instead
               </div>
               {[
@@ -857,11 +937,11 @@ function ReportShowcase() {
                 padding: "1.5rem",
               }}
             >
-              <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "1rem" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "1rem" }}>
                 Sentiment when mentioned
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                <span style={{ fontSize: "1.1rem", fontWeight: 700, color: "#4ade80" }}>78%</span>
+                <span style={{ fontSize: "1.1rem", fontWeight: 500, color: "#4ade80" }}>78%</span>
                 <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.5)" }}>positive</span>
               </div>
               <div style={{ display: "flex", height: 6, borderRadius: 3, overflow: "hidden", background: "rgba(255,255,255,0.08)" }}>
@@ -889,9 +969,9 @@ function ReportShowcase() {
               border: "none",
               padding: "0.7rem 2rem",
               borderRadius: 8,
-              fontFamily: "'Instrument Sans', sans-serif",
+              fontFamily: "var(--font-sans)",
               fontSize: "0.9rem",
-              fontWeight: 600,
+              fontWeight: 500,
               cursor: "pointer",
               display: "inline-flex",
               alignItems: "center",
@@ -936,10 +1016,10 @@ function Features() {
     >
       <div style={{ maxWidth: "1140px", margin: "0 auto", padding: "6rem 2.5rem" }}>
         <div className="reveal-scale" style={{ textAlign: "center", marginBottom: "4rem" }}>
-          <p style={{ fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem", fontWeight: 600 }}>
+          <p style={{ fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem", fontWeight: 500 }}>
             Platform
           </p>
-          <h2 style={{ fontFamily: "'Instrument Sans', sans-serif", fontWeight: 700, fontSize: "clamp(2rem, 3.5vw, 2.8rem)", letterSpacing: "-0.04em", lineHeight: 1.1, color: "#ffffff" }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 300, fontSize: "clamp(2rem, 3.5vw, 2.8rem)", letterSpacing: "-0.04em", lineHeight: 1.1, color: "#ffffff" }}>
             What your audit reveals.
           </h2>
         </div>
@@ -956,7 +1036,7 @@ function Features() {
             </div>
             {/* Content overlay */}
             <div style={{ position: "relative", zIndex: 1, padding: "2rem", display: "flex", flexDirection: "column", height: "100%" }}>
-              <h3 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: "1.15rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
+              <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.15rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
                 AI Recommendation Tracking
               </h3>
               <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.55, marginBottom: "auto" }}>
@@ -966,7 +1046,7 @@ function Features() {
               <div style={{ background: "rgba(12,13,16,0.7)", backdropFilter: "blur(8px)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "1.25rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 10, padding: "0 4px" }}>
                   <span>Total</span>
-                  <span style={{ fontWeight: 700, color: "rgba(255,255,255,0.6)", fontSize: "0.75rem" }}>1,130</span>
+                  <span style={{ fontWeight: 500, color: "rgba(255,255,255,0.6)", fontSize: "0.75rem" }}>1,130</span>
                 </div>
                 {[
                   { name: "ChatGPT", count: 276, color: "#10a37f" },
@@ -977,7 +1057,7 @@ function Features() {
                     <span style={{ width: 3, height: 18, borderRadius: 2, background: p.color, flexShrink: 0 }} />
                     <ProviderLogo provider={p.name.toLowerCase()} size={16} />
                     <span style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.7)", flex: 1 }}>{p.name}</span>
-                    <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "#ffffff" }}>{p.count}</span>
+                    <span style={{ fontSize: "0.9rem", fontWeight: 500, color: "#ffffff" }}>{p.count}</span>
                   </div>
                 ))}
               </div>
@@ -987,7 +1067,7 @@ function Features() {
           {/* Card 2: Sentiment Analysis — theme table + AI response */}
           <div className="reveal-scale stagger-2" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", overflow: "hidden", display: "flex", flexDirection: "column" }}>
             <div style={{ padding: "2rem", flex: 1, display: "flex", flexDirection: "column" }}>
-              <h3 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: "1.15rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
+              <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.15rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
                 Capture the sentiment of AI responses
               </h3>
               <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.55, marginBottom: "1.5rem" }}>
@@ -1008,7 +1088,7 @@ function Features() {
                 ].map((row, i) => (
                   <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 80px 90px", padding: "10px 14px", borderTop: "1px solid rgba(255,255,255,0.04)", alignItems: "center" }}>
                     <span style={{ fontSize: "0.78rem", color: "#ffffff", fontWeight: 500 }}>{row.theme}</span>
-                    <span style={{ fontSize: "0.7rem", fontWeight: 600, color: row.sentColor }}>{row.sentiment}</span>
+                    <span style={{ fontSize: "0.7rem", fontWeight: 500, color: row.sentColor }}>{row.sentiment}</span>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
                       <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.7)" }}>{row.count}</span>
                       <span style={{ fontSize: "0.62rem", color: "#4ade80" }}>{row.change}</span>
@@ -1035,7 +1115,7 @@ function Features() {
         <div className="features-bottom-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
           {/* Source Influence */}
           <div className="reveal-scale stagger-3" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", padding: "2rem" }}>
-            <h3 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: "1.05rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
+            <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.05rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
               Source Influence Analysis
             </h3>
             <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.5, marginBottom: "1.25rem" }}>
@@ -1052,14 +1132,14 @@ function Features() {
                 <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
                   <div style={{ width: `${src.score}%`, height: "100%", background: `rgba(255,255,255,${src.score > 70 ? 0.7 : src.score > 50 ? 0.4 : 0.2})`, borderRadius: 3 }} />
                 </div>
-                <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", width: 28, textAlign: "right" }}>{src.score}</span>
+                <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "rgba(255,255,255,0.6)", width: 28, textAlign: "right" }}>{src.score}</span>
               </div>
             ))}
           </div>
 
           {/* Competitive Intelligence */}
           <div className="reveal-scale stagger-4" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", padding: "2rem" }}>
-            <h3 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: "1.05rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
+            <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.05rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
               Competitive Intelligence
             </h3>
             <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.5, marginBottom: "1.25rem" }}>
@@ -1078,7 +1158,7 @@ function Features() {
                 <div style={{ flex: 1, height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
                   <div style={{ width: `${c.pct}%`, height: "100%", background: c.highlight ? "#ffffff" : "rgba(255,255,255,0.15)", borderRadius: 3 }} />
                 </div>
-                <span style={{ fontSize: "0.72rem", fontWeight: 600, color: c.highlight ? "#ffffff" : "rgba(255,255,255,0.4)", width: 32, textAlign: "right" }}>
+                <span style={{ fontSize: "0.72rem", fontWeight: 500, color: c.highlight ? "#ffffff" : "rgba(255,255,255,0.4)", width: 32, textAlign: "right" }}>
                   {c.pct}%
                 </span>
               </div>
@@ -1092,6 +1172,8 @@ function Features() {
 
 // ── Step Mockup: Search Form ──
 function StepMockupSearch() {
+  const typedBusiness = useTypewriter(["Hana Sushi Miami"]).typedText;
+
   return (
     <div className="mockup-frame" style={{ padding: 0 }}>
       <div style={{ height: 32, display: "flex", alignItems: "center", gap: 6, padding: "0 12px", position: "relative", zIndex: 2 }}>
@@ -1101,13 +1183,16 @@ function StepMockupSearch() {
         <span style={{ marginLeft: "auto", fontSize: "0.6rem", color: "rgba(255,255,255,0.25)" }}>brightwill.ai/analyze</span>
       </div>
       <div style={{ padding: "1.25rem 1.5rem 1.5rem" }}>
-        <div style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>
+        <div style={{ fontSize: "0.68rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>
           AI Visibility Audit
         </div>
         <div style={{ marginBottom: 10 }}>
           <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Business name</div>
           <div style={{ background: "#1a1b21", border: "1px solid #22232a", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "#ffffff" }}>
-            Hana Sushi
+            {typedBusiness}
+            <span className="bw-typing-caret" aria-hidden>
+              |
+            </span>
           </div>
         </div>
         <div style={{ marginBottom: 10 }}>
@@ -1123,7 +1208,7 @@ function StepMockupSearch() {
             <span style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.2)" }}>▼</span>
           </div>
         </div>
-        <div style={{ background: "#ffffff", color: "#0c0d10", borderRadius: 6, padding: "8px", textAlign: "center", fontSize: "0.78rem", fontWeight: 600 }}>
+        <div style={{ background: "#ffffff", color: "#0c0d10", borderRadius: 6, padding: "8px", textAlign: "center", fontSize: "0.78rem", fontWeight: 500 }}>
           Run free audit →
         </div>
       </div>
@@ -1133,6 +1218,26 @@ function StepMockupSearch() {
 
 // ── Step Mockup: Probability Results ──
 function StepMockupResults() {
+  const loadingQueries = [
+    "best sushi in miami",
+    "where to get omakase near downtown miami",
+    "romantic dinner spots miami beach",
+    "best lunch spots near me miami",
+    "top japanese restaurants brickell",
+  ];
+  const [dots, setDots] = useState("");
+  const { typedText, lineIndex, charIndex, lineLength } = useTypewriter(loadingQueries);
+  const segment = loadingQueries.length > 0 ? 100 / loadingQueries.length : 100;
+  const typedProgress = lineLength > 0 ? Math.min(charIndex / lineLength, 1) : 0;
+  const progress = Math.min(100, Math.max(6, Math.round(lineIndex * segment + typedProgress * segment)));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "" : `${prev}.`));
+    }, 460);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="mockup-frame" style={{ padding: 0 }}>
       <div style={{ height: 32, display: "flex", alignItems: "center", gap: 6, padding: "0 12px", position: "relative", zIndex: 2 }}>
@@ -1143,25 +1248,62 @@ function StepMockupResults() {
       <div style={{ padding: "1.25rem 1.5rem 1.5rem" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14 }}>
           <ProviderLogo provider="chatgpt" size={14} />
-          <span style={{ fontSize: "0.62rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)" }}>
-            ChatGPT Audit
+          <span style={{ fontSize: "0.62rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)" }}>
+            ChatGPT Loading
           </span>
+          <span
+            style={{
+              marginLeft: 4,
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "#4ade80",
+              animation: "pulse-dot 1.2s ease-in-out infinite",
+            }}
+          />
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
-          <ProbabilityRing value={60} size={56} />
-          <div>
-            <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#ffffff" }}>60%</div>
-            <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.35)" }}>Recommended in 3 of 5</div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: "0.66rem", color: "rgba(255,255,255,0.45)" }}>
+              Running query {Math.min(lineIndex + 1, loadingQueries.length)} of {loadingQueries.length}
+              {dots}
+            </span>
+            <span style={{ fontSize: "0.66rem", color: "rgba(255,255,255,0.55)", fontWeight: 500 }}>{progress}%</span>
+          </div>
+          <div style={{ height: 5, borderRadius: 3, background: "rgba(255,255,255,0.08)", overflow: "hidden" }}>
+            <div style={{ width: `${progress}%`, height: "100%", background: "#ffffff", borderRadius: 3, transition: "width 0.25s ease" }} />
           </div>
         </div>
+        <div style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, padding: "7px 8px", background: "rgba(255,255,255,0.03)", marginBottom: 8 }}>
+          <div style={{ fontSize: "0.58rem", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>
+            Current prompt
+          </div>
+          <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.62)" }}>
+            &ldquo;{typedText}
+            <span className="bw-typing-caret" aria-hidden>
+              |
+            </span>
+            &rdquo;
+          </div>
+        </div>
+
         {[
-          { q: "Best sushi in Miami", ok: true },
-          { q: "Top Japanese restaurants", ok: false },
-          { q: "Omakase near downtown", ok: true },
+          { q: "Business profile fetched", status: "done" as const },
+          { q: "Prompt queue prepared", status: "done" as const },
+          { q: "Parsing model response", status: "running" as const },
         ].map((item, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 8px", borderRadius: 5, background: i % 2 === 0 ? "rgba(255,255,255,0.03)" : "transparent", marginBottom: 2 }}>
-            <span style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.5)" }}>&ldquo;{item.q}&rdquo;</span>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: item.ok ? "#4ade80" : "#f87171", flexShrink: 0 }} />
+            <span style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.52)" }}>{item.q}</span>
+            <span
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: item.status === "done" ? "#4ade80" : "#fbbf24",
+                flexShrink: 0,
+                animation: item.status === "running" ? "pulse-dot 1.1s ease-in-out infinite" : undefined,
+              }}
+            />
           </div>
         ))}
       </div>
@@ -1171,6 +1313,26 @@ function StepMockupResults() {
 
 // ── Step Mockup: Full Report ──
 function StepMockupReport() {
+  const [animateIn, setAnimateIn] = useState(true);
+  const providers = [
+    { name: "ChatGPT", pct: 60, color: "#10a37f" },
+    { name: "Claude", pct: 45, color: "#c084fc" },
+    { name: "Gemini", pct: 72, color: "#4285f4" },
+  ];
+
+  useEffect(() => {
+    const timeoutIds: ReturnType<typeof setTimeout>[] = [];
+    const interval = setInterval(() => {
+      setAnimateIn(false);
+      const timeoutId = setTimeout(() => setAnimateIn(true), 120);
+      timeoutIds.push(timeoutId);
+    }, 2900);
+    return () => {
+      clearInterval(interval);
+      timeoutIds.forEach((id) => clearTimeout(id));
+    };
+  }, []);
+
   return (
     <div className="mockup-frame" style={{ padding: 0 }}>
       <div style={{ height: 32, display: "flex", alignItems: "center", gap: 6, padding: "0 12px", position: "relative", zIndex: 2 }}>
@@ -1179,32 +1341,50 @@ function StepMockupReport() {
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
       </div>
       <div style={{ padding: "1.25rem 1.5rem 1.5rem" }}>
-        <div style={{ fontSize: "0.62rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>
+        <div style={{ fontSize: "0.62rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>
           Cross-platform analysis
         </div>
-        {[
-          { name: "ChatGPT", pct: 60, color: "#10a37f" },
-          { name: "Claude", pct: 45, color: "#c084fc" },
-          { name: "Gemini", pct: 72, color: "#4285f4" },
-        ].map((p) => (
+        {providers.map((p, i) => (
           <div key={p.name} style={{ marginBottom: 10 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <ProviderLogo provider={p.name.toLowerCase()} size={11} />
                 <span style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.5)" }}>{p.name}</span>
               </div>
-              <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#ffffff" }}>{p.pct}%</span>
+              <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "#ffffff" }}>{p.pct}%</span>
             </div>
             <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
-              <div style={{ width: `${p.pct}%`, height: "100%", background: p.color, borderRadius: 2 }} />
+              <div
+                style={{
+                  width: animateIn ? `${p.pct}%` : "0%",
+                  height: "100%",
+                  background: p.color,
+                  borderRadius: 2,
+                  transition: `width 0.7s cubic-bezier(0.16, 1, 0.3, 1) ${i * 100}ms`,
+                }}
+              />
             </div>
           </div>
         ))}
         <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.25)", marginBottom: 6 }}>Top sources cited</div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {["Google Business", "Yelp", "TripAdvisor"].map((s) => (
-              <span key={s} style={{ fontSize: "0.58rem", padding: "2px 6px", borderRadius: 4, background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)" }}>{s}</span>
+            {["Google Business", "Yelp", "TripAdvisor"].map((s, i) => (
+              <span
+                key={s}
+                style={{
+                  fontSize: "0.58rem",
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                  background: "rgba(255,255,255,0.05)",
+                  color: "rgba(255,255,255,0.4)",
+                  opacity: animateIn ? 1 : 0,
+                  transform: animateIn ? "translateY(0)" : "translateY(4px)",
+                  transition: `opacity 0.35s ease ${260 + i * 80}ms, transform 0.35s ease ${260 + i * 80}ms`,
+                }}
+              >
+                {s}
+              </span>
             ))}
           </div>
         </div>
@@ -1227,14 +1407,14 @@ function HowItWorks() {
     },
     {
       num: 2,
-      title: "See your probability score",
-      desc: "Your recommendation probability — how often AI mentions your business. With full evidence for every query.",
+      title: "Watch AI run your audit",
+      desc: "See live loading progress as prompts run, responses parse, and recommendation evidence is assembled in real time.",
       mockup: <StepMockupResults />,
     },
     {
       num: 3,
-      title: "Get the full audit",
-      desc: "40+ queries across ChatGPT, Claude, and Gemini. Source influence, competitor analysis, shareable report.",
+      title: "Get the full report",
+      desc: "Review cross-platform scores, source influence, competitor comparisons, and a shareable report snapshot.",
       mockup: <StepMockupReport />,
     },
   ];
@@ -1250,15 +1430,15 @@ function HowItWorks() {
               textTransform: "uppercase",
               color: "rgba(255,255,255,0.4)",
               marginBottom: "0.75rem",
-              fontWeight: 600,
+              fontWeight: 500,
             }}
           >
             How it works
           </p>
           <h2
             style={{
-              fontFamily: "'Instrument Sans', sans-serif",
-              fontWeight: 700,
+              fontFamily: "var(--font-display)",
+              fontWeight: 300,
               fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
               letterSpacing: "-0.04em",
               lineHeight: 1.1,
@@ -1291,9 +1471,9 @@ function HowItWorks() {
               <div style={{ padding: "0 1.5rem 1.75rem" }}>
                 <h3
                   style={{
-                    fontFamily: "'Instrument Sans', sans-serif",
+                    fontFamily: "var(--font-sans)",
                     fontSize: "1.05rem",
-                    fontWeight: 700,
+                    fontWeight: 500,
                     letterSpacing: "-0.02em",
                     marginBottom: "0.4rem",
                     color: "#ffffff",
@@ -1375,8 +1555,8 @@ function Pricing() {
         <div className="reveal-scale" style={{ marginBottom: "3rem" }}>
           <h2
             style={{
-              fontFamily: "'Instrument Sans', sans-serif",
-              fontWeight: 700,
+              fontFamily: "var(--font-display)",
+              fontWeight: 300,
               fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
               letterSpacing: "-0.04em",
               lineHeight: 1.1,
@@ -1423,7 +1603,7 @@ function Pricing() {
                     background: "#ffffff",
                     color: "#0c0d10",
                     fontSize: "0.7rem",
-                    fontWeight: 600,
+                    fontWeight: 500,
                     letterSpacing: "0.06em",
                     textTransform: "uppercase",
                     padding: "0.25rem 0.75rem",
@@ -1437,7 +1617,7 @@ function Pricing() {
               <div
                 style={{
                   fontSize: "0.78rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   color: "rgba(255,255,255,0.5)",
@@ -1449,9 +1629,9 @@ function Pricing() {
 
               <div
                 style={{
-                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "2.4rem",
-                  fontWeight: 700,
+                  fontWeight: 500,
                   letterSpacing: "-0.04em",
                   lineHeight: 1,
                   marginBottom: "0.2rem",
@@ -1503,7 +1683,7 @@ function Pricing() {
                     <span
                       style={{
                         color: "#ffffff",
-                        fontWeight: 700,
+                        fontWeight: 500,
                         flexShrink: 0,
                         marginTop: "1px",
                       }}
@@ -1522,9 +1702,9 @@ function Pricing() {
                   width: "100%",
                   padding: "0.7rem",
                   borderRadius: 8,
-                  fontFamily: "'Instrument Sans', sans-serif",
+                  fontFamily: "var(--font-sans)",
                   fontSize: "0.875rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   cursor: "pointer",
                   border: plan.featured ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.15)",
                   background: plan.featured ? "#ffffff" : "transparent",
@@ -1562,15 +1742,15 @@ function CTA() {
             textTransform: "uppercase",
             color: "rgba(255,255,255,0.4)",
             marginBottom: "0.75rem",
-            fontWeight: 600,
+            fontWeight: 500,
           }}
         >
           Free audit
         </p>
         <h2
           style={{
-            fontFamily: "'Instrument Sans', sans-serif",
-            fontWeight: 700,
+            fontFamily: "var(--font-display)",
+            fontWeight: 300,
             fontSize: "clamp(2.2rem, 4vw, 3.2rem)",
             letterSpacing: "-0.04em",
             lineHeight: 1.1,
@@ -1592,9 +1772,9 @@ function CTA() {
             border: "none",
             padding: "0.75rem 2rem",
             borderRadius: 8,
-            fontFamily: "'Instrument Sans', sans-serif",
+            fontFamily: "var(--font-sans)",
             fontSize: "0.95rem",
-            fontWeight: 600,
+            fontWeight: 500,
             cursor: "pointer",
             display: "inline-flex",
             alignItems: "center",
@@ -1627,7 +1807,7 @@ function Footer() {
         gap: "1rem",
       }}
     >
-      <span style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em", color: "#ffffff" }}>
+      <span style={{ fontWeight: 500, fontSize: "0.9rem", letterSpacing: "-0.02em", color: "#ffffff" }}>
         BrightWill
       </span>
       <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.3)" }}>
@@ -1654,12 +1834,12 @@ export default function Home() {
       <PlatformBar />
       <Stats />
       <SectionDivider />
-      <HowWeMeasure />
-      <ReportShowcase />
-      <SectionDivider glow />
-      <Features />
-      <SectionDivider />
       <HowItWorks />
+      <Features />
+      <SectionDivider glow />
+      <ReportShowcase />
+      <SectionDivider />
+      <HowWeMeasure />
       <SectionDivider glow />
       <Pricing />
       <CTA />

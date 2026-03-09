@@ -88,8 +88,8 @@ export default function SignupPage() {
         <Link
           href="/"
           style={{
-            fontFamily: "'Instrument Sans', sans-serif",
-            fontWeight: 700,
+            fontFamily: "var(--font-sans)",
+            fontWeight: 500,
             fontSize: "1.05rem",
             letterSpacing: "-0.02em",
             color: "#ffffff",
@@ -162,8 +162,8 @@ export default function SignupPage() {
             <div style={{ marginBottom: "2rem" }}>
               <h1
                 style={{
-                  fontFamily: "'Instrument Sans', sans-serif",
-                  fontWeight: 700,
+                  fontFamily: "var(--font-sans)",
+                  fontWeight: 500,
                   fontSize: "1.5rem",
                   letterSpacing: "-0.03em",
                   marginBottom: "0.35rem",
@@ -288,7 +288,7 @@ export default function SignupPage() {
           background: "#0c0d10",
         }}
       >
-        <span style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em", color: "#ffffff" }}>
+        <span style={{ fontWeight: 500, fontSize: "0.9rem", letterSpacing: "-0.02em", color: "#ffffff" }}>
           BrightWill
         </span>
         <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>

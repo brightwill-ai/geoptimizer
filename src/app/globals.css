@@ -39,8 +39,9 @@
   --color-white: var(--white);
   --color-card-bg: var(--card-bg);
 
-  --font-sans: 'Instrument Sans', sans-serif;
-  --font-serif: 'Instrument Serif', serif;
+  --font-sans: var(--font-instrument-sans), "Instrument Sans", sans-serif;
+  --font-serif: var(--font-instrument-serif), "Instrument Serif", serif;
+  --font-display: var(--font-display), "Inter", sans-serif;
 }
 
 *, *::before, *::after {
@@ -56,7 +57,7 @@ html {
 body {
   background: var(--bg-dark);
   color: #ffffff;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-sans);
   font-weight: 400;
   line-height: 1.6;
   overflow-x: hidden;
@@ -81,9 +82,9 @@ body {
   border: none;
   padding: 0.5rem 1.25rem;
   border-radius: 8px;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
@@ -102,9 +103,9 @@ body {
   border: 1px solid rgba(255,255,255,0.2);
   padding: 0.6rem 1.5rem;
   border-radius: 8px;
-  font-family: 'Instrument Sans', sans-serif;
+  font-family: var(--font-sans);
   font-size: 0.875rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
   display: inline-flex;
@@ -251,6 +252,17 @@ body {
   50% { opacity: 1; transform: scale(1); }
 }
 
+@keyframes bw-caret-blink {
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0; }
+}
+
+.bw-typing-caret {
+  display: inline-block;
+  margin-left: 2px;
+  animation: bw-caret-blink 1s step-end infinite;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 860px) {
   .analyze-grid {
@@ -325,14 +337,9 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-  background-size: 80px 80px;
+  background: none;
   pointer-events: none;
   z-index: 0;
-  mask-image: linear-gradient(to bottom, black 0%, transparent 70%);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 70%);
 }
 
 .grid-bg > * {
@@ -392,8 +399,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Instrument Sans', sans-serif;
-  font-weight: 700;
+  font-family: var(--font-sans);
+  font-weight: 500;
   font-size: 1.15rem;
   color: #ffffff;
   z-index: 3;
@@ -453,20 +460,9 @@ body {
 /* ── INTERIOR VERTICAL LINES — top only ── */
 .grid-bg::after {
   content: '';
+  display: none;
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1140px;
-  transform: translateX(-50%);
-  background-image:
-    linear-gradient(90deg, rgba(255,255,255,0.13) 1px, transparent 1px);
-  background-size: calc(1140px / 3) 100%;
-  background-position: calc(1140px / 6) 0;
   pointer-events: none;
-  z-index: 2;
-  mask-image: linear-gradient(to bottom, black 0%, black 10%, transparent 16%);
-  -webkit-mask-image: linear-gradient(to bottom, black 0%, black 10%, transparent 16%);
 }
 
 /* ── OUTER EDGE LINES — full page height, no mask ── */
@@ -477,10 +473,27 @@ body {
   left: 50%;
   width: 1140px;
   transform: translateX(-50%);
-  border-left: 1px solid rgba(255,255,255,0.13);
-  border-right: 1px solid rgba(255,255,255,0.13);
+  border-left: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.1);
   pointer-events: none;
   z-index: 2;
+}
+
+.grid-bg .edge-lines::before,
+.grid-bg .edge-lines::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.grid-bg .edge-lines::before {
+  top: 24px;
+}
+
+.grid-bg .edge-lines::after {
+  top: 106px;
 }
 
 /* ── CUSTOM SCROLLBAR ── */

@@ -64,7 +64,7 @@ export function BarChart({
               <span
                 style={{
                   fontSize: "0.8rem",
-                  fontWeight: 600,
+                  fontWeight: 500,
                   color: "#ffffff",
                   width: 48,
                   flexShrink: 0,
