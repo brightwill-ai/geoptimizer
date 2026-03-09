@@ -1625,7 +1625,6 @@ function Footer() {
         alignItems: "center",
         flexWrap: "wrap",
         gap: "1rem",
-        background: "#0c0d10",
       }}
     >
       <span style={{ fontWeight: 700, fontSize: "0.9rem", letterSpacing: "-0.02em", color: "#ffffff" }}>

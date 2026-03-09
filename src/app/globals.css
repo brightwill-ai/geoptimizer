@@ -460,7 +460,7 @@ body {
   width: 1140px;
   transform: translateX(-50%);
   background-image:
-    linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+    linear-gradient(90deg, rgba(255,255,255,0.13) 1px, transparent 1px);
   background-size: calc(1140px / 3) 100%;
   background-position: calc(1140px / 6) 0;
   pointer-events: none;
@@ -477,8 +477,8 @@ body {
   left: 50%;
   width: 1140px;
   transform: translateX(-50%);
-  border-left: 1px solid rgba(255,255,255,0.1);
-  border-right: 1px solid rgba(255,255,255,0.1);
+  border-left: 1px solid rgba(255,255,255,0.13);
+  border-right: 1px solid rgba(255,255,255,0.13);
   pointer-events: none;
   z-index: 2;
 }
