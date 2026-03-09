@@ -47,4 +47,4 @@ jobs:
             docker build -t brightwill .
             docker stop brightwill 2>/dev/null || true
             docker rm brightwill 2>/dev/null || true
-            docker run -d --name brightwill -p 80:3000 --env-file ~/geoptimizer/.env --restart unless-stopped brightwill
+            docker run -d --name brightwill -p 3003:3000 --env-file ~/geoptimizer/.env --restart unless-stopped brightwill
