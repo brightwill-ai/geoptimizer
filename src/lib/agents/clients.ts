@@ -10,7 +10,10 @@ let _google: GoogleGenAI | null = null;
 
 export function getOpenAIClient(): OpenAI {
   if (!_openai) {
-    _openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    _openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      baseURL: process.env.OPENAI_BASE_URL || undefined,
+    });
   }
   return _openai;
 }
@@ -33,17 +36,17 @@ export type LLMTier = "fast" | "comprehensive";
 
 export const MODEL_CONFIG = {
   chatgpt: {
-    fast: "gpt-4o-mini",
-    comprehensive: "gpt-4o",
+    fast: "GPT 4.1 Mini",
+    comprehensive: "GPT 4.1",
   },
   claude: {
     fast: "claude-haiku-4-5-20251001",
     comprehensive: "claude-sonnet-4-20250514",
   },
   gemini: {
-    fast: "gemini-2.0-flash",
-    comprehensive: "gemini-2.0-flash",
+    fast: "gemini-2.5-flash",
+    comprehensive: "gemini-2.5-flash",
   },
   // Parser model (always cheap)
-  parser: "gpt-4o-mini",
+  parser: "GPT 4.1 Mini",
 } as const;
