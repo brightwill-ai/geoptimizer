@@ -15,6 +15,7 @@ import { RecommendationHero } from "./recommendation-hero";
 import { QueryEvidence } from "./query-evidence";
 import { SourceInfluenceMap } from "./source-influence-map";
 import { QueryTypeBreakdown } from "./query-type-breakdown";
+import { ActionItems } from "./action-items";
 
 interface FullReportProps {
   analysis: GEOAnalysis;
@@ -711,6 +712,9 @@ export function FullReport({ analysis }: FullReportProps) {
             </div>
           </div>
         </motion.div>
+
+        {/* Actionable Recommendations */}
+        <ActionItems analysis={analysis} businessName={analysis.businessName} />
       </div>
     </motion.div>
   );

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 
 // ── Shared scroll-reveal hook ──
@@ -152,6 +153,9 @@ function Nav() {
       <Link
         href="/"
         style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5rem",
           fontFamily: "'Instrument Sans', sans-serif",
           fontWeight: 700,
           fontSize: "1.05rem",
@@ -160,6 +164,13 @@ function Nav() {
           textDecoration: "none",
         }}
       >
+        <Image
+          src="/logo.png"
+          alt="BrightWill"
+          width={28}
+          height={28}
+          style={{ borderRadius: 4 }}
+        />
         BrightWill
       </Link>
 
@@ -292,7 +303,7 @@ function HeroReportMockup() {
 // ── Hero Section (DARK) ──
 function Hero() {
   return (
-    <section style={{ background: "#0c0d10" }}>
+    <section>
       <div
         className="hero"
         style={{
@@ -392,7 +403,6 @@ function PlatformBar() {
     <div
       style={{
         borderBottom: "1px solid #22232a",
-        background: "#0c0d10",
         padding: "1.1rem 2.5rem",
       }}
     >
@@ -423,9 +433,10 @@ function PlatformBar() {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 8,
             }}
           >
+            <span style={{ width: 3, height: 20, borderRadius: 2, background: p.color, flexShrink: 0 }} />
             <ProviderLogo provider={p.name.toLowerCase()} size={18} />
             <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>
               {p.name}
@@ -451,9 +462,6 @@ function Stats() {
   return (
     <div
       ref={ref}
-      style={{
-        background: "#0c0d10",
-      }}
     >
       <div
         style={{
@@ -512,9 +520,6 @@ function HowWeMeasure() {
   return (
     <div
       ref={ref}
-      style={{
-        background: "#0c0d10",
-      }}
     >
       <div
         style={{
@@ -670,7 +675,7 @@ function ReportShowcase() {
     <div
       ref={ref}
       style={{
-        background: "linear-gradient(180deg, #0c0d10 0%, #14151a 100%)",
+        background: "linear-gradient(180deg, transparent 0%, #14151a 100%)",
         padding: "6rem 2.5rem",
       }}
     >
@@ -906,329 +911,338 @@ function ReportShowcase() {
   );
 }
 
-// ── Features Section ──
+// ── SVG Line Chart Background ──
+function LineChartBg() {
+  return (
+    <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none" style={{ position: "absolute", inset: 0, opacity: 0.25 }}>
+      <polyline points="0,150 40,135 80,140 120,95 160,105 200,68 240,82 280,55 320,70 360,48 400,60" fill="none" stroke="#ffffff" strokeWidth="1.5" />
+      <polyline points="0,160 40,148 80,125 120,135 160,115 200,122 240,98 280,108 320,88 360,95 400,82" fill="none" stroke="#f59e0b" strokeWidth="1.5" />
+      <polyline points="0,172 40,168 80,158 120,162 160,145 200,150 240,138 280,142 320,128 360,132 400,118" fill="none" stroke="#06b6d4" strokeWidth="1.5" />
+      <polyline points="0,180 40,176 80,172 120,168 160,162 200,165 240,155 280,158 320,148 360,152 400,140" fill="none" stroke="#ef4444" strokeWidth="1.5" />
+      <polyline points="0,188 40,186 80,183 120,180 160,177 200,178 240,172 280,174 320,168 360,170 400,162" fill="none" stroke="#a855f7" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+// ── Features Section (redesigned — 2-col top, full-width bottom) ──
 function Features() {
   const ref = useRef<HTMLDivElement>(null);
   useReveal(ref);
-
-  const features = [
-    {
-      title: "AI Recommendation Tracking",
-      body: "Track exactly how often your business appears in AI-generated recommendations across ChatGPT, Claude, and Gemini. See your recommendation probability backed by real data.",
-      visual: "probability",
-    },
-    {
-      title: "Query Evidence",
-      body: "See exactly what AI says about your business. Every query, every response, every mention \u2014 with full transparency into what drives AI recommendations.",
-      visual: "evidence",
-    },
-    {
-      title: "Source Influence Analysis",
-      body: "AI models cite authoritative sources. Understand which directories, review sites, and content platforms influence your AI visibility the most.",
-      visual: "citations",
-    },
-    {
-      title: "Competitive Intelligence",
-      body: "See which competitors are being recommended over you, and exactly what signals drive their rankings. Identify gaps and opportunities.",
-      visual: "competitors",
-    },
-  ];
 
   return (
     <div
       id="features"
       ref={ref}
-      style={{
-        background: "#0c0d10",
-      }}
     >
-      <div
-        style={{
-          maxWidth: "1140px",
-          margin: "0 auto",
-          padding: "6rem 2.5rem",
-        }}
-      >
-        <div className="reveal-scale" style={{ marginBottom: "3.5rem", maxWidth: 600 }}>
-          <p
-            style={{
-              fontSize: "0.72rem",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.4)",
-              marginBottom: "0.75rem",
-              fontWeight: 600,
-            }}
-          >
+      <div style={{ maxWidth: "1140px", margin: "0 auto", padding: "6rem 2.5rem" }}>
+        <div className="reveal-scale" style={{ textAlign: "center", marginBottom: "4rem" }}>
+          <p style={{ fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem", fontWeight: 600 }}>
             Platform
           </p>
-          <h2
-            style={{
-              fontFamily: "'Instrument Sans', sans-serif",
-              fontWeight: 700,
-              fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
-              letterSpacing: "-0.04em",
-              lineHeight: 1.1,
-              color: "#ffffff",
-            }}
-          >
+          <h2 style={{ fontFamily: "'Instrument Sans', sans-serif", fontWeight: 700, fontSize: "clamp(2rem, 3.5vw, 2.8rem)", letterSpacing: "-0.04em", lineHeight: 1.1, color: "#ffffff" }}>
             What your audit reveals.
           </h2>
         </div>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-          {features.map((feature, i) => (
-            <div
-              key={i}
-              className={`reveal-scale feature-card-new stagger-${(i % 5) + 1}`}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "2.5rem",
-                alignItems: "center",
-                background: "#14151a",
-                borderRadius: 12,
-                border: "1px solid #22232a",
-                padding: "2.5rem",
-                transition: "transform 0.3s ease, box-shadow 0.3s ease",
-              }}
-            >
-              <div style={{ order: i % 2 === 0 ? 0 : 1 }}>
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: 36,
-                    height: 36,
-                    borderRadius: 8,
-                    background: "rgba(255,255,255,0.06)",
-                    marginBottom: "1rem",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                    color: "rgba(255,255,255,0.4)",
-                  }}
-                >
-                  {String(i + 1).padStart(2, "0")}
+        {/* Top row: 2 feature cards side by side */}
+        <div className="features-top-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", marginBottom: "1.25rem" }}>
+
+          {/* Card 1: Citation Tracking — line chart + provider breakdown */}
+          <div className="reveal-scale stagger-1" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", overflow: "hidden", position: "relative", minHeight: 380 }}>
+            {/* Line chart background */}
+            <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+              <LineChartBg />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(20,21,26,0.3) 0%, rgba(20,21,26,0.85) 50%, #14151a 75%)" }} />
+            </div>
+            {/* Content overlay */}
+            <div style={{ position: "relative", zIndex: 1, padding: "2rem", display: "flex", flexDirection: "column", height: "100%" }}>
+              <h3 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: "1.15rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
+                AI Recommendation Tracking
+              </h3>
+              <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.55, marginBottom: "auto" }}>
+                Track how often each AI platform recommends your business across real customer queries.
+              </p>
+              {/* Provider breakdown table */}
+              <div style={{ background: "rgba(12,13,16,0.7)", backdropFilter: "blur(8px)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "1.25rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 10, padding: "0 4px" }}>
+                  <span>Total</span>
+                  <span style={{ fontWeight: 700, color: "rgba(255,255,255,0.6)", fontSize: "0.75rem" }}>1,130</span>
                 </div>
-                <h3
-                  style={{
-                    fontFamily: "'Instrument Sans', sans-serif",
-                    fontSize: "1.25rem",
-                    fontWeight: 700,
-                    letterSpacing: "-0.02em",
-                    marginBottom: "0.75rem",
-                    color: "#ffffff",
-                  }}
-                >
-                  {feature.title}
-                </h3>
-                <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.65 }}>
-                  {feature.body}
-                </p>
-              </div>
-              <div style={{ order: i % 2 === 0 ? 1 : 0 }}>
-                <FeatureVisual type={feature.visual} />
+                {[
+                  { name: "ChatGPT", count: 276, color: "#10a37f" },
+                  { name: "Claude", count: 121, color: "#c084fc" },
+                  { name: "Gemini", count: 63, color: "#4285f4" },
+                ].map((p) => (
+                  <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 4px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                    <span style={{ width: 3, height: 18, borderRadius: 2, background: p.color, flexShrink: 0 }} />
+                    <ProviderLogo provider={p.name.toLowerCase()} size={16} />
+                    <span style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.7)", flex: 1 }}>{p.name}</span>
+                    <span style={{ fontSize: "0.9rem", fontWeight: 700, color: "#ffffff" }}>{p.count}</span>
+                  </div>
+                ))}
               </div>
             </div>
-          ))}
+          </div>
+
+          {/* Card 2: Sentiment Analysis — theme table + AI response */}
+          <div className="reveal-scale stagger-2" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+            <div style={{ padding: "2rem", flex: 1, display: "flex", flexDirection: "column" }}>
+              <h3 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: "1.15rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
+                Capture the sentiment of AI responses
+              </h3>
+              <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.55, marginBottom: "1.5rem" }}>
+                Understand the brand sentiment and track changes in real-time.
+              </p>
+              {/* Sentiment table */}
+              <div style={{ borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden", flex: 1 }}>
+                {/* Table header */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 90px", padding: "8px 14px", background: "rgba(255,255,255,0.03)", fontSize: "0.62rem", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  <span>Theme</span>
+                  <span>Sentiment</span>
+                  <span style={{ textAlign: "right" }}>Occurrences</span>
+                </div>
+                {[
+                  { theme: "Friendly user interface", sentiment: "Positive", count: 225, change: "+36", sentColor: "#4ade80" },
+                  { theme: "Expensive", sentiment: "Negative", count: 148, change: "+1", sentColor: "#f87171" },
+                  { theme: "Seamless integration", sentiment: "Positive", count: 125, change: "+12", sentColor: "#4ade80" },
+                ].map((row, i) => (
+                  <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 80px 90px", padding: "10px 14px", borderTop: "1px solid rgba(255,255,255,0.04)", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.78rem", color: "#ffffff", fontWeight: 500 }}>{row.theme}</span>
+                    <span style={{ fontSize: "0.7rem", fontWeight: 600, color: row.sentColor }}>{row.sentiment}</span>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                      <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.7)" }}>{row.count}</span>
+                      <span style={{ fontSize: "0.62rem", color: "#4ade80" }}>{row.change}</span>
+                    </div>
+                  </div>
+                ))}
+                {/* Expanded AI response preview */}
+                <div style={{ padding: "14px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
+                  <div style={{ background: "rgba(12,13,16,0.6)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)", padding: "12px 14px" }}>
+                    <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>
+                      ChatGPT &middot; Response excerpt
+                    </div>
+                    <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.55, borderLeft: "2px solid rgba(255,255,255,0.08)", paddingLeft: 10 }}>
+                      &ldquo;Hana Sushi is a popular Japanese restaurant in Miami known for its fresh omakase and friendly atmosphere. Customers frequently praise the quality of fish and attentive service...&rdquo;
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom row: 2 smaller feature cards */}
+        <div className="features-bottom-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+          {/* Source Influence */}
+          <div className="reveal-scale stagger-3" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", padding: "2rem" }}>
+            <h3 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: "1.05rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
+              Source Influence Analysis
+            </h3>
+            <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.5, marginBottom: "1.25rem" }}>
+              Which directories and review sites influence your AI visibility most.
+            </p>
+            {[
+              { name: "Google Business Profile", score: 92 },
+              { name: "Yelp", score: 78 },
+              { name: "TripAdvisor", score: 61 },
+              { name: "Local blogs", score: 34 },
+            ].map((src) => (
+              <div key={src.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.55)", width: 130, flexShrink: 0 }}>{src.name}</span>
+                <div style={{ flex: 1, height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${src.score}%`, height: "100%", background: `rgba(255,255,255,${src.score > 70 ? 0.7 : src.score > 50 ? 0.4 : 0.2})`, borderRadius: 3 }} />
+                </div>
+                <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", width: 28, textAlign: "right" }}>{src.score}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Competitive Intelligence */}
+          <div className="reveal-scale stagger-4" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", padding: "2rem" }}>
+            <h3 style={{ fontFamily: "'Instrument Sans', sans-serif", fontSize: "1.05rem", fontWeight: 700, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
+              Competitive Intelligence
+            </h3>
+            <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.5, marginBottom: "1.25rem" }}>
+              See which competitors are being recommended over you.
+            </p>
+            {[
+              { name: "Your business", pct: 72, highlight: true },
+              { name: "Sushi Garage", pct: 65, highlight: false },
+              { name: "Azabu Miami", pct: 48, highlight: false },
+              { name: "Naoe", pct: 31, highlight: false },
+            ].map((c) => (
+              <div key={c.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <span style={{ fontSize: "0.72rem", color: c.highlight ? "#ffffff" : "rgba(255,255,255,0.4)", fontWeight: c.highlight ? 600 : 400, width: 100, flexShrink: 0 }}>
+                  {c.name}
+                </span>
+                <div style={{ flex: 1, height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${c.pct}%`, height: "100%", background: c.highlight ? "#ffffff" : "rgba(255,255,255,0.15)", borderRadius: 3 }} />
+                </div>
+                <span style={{ fontSize: "0.72rem", fontWeight: 600, color: c.highlight ? "#ffffff" : "rgba(255,255,255,0.4)", width: 32, textAlign: "right" }}>
+                  {c.pct}%
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ── Feature Card Visuals ──
-function FeatureVisual({ type }: { type: string }) {
-  const cardStyle: React.CSSProperties = {
-    background: "rgba(255,255,255,0.03)",
-    borderRadius: 10,
-    padding: "1.5rem",
-    minHeight: 200,
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    border: "1px solid rgba(255,255,255,0.06)",
-  };
+// ── Step Mockup: Search Form ──
+function StepMockupSearch() {
+  return (
+    <div className="mockup-frame" style={{ padding: 0 }}>
+      <div style={{ height: 32, display: "flex", alignItems: "center", gap: 6, padding: "0 12px", position: "relative", zIndex: 2 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f87171" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
+        <span style={{ marginLeft: "auto", fontSize: "0.6rem", color: "rgba(255,255,255,0.25)" }}>brightwill.ai/analyze</span>
+      </div>
+      <div style={{ padding: "1.25rem 1.5rem 1.5rem" }}>
+        <div style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>
+          AI Visibility Audit
+        </div>
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Business name</div>
+          <div style={{ background: "#1a1b21", border: "1px solid #22232a", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "#ffffff" }}>
+            Hana Sushi
+          </div>
+        </div>
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Location</div>
+          <div style={{ background: "#1a1b21", border: "1px solid #22232a", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "rgba(255,255,255,0.5)" }}>
+            Miami, FL
+          </div>
+        </div>
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Category</div>
+          <div style={{ background: "#1a1b21", border: "1px solid #22232a", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "rgba(255,255,255,0.5)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            Restaurant
+            <span style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.2)" }}>▼</span>
+          </div>
+        </div>
+        <div style={{ background: "#ffffff", color: "#0c0d10", borderRadius: 6, padding: "8px", textAlign: "center", fontSize: "0.78rem", fontWeight: 600 }}>
+          Run free audit →
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  switch (type) {
-    case "probability":
-      return (
-        <div style={cardStyle}>
-          <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1rem" }}>
-            <ProbabilityRing value={72} size={64} />
-            <div>
-              <div style={{ fontSize: "0.9rem", fontWeight: 700, color: "#ffffff" }}>72% probability</div>
-              <div style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>ChatGPT recommendation rate</div>
+// ── Step Mockup: Probability Results ──
+function StepMockupResults() {
+  return (
+    <div className="mockup-frame" style={{ padding: 0 }}>
+      <div style={{ height: 32, display: "flex", alignItems: "center", gap: 6, padding: "0 12px", position: "relative", zIndex: 2 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f87171" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
+      </div>
+      <div style={{ padding: "1.25rem 1.5rem 1.5rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14 }}>
+          <ProviderLogo provider="chatgpt" size={14} />
+          <span style={{ fontSize: "0.62rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)" }}>
+            ChatGPT Audit
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+          <ProbabilityRing value={60} size={56} />
+          <div>
+            <div style={{ fontSize: "0.95rem", fontWeight: 700, color: "#ffffff" }}>60%</div>
+            <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.35)" }}>Recommended in 3 of 5</div>
+          </div>
+        </div>
+        {[
+          { q: "Best sushi in Miami", ok: true },
+          { q: "Top Japanese restaurants", ok: false },
+          { q: "Omakase near downtown", ok: true },
+        ].map((item, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 8px", borderRadius: 5, background: i % 2 === 0 ? "rgba(255,255,255,0.03)" : "transparent", marginBottom: 2 }}>
+            <span style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.5)" }}>&ldquo;{item.q}&rdquo;</span>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: item.ok ? "#4ade80" : "#f87171", flexShrink: 0 }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Step Mockup: Full Report ──
+function StepMockupReport() {
+  return (
+    <div className="mockup-frame" style={{ padding: 0 }}>
+      <div style={{ height: 32, display: "flex", alignItems: "center", gap: 6, padding: "0 12px", position: "relative", zIndex: 2 }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f87171" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24" }} />
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
+      </div>
+      <div style={{ padding: "1.25rem 1.5rem 1.5rem" }}>
+        <div style={{ fontSize: "0.62rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>
+          Cross-platform analysis
+        </div>
+        {[
+          { name: "ChatGPT", pct: 60, color: "#10a37f" },
+          { name: "Claude", pct: 45, color: "#c084fc" },
+          { name: "Gemini", pct: 72, color: "#4285f4" },
+        ].map((p) => (
+          <div key={p.name} style={{ marginBottom: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <ProviderLogo provider={p.name.toLowerCase()} size={11} />
+                <span style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.5)" }}>{p.name}</span>
+              </div>
+              <span style={{ fontSize: "0.72rem", fontWeight: 700, color: "#ffffff" }}>{p.pct}%</span>
+            </div>
+            <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ width: `${p.pct}%`, height: "100%", background: p.color, borderRadius: 2 }} />
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {[
-              { label: "Claude", pct: 58, color: "#c084fc" },
-              { label: "Gemini", pct: 65, color: "#4285f4" },
-            ].map((p) => (
-              <div
-                key={p.label}
-                style={{
-                  flex: 1,
-                  background: "rgba(255,255,255,0.04)",
-                  borderRadius: 8,
-                  padding: "0.6rem 0.75rem",
-                  border: "1px solid rgba(255,255,255,0.06)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
-                  <ProviderLogo provider={p.label.toLowerCase()} size={12} />
-                  <span style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.4)" }}>{p.label}</span>
-                </div>
-                <span style={{ fontSize: "1rem", fontWeight: 700, color: "#ffffff" }}>{p.pct}%</span>
-              </div>
+        ))}
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.25)", marginBottom: 6 }}>Top sources cited</div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {["Google Business", "Yelp", "TripAdvisor"].map((s) => (
+              <span key={s} style={{ fontSize: "0.58rem", padding: "2px 6px", borderRadius: 4, background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)" }}>{s}</span>
             ))}
           </div>
         </div>
-      );
-
-    case "evidence":
-      return (
-        <div style={cardStyle}>
-          {[
-            { q: "Best sushi in Miami", status: "Recommended", color: "#4ade80", bg: "rgba(22,163,74,0.15)" },
-            { q: "Top restaurants Brickell", status: "Mentioned", color: "#fbbf24", bg: "rgba(217,119,6,0.15)" },
-            { q: "Where to eat near me", status: "Not mentioned", color: "#f87171", bg: "rgba(220,38,38,0.15)" },
-          ].map((item, i) => (
-            <div
-              key={i}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0.6rem 0.75rem",
-                borderRadius: 6,
-                background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "transparent",
-                marginBottom: 4,
-              }}
-            >
-              <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.6)" }}>&ldquo;{item.q}&rdquo;</span>
-              <span
-                style={{
-                  fontSize: "0.65rem",
-                  fontWeight: 600,
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                  background: item.bg,
-                  color: item.color,
-                  flexShrink: 0,
-                  marginLeft: 8,
-                }}
-              >
-                {item.status}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-
-    case "citations":
-      return (
-        <div style={cardStyle}>
-          <div style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem" }}>
-            Source influence
-          </div>
-          {[
-            { name: "Google Business Profile", score: 92 },
-            { name: "Yelp", score: 78 },
-            { name: "TripAdvisor", score: 61 },
-            { name: "Local blogs", score: 34 },
-          ].map((src) => (
-            <div key={src.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.6)", width: 120, flexShrink: 0 }}>{src.name}</span>
-              <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
-                <div style={{ width: `${src.score}%`, height: "100%", background: "#ffffff", borderRadius: 2 }} />
-              </div>
-              <span style={{ fontSize: "0.68rem", fontWeight: 600, color: "rgba(255,255,255,0.6)", width: 28, textAlign: "right" }}>{src.score}</span>
-            </div>
-          ))}
-        </div>
-      );
-
-    case "competitors":
-      return (
-        <div style={cardStyle}>
-          <div style={{ fontSize: "0.68rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem" }}>
-            Competitive landscape
-          </div>
-          {[
-            { name: "Your business", pct: 72, highlight: true },
-            { name: "Competitor A", pct: 65, highlight: false },
-            { name: "Competitor B", pct: 48, highlight: false },
-            { name: "Competitor C", pct: 31, highlight: false },
-          ].map((c) => (
-            <div key={c.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <span style={{ fontSize: "0.72rem", color: c.highlight ? "#ffffff" : "rgba(255,255,255,0.4)", fontWeight: c.highlight ? 600 : 400, width: 100, flexShrink: 0 }}>
-                {c.name}
-              </span>
-              <div style={{ flex: 1, height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 3, overflow: "hidden" }}>
-                <div
-                  style={{
-                    width: `${c.pct}%`,
-                    height: "100%",
-                    background: c.highlight ? "#ffffff" : "rgba(255,255,255,0.2)",
-                    borderRadius: 3,
-                  }}
-                />
-              </div>
-              <span style={{ fontSize: "0.72rem", fontWeight: 600, color: c.highlight ? "#ffffff" : "rgba(255,255,255,0.4)", width: 32, textAlign: "right" }}>
-                {c.pct}%
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-
-    default:
-      return <div style={cardStyle} />;
-  }
+      </div>
+    </div>
+  );
 }
 
-// ── How It Works Section ──
+// ── How It Works Section (Cryptix-inspired cards) ──
 function HowItWorks() {
   const ref = useRef<HTMLDivElement>(null);
   useReveal(ref);
 
   const steps = [
     {
-      num: "01",
-      title: "Enter your business name.",
-      desc: "Tell us your business name and location. We query ChatGPT with 5 real customer questions and show you exactly what it says.",
+      num: 1,
+      title: "Enter your business",
+      desc: "Tell us your business name and location. We handle the rest — querying ChatGPT with real customer questions.",
+      mockup: <StepMockupSearch />,
     },
     {
-      num: "02",
-      title: "See your probability score.",
-      desc: "Your recommendation probability \u2014 the percentage of queries where AI mentions your business. With full evidence: every query, every response.",
+      num: 2,
+      title: "See your probability score",
+      desc: "Your recommendation probability — how often AI mentions your business. With full evidence for every query.",
+      mockup: <StepMockupResults />,
     },
     {
-      num: "03",
-      title: "Get the comprehensive audit.",
-      desc: "40+ queries across ChatGPT, Claude, and Gemini. Source influence mapping. Competitor analysis. Shareable report.",
+      num: 3,
+      title: "Get the full audit",
+      desc: "40+ queries across ChatGPT, Claude, and Gemini. Source influence, competitor analysis, shareable report.",
+      mockup: <StepMockupReport />,
     },
   ];
 
   return (
-    <div
-      id="how"
-      ref={ref}
-      style={{
-        background: "#0c0d10",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "1140px",
-          margin: "0 auto",
-          padding: "6rem 2.5rem",
-        }}
-      >
-        <div className="reveal-scale" style={{ marginBottom: "3.5rem" }}>
+    <div id="how" ref={ref}>
+      <div style={{ maxWidth: "1140px", margin: "0 auto", padding: "6rem 2.5rem" }}>
+        <div className="reveal-scale" style={{ textAlign: "center", marginBottom: "4rem" }}>
           <p
             style={{
               fontSize: "0.72rem",
@@ -1239,7 +1253,7 @@ function HowItWorks() {
               fontWeight: 600,
             }}
           >
-            The process
+            How it works
           </p>
           <h2
             style={{
@@ -1255,6 +1269,9 @@ function HowItWorks() {
             <br />
             In 30 seconds.
           </h2>
+          <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.45)", marginTop: "1rem", maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
+            A simple, transparent process to measure your AI visibility.
+          </p>
         </div>
 
         <div
@@ -1262,46 +1279,32 @@ function HowItWorks() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
-            gap: 0,
+            gap: "1.5rem",
           }}
         >
           {steps.map((step, i) => (
-            <div
-              key={i}
-              className={`step-col reveal-scale stagger-${i + 1}`}
-              style={{
-                padding:
-                  i === 0 ? "2rem 2rem 2rem 0" : i === 1 ? "2rem 2rem" : "2rem 0 2rem 2rem",
-                borderRight: i < 2 ? "1px solid #22232a" : "none",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "'Instrument Sans', sans-serif",
-                  fontSize: "5rem",
-                  lineHeight: 1,
-                  fontWeight: 700,
-                  color: "rgba(255,255,255,0.08)",
-                  marginBottom: "1rem",
-                  display: "block",
-                }}
-              >
-                {step.num}
-              </span>
-              <div
-                style={{
-                  fontWeight: 700,
-                  fontSize: "1rem",
-                  letterSpacing: "-0.02em",
-                  marginBottom: "0.5rem",
-                  color: "#ffffff",
-                }}
-              >
-                {step.title}
+            <div key={i} className={`step-card reveal-scale stagger-${i + 1}`} style={{ paddingTop: 28 }}>
+              <div className="step-number">{step.num}</div>
+              <div style={{ padding: "0 1.25rem", marginBottom: "1.25rem" }}>
+                {step.mockup}
               </div>
-              <p style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.65 }}>
-                {step.desc}
-              </p>
+              <div style={{ padding: "0 1.5rem 1.75rem" }}>
+                <h3
+                  style={{
+                    fontFamily: "'Instrument Sans', sans-serif",
+                    fontSize: "1.05rem",
+                    fontWeight: 700,
+                    letterSpacing: "-0.02em",
+                    marginBottom: "0.4rem",
+                    color: "#ffffff",
+                  }}
+                >
+                  {step.title}
+                </h3>
+                <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+                  {step.desc}
+                </p>
+              </div>
             </div>
           ))}
         </div>
@@ -1361,9 +1364,6 @@ function Pricing() {
     <div
       id="pricing"
       ref={ref}
-      style={{
-        background: "#0c0d10",
-      }}
     >
       <div
         style={{
@@ -1550,7 +1550,6 @@ function CTA() {
   return (
     <div
       style={{
-        background: "#0c0d10",
         padding: "6rem 2.5rem",
         textAlign: "center",
       }}
@@ -1640,24 +1639,17 @@ function Footer() {
   );
 }
 
-// ── Section Divider ──
-function SectionDivider() {
-  return (
-    <div
-      style={{
-        height: "1px",
-        background: "#22232a",
-        maxWidth: "1140px",
-        margin: "0 auto",
-      }}
-    />
-  );
+// ── Section Divider (gradient glow line) ──
+function SectionDivider({ glow = false }: { glow?: boolean }) {
+  return <div className={glow ? "section-line-glow" : "section-line"} />;
 }
 
 // ── Main Page ──
 export default function Home() {
   return (
-    <div style={{ background: "#0c0d10" }}>
+    <div className="grid-bg" style={{ background: "#0c0d10" }}>
+      {/* Structural edge lines */}
+      <div className="edge-lines" />
       <Nav />
       <Hero />
       <PlatformBar />
@@ -1665,9 +1657,11 @@ export default function Home() {
       <SectionDivider />
       <HowWeMeasure />
       <ReportShowcase />
+      <SectionDivider glow />
       <Features />
       <SectionDivider />
       <HowItWorks />
+      <SectionDivider glow />
       <Pricing />
       <CTA />
       <Footer />
