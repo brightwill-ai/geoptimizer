@@ -5,10 +5,11 @@ This skill guides creation of distinctive, production-grade frontend interfaces 
 ## Design Philosophy
 
 ### Typography
-- **Display Font:** Instrument Sans - Used for headlines, hero text, all primary UI
-- **Accent Font:** Instrument Serif - Available but rarely used
+- **Primary Font:** Instrument Sans (`--font-sans`) — Used for all UI text, body, buttons
+- **Display Font:** Inter (`--font-display`) — Thin weights (200, 300) for hero headlines and large display text
+- **Accent Font:** Instrument Serif (`--font-serif`) — Available but rarely used
 - Font weights: 400 (regular), 500 (medium), 600 (semibold), 700 (bold)
-- Never use generic fonts like Inter, Roboto, Arial, or system fonts
+- Never use generic system fonts (Roboto, Arial, etc.)
 
 ### Color Palette (All-Dark Theme)
 
@@ -151,10 +152,12 @@ Each step is a separate component. Orchestrator manages:
 **Full report (comprehensive):**
 1. Methodology section (total queries, platforms, query types badges)
 2. Per-provider probability rings in header
-3. Cross-platform comparison table (includes recommendation probability row)
-4. Tabbed deep-dive per provider:
-   - RecommendationHero → QueryEvidence → MetricCards → Topics → Competitors → Accuracy → Sentiment
-5. Cross-LLM Insights (strengths, opportunities, gaps)
+3. Cross-platform comparison table (includes recommendation probability row, sources cited)
+4. Cross-platform Source Influence Map
+5. Tabbed deep-dive per provider:
+   - RecommendationHero → QueryEvidence (chat UI) → QueryTypeBreakdown → SourceInfluenceMap → MetricCards → Topics → Competitors → Accuracy → Sentiment
+6. Cross-LLM Insights (strengths, opportunities, gaps)
+7. Actionable Recommendations (data-driven, priority-ranked)
 
 ### LLM provider colors
 Always use these exact colors for LLM badges/indicators:
@@ -164,7 +167,7 @@ Always use these exact colors for LLM badges/indicators:
 
 ## Never Use
 
-- Generic fonts (Inter, Roboto, Arial)
+- Generic system fonts (Roboto, Arial)
 - Warm beige (#f0eeea) or white backgrounds anywhere
 - Light theme colors (#fafafa, #ffffff for backgrounds, #dddbd7 borders)
 - Bouncy/playful animations

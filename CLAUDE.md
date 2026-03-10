@@ -43,13 +43,13 @@ src/
 ├── components/
 │   ├── ui/                               # Base primitives (button, input, card, textarea)
 │   └── analyze/                          # Analysis feature components
-│       ├── search-step.tsx               # Business name + location form
+│       ├── search-step.tsx               # Business name + location (Nominatim autocomplete) + category form
 │       ├── loading-step.tsx              # Provider badges + query progress (tier-aware)
 │       ├── partial-report.tsx            # Probability hero + evidence + source influence + blurred teasers
 │       ├── email-gate.tsx                # Email collection modal → returns comprehensiveAnalysisId
 │       ├── full-report.tsx               # All 3 LLMs in tabs with source map + query breakdown
 │       ├── recommendation-hero.tsx       # Large probability ring + description
-│       ├── query-evidence.tsx            # Expandable query table with response excerpts
+│       ├── query-evidence.tsx            # Chat-style query/response viewer with provider avatars
 │       ├── query-type-breakdown.tsx      # Visibility by query type (stacked bars + stats)
 │       ├── source-influence-map.tsx      # Source attribution visualization (per-provider or cross-platform)
 │       ├── score-ring.tsx                # SVG donut chart
@@ -57,7 +57,8 @@ src/
 │       ├── metric-card.tsx               # KPI card
 │       ├── sentiment-badge.tsx           # Color-coded sentiment pill
 │       ├── competitor-table.tsx          # Ranked competitor list
-│       └── llm-comparison-table.tsx      # Cross-platform comparison grid (guarded for missing providers)
+│       ├── llm-comparison-table.tsx      # Cross-platform comparison grid (guarded for missing providers)
+│       └── action-items.tsx             # Data-driven actionable recommendations (5-8 items)
 └── lib/
     ├── prisma.ts                         # Prisma singleton
     ├── utils.ts                          # cn(), formatDate(), slugify()
@@ -103,7 +104,7 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 ### Step-by-step
 
-1. **Search step** (`search-step.tsx`): User enters business name + location + category. Location auto-detected via `GET /api/location`. Messaging: "Instant AI audit via ChatGPT". Category dropdown with 10 presets + custom.
+1. **Search step** (`search-step.tsx`): User enters business name + category + location. Location auto-detected via `GET /api/location` and has Nominatim OpenStreetMap autocomplete dropdown (debounced 280ms, deduplicated). Category dropdown with 10 presets + custom.
 
 2. **POST /api/analysis** (`analysis/route.ts`):
    - Cache check: reuses existing analysis if same business+location+category within 24h (fast) or 72h (comprehensive)
@@ -126,7 +127,7 @@ Public report page /report/[token] polls /api/report/[token] ─┘
    - Generates `shareToken` (nanoid) for public report URL
    - Target: 5-15 minutes
 
-5. **Parsing** (`parser.ts`): Raw LLM text → GPT-4o-mini extracts: businessMentioned, mentionType, rankPosition, sentiment (nullable — null when business not mentioned), competitors, topics, accuracy, sourcesCited (review platforms, directories, news, etc.).
+5. **Parsing** (`parser.ts`): Raw LLM text → GPT-4.1-mini (via LiteLLM or direct OpenAI) extracts: businessMentioned, mentionType, rankPosition, sentiment (nullable — null when business not mentioned), competitors, topics, accuracy, sourcesCited (review platforms, directories, news, etc.).
 
 6. **Aggregation** (`aggregator.ts`): GEO Score (0-100) computed from:
    - Recommendation probability (40%), primary rate (25%), sentiment (15%), topic breadth (10%), accuracy (10%)
@@ -269,6 +270,7 @@ All dark — every section uses #0c0d10 bg with #14151a cards
 ```
 DATABASE_URL=file:./prisma/dev.db    # Path relative to schema.prisma
 OPENAI_API_KEY=sk-...                # Required for ChatGPT + parser
+OPENAI_BASE_URL=                     # Optional: LiteLLM proxy URL (e.g. Duke AI Gateway)
 ANTHROPIC_API_KEY=sk-ant-...         # Required for Claude
 GOOGLE_AI_API_KEY=AI...              # Required for Gemini
 ```

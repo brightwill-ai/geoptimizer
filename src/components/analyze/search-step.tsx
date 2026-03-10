@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { BUSINESS_CATEGORIES } from "@/lib/agents/prompts";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 
@@ -9,11 +9,47 @@ interface SearchStepProps {
   onSubmit: (businessName: string, location: string, category: string) => void;
 }
 
-const DEMO_PROMPTS = [
-  "best sushi restaurant in miami for date night",
-  "most trusted family dentist in brooklyn with transparent pricing",
-  "top emergency plumber near austin open now",
-  "best pilates studio in seattle for beginners",
+const DEMO_SCENARIOS = [
+  {
+    query: "best sushi restaurant in miami for date night",
+    format: "chatgpt" as const,
+    response: "Here are the top sushi restaurants in Miami for date night:",
+    competitors: [
+      { name: "Sakura Kitchen", desc: "Known for fresh omakase and intimate ambiance" },
+      { name: "Blue Wave Sushi", desc: "Great happy hour specials and waterfront views" },
+      { name: "Nobu Downtown", desc: "Upscale atmosphere with signature dishes" },
+    ],
+  },
+  {
+    query: "most trusted family dentist in brooklyn",
+    format: "overview" as const,
+    response: "Based on patient reviews and ratings, here are highly-rated family dentists in Brooklyn:",
+    competitors: [
+      { name: "Park Slope Dental", desc: "Transparent pricing and gentle approach for families" },
+      { name: "BrightSmile Family", desc: "Highly rated for pediatric care and modern facilities" },
+      { name: "Brooklyn Heights Dentistry", desc: "Trusted community practice with 20+ years experience" },
+    ],
+  },
+  {
+    query: "top emergency plumber near austin open now",
+    format: "chatgpt" as const,
+    response: "Here are the top emergency plumbers near Austin:",
+    competitors: [
+      { name: "Capital City Plumbing", desc: "24/7 emergency service with fast response times" },
+      { name: "Austin Pro Plumbers", desc: "Licensed and insured, same-day appointments" },
+      { name: "Lone Star Pipes", desc: "Affordable rates and excellent Google reviews" },
+    ],
+  },
+  {
+    query: "best pilates studio in seattle for beginners",
+    format: "overview" as const,
+    response: "Here are some of the best pilates studios in Seattle for beginners:",
+    competitors: [
+      { name: "CoreBalance Studio", desc: "Small class sizes with certified instructors" },
+      { name: "Emerald City Pilates", desc: "Beginner-friendly programs and flexible scheduling" },
+      { name: "Zenith Movement", desc: "Top-rated reformer classes in Capitol Hill" },
+    ],
+  },
 ];
 
 function useTypewriter(lines: string[]) {
@@ -28,9 +64,9 @@ function useTypewriter(lines: string[]) {
     const doneTyping = charIndex === line.length;
     const doneDeleting = charIndex === 0;
 
-    let delay = deleting ? 18 : 30;
-    if (!deleting && doneTyping) delay = 1000;
-    if (deleting && doneDeleting) delay = 220;
+    let delay = deleting ? 22 : 40;
+    if (!deleting && doneTyping) delay = 2400;
+    if (deleting && doneDeleting) delay = 350;
 
     const timer = setTimeout(() => {
       if (!deleting) {
@@ -53,7 +89,7 @@ function useTypewriter(lines: string[]) {
     return () => clearTimeout(timer);
   }, [lines, lineIndex, charIndex, deleting]);
 
-  return lines[lineIndex]?.slice(0, charIndex) ?? "";
+  return { text: lines[lineIndex]?.slice(0, charIndex) ?? "", lineIndex };
 }
 
 interface LocationSuggestion {
@@ -125,16 +161,27 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
   const [locationLoading, setLocationLoading] = useState(true);
   const [locationFocused, setLocationFocused] = useState(false);
   const [userTyping, setUserTyping] = useState(false);
+  const [autoDetected, setAutoDetected] = useState(false);
+  const [highlightedIdx, setHighlightedIdx] = useState(-1);
   const [category, setCategory] = useState("restaurant");
   const [customCategory, setCustomCategory] = useState("");
   const [showCustom, setShowCustom] = useState(false);
   const locationRef = useRef<HTMLDivElement>(null);
-  const typedPrompt = useTypewriter(DEMO_PROMPTS);
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const { text: typedPrompt, lineIndex: scenarioIndex } = useTypewriter(
+    DEMO_SCENARIOS.map((s) => s.query)
+  );
+  const currentScenario = DEMO_SCENARIOS[scenarioIndex];
 
-  const { suggestions, loading: suggestionsLoading, clear: clearSuggestions } =
+  const { suggestions, loading: suggestionsLoading } =
     useLocationAutocomplete(location, userTyping && locationFocused);
 
-  const showDropdown = locationFocused && userTyping && suggestions.length > 0;
+  const showDropdown = locationFocused && userTyping && (suggestions.length > 0 || suggestionsLoading);
+
+  // Reset highlighted index when suggestions change
+  useEffect(() => {
+    setHighlightedIdx(-1);
+  }, [suggestions]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -152,11 +199,39 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
     fetch("/api/location")
       .then((r) => r.json())
       .then((data) => {
-        if (data.display) setLocation(data.display);
+        if (data.display) {
+          setLocation(data.display);
+          setAutoDetected(true);
+        }
       })
       .catch(() => {})
       .finally(() => setLocationLoading(false));
   }, []);
+
+  const selectSuggestion = (s: LocationSuggestion) => {
+    setLocation(s.short);
+    setUserTyping(false);
+    setAutoDetected(false);
+    setLocationFocused(false);
+    setHighlightedIdx(-1);
+  };
+
+  const handleLocationKeyDown = (e: React.KeyboardEvent) => {
+    if (!showDropdown || suggestions.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIdx((prev) => (prev < suggestions.length - 1 ? prev + 1 : 0));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIdx((prev) => (prev > 0 ? prev - 1 : suggestions.length - 1));
+    } else if (e.key === "Enter" && highlightedIdx >= 0) {
+      e.preventDefault();
+      selectSuggestion(suggestions[highlightedIdx]);
+    } else if (e.key === "Escape") {
+      setLocationFocused(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,6 +308,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             minHeight: 430,
           }}
         >
+          {/* Header */}
           <div>
             <div
               style={{
@@ -261,76 +337,149 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               style={{
                 marginTop: "0.7rem",
                 fontFamily: "var(--font-display)",
-                fontSize: "clamp(1.9rem, 3vw, 2.7rem)",
+                fontSize: "clamp(1.7rem, 2.8vw, 2.4rem)",
                 fontWeight: 300,
-                lineHeight: 1.02,
+                lineHeight: 1.08,
                 color: "#ffffff",
                 letterSpacing: "-0.04em",
               }}
             >
-              See how AI recommends your business
+              Your competitors are showing up in AI.{" "}
+              <span style={{ color: "rgba(255,255,255,0.45)" }}>Are you?</span>
             </h1>
-
-            <p
-              style={{
-                marginTop: "0.8rem",
-                fontSize: "0.9rem",
-                color: "rgba(255,255,255,0.55)",
-                lineHeight: 1.5,
-                maxWidth: 450,
-              }}
-            >
-              We run 5 live ChatGPT queries, score recommendation probability, then let you unlock the full
-              cross-platform report.
-            </p>
           </div>
 
-          <div
+          {/* Rotating mockup: ChatGPT ↔ AI Overview */}
+          <div style={{ marginTop: "0.8rem", position: "relative", minHeight: 260 }}>
+            <AnimatePresence mode="wait">
+              {currentScenario.format === "chatgpt" ? (
+                <motion.div
+                  key={`chatgpt-${scenarioIndex}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ borderRadius: 10, border: "1px solid #22232a", background: "#1a1b21", overflow: "hidden" }}
+                >
+                  {/* ChatGPT header */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.55rem 0.85rem", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
+                    <ProviderLogo provider="chatgpt" size={14} />
+                    <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "rgba(255,255,255,0.5)" }}>ChatGPT</span>
+                  </div>
+
+                  <div style={{ padding: "0.75rem 0.85rem" }}>
+                    {/* User query */}
+                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: "0.75rem" }}>
+                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                        </svg>
+                      </div>
+                      <div aria-live="polite" style={{ borderRadius: 8, background: "rgba(255,255,255,0.05)", padding: "0.5rem 0.7rem", fontSize: "0.8rem", color: "rgba(255,255,255,0.85)", lineHeight: 1.4, minHeight: 20 }}>
+                        <span>{typedPrompt}</span>
+                        <span className="bw-typing-caret" aria-hidden>|</span>
+                      </div>
+                    </div>
+
+                    {/* AI response */}
+                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(16,163,127,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                        <ProviderLogo provider="chatgpt" size={12} />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.55)", marginBottom: "0.5rem", lineHeight: 1.4 }}>
+                          {currentScenario.response}
+                        </p>
+                        {currentScenario.competitors.map((c, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.38rem 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                            <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.8)" }}>{i + 1}. {c.name}</span>
+                            <span style={{ fontSize: "0.62rem", fontWeight: 500, color: "#16a34a", background: "rgba(22,163,74,0.12)", padding: "2px 8px", borderRadius: 999 }}>Recommended</span>
+                          </div>
+                        ))}
+                        {/* Your business — not mentioned */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.5rem 0 0.2rem", marginTop: "0.25rem", borderTop: "1px dashed rgba(255,255,255,0.08)" }}>
+                          <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>Your business?</span>
+                          <span className="bw-not-mentioned-pulse" style={{ fontSize: "0.62rem", fontWeight: 500, color: "#dc2626", background: "rgba(220,38,38,0.12)", padding: "2px 8px", borderRadius: 999 }}>Not mentioned</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key={`overview-${scenarioIndex}`}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ borderRadius: 10, border: "1px solid #22232a", background: "#1a1b21", overflow: "hidden" }}
+                >
+                  {/* Search bar */}
+                  <div style={{ padding: "0.6rem 0.85rem", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.7)", flex: 1, minHeight: 18 }}>
+                      <span>{typedPrompt}</span>
+                      <span className="bw-typing-caret" aria-hidden>|</span>
+                    </div>
+                  </div>
+
+                  {/* AI Overview panel */}
+                  <div style={{ padding: "0.75rem 0.85rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "0.55rem" }}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                        <path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#4285f4" opacity="0.8" />
+                      </svg>
+                      <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "#4285f4", letterSpacing: "0.02em" }}>AI Overview</span>
+                    </div>
+                    <p style={{ fontSize: "0.76rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.5, marginBottom: "0.6rem" }}>
+                      {currentScenario.response}
+                    </p>
+                    {currentScenario.competitors.map((c, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "0.4rem 0", borderBottom: i < currentScenario.competitors.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                        <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.25)", marginTop: 2, flexShrink: 0 }}>{i + 1}.</span>
+                        <div>
+                          <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{c.name}</span>
+                          <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.35)", marginLeft: 6 }}>— {c.desc}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {/* Sources */}
+                    <div style={{ marginTop: "0.55rem", paddingTop: "0.5rem", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.64rem", color: "rgba(255,255,255,0.3)" }}>Sources:</span>
+                      {["Yelp", "TripAdvisor", "Google Maps"].map((src) => (
+                        <span key={src} style={{ fontSize: "0.62rem", color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.04)", padding: "1px 6px", borderRadius: 4 }}>{src}</span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Warning callout */}
+                  <div style={{ margin: "0 0.85rem 0.75rem", display: "flex", alignItems: "center", gap: 8, padding: "0.5rem 0.65rem", borderRadius: 8, background: "rgba(220,38,38,0.06)", border: "1px solid rgba(220,38,38,0.15)" }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.7 }}>
+                      <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                    <p className="bw-not-mentioned-pulse" style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>
+                      Your business <span style={{ color: "#dc2626", fontWeight: 500 }}>isn&apos;t showing up</span> in AI results.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Social proof */}
+          <p
             style={{
-              marginTop: "1rem",
-              padding: "0.9rem",
-              borderRadius: 10,
-              border: "1px solid rgba(255,255,255,0.08)",
-              background: "rgba(255,255,255,0.02)",
+              marginTop: "0.7rem",
+              fontSize: "0.74rem",
+              color: "rgba(255,255,255,0.35)",
+              lineHeight: 1.5,
             }}
           >
-            <p
-              style={{
-                fontSize: "0.66rem",
-                color: "rgba(255,255,255,0.5)",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}
-            >
-              Live query example
-            </p>
-            <div
-              aria-live="polite"
-              style={{
-                marginTop: "0.5rem",
-                minHeight: 38,
-                borderRadius: 8,
-                border: "1px solid rgba(255,255,255,0.08)",
-                padding: "0.62rem 0.72rem",
-                fontSize: "0.82rem",
-                color: "rgba(255,255,255,0.86)",
-                lineHeight: 1.4,
-                background: "rgba(255,255,255,0.02)",
-              }}
-            >
-              <span>{typedPrompt}</span>
-              <span className="bw-typing-caret" aria-hidden>
-                |
-              </span>
-            </div>
-
-            <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-              <ProviderLogo provider="chatgpt" size={14} />
-              <ProviderLogo provider="claude" size={14} style={{ opacity: 0.5 }} />
-              <ProviderLogo provider="gemini" size={14} style={{ opacity: 0.5 }} />
-              <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>Fast mode now, full mode after unlock</span>
-            </div>
-          </div>
+            73% of consumers now use AI to find local businesses.{" "}
+            <span style={{ color: "rgba(255,255,255,0.55)" }}>Are you visible?</span>
+          </p>
         </motion.div>
 
         <motion.form
@@ -434,98 +583,202 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             )}
           </div>
 
-          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
+          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 6 }}>
             Location
+            {autoDetected && !userTyping && (
+              <span
+                style={{
+                  fontSize: "0.62rem",
+                  fontWeight: 500,
+                  color: "#16a34a",
+                  background: "rgba(22,163,74,0.12)",
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  letterSpacing: "0.02em",
+                }}
+              >
+                Auto-detected
+              </span>
+            )}
           </label>
           <div ref={locationRef} style={{ position: "relative" }}>
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => {
-                setLocation(e.target.value);
-                setUserTyping(true);
-              }}
-              placeholder={locationLoading ? "Detecting your location..." : "e.g. Miami, FL"}
-              style={{
-                ...inputStyle,
-                borderColor: locationFocused ? "rgba(255,255,255,0.3)" : "#22232a",
-                background: locationFocused ? "rgba(255,255,255,0.05)" : "#1a1b21",
-              }}
-              onFocus={() => setLocationFocused(true)}
-              onBlur={() => {
-                // Delay so click on suggestion registers
-                setTimeout(() => setLocationFocused(false), 180);
-              }}
-              autoComplete="off"
-            />
-            {showDropdown && (
-              <div
+            <div style={{ position: "relative" }}>
+              {/* Map pin icon */}
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="rgba(255,255,255,0.3)"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 style={{
                   position: "absolute",
-                  top: "calc(100% + 4px)",
+                  left: 14,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  pointerEvents: "none",
+                  transition: "stroke 0.15s",
+                  ...(locationFocused ? { stroke: "rgba(255,255,255,0.5)" } : {}),
+                }}
+              >
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <input
+                ref={locationInputRef}
+                type="text"
+                value={location}
+                onChange={(e) => {
+                  setLocation(e.target.value);
+                  setUserTyping(true);
+                  setAutoDetected(false);
+                }}
+                onKeyDown={handleLocationKeyDown}
+                placeholder={locationLoading ? "Detecting your location..." : "Search city, state, or zip..."}
+                style={{
+                  ...inputStyle,
+                  paddingLeft: "2.5rem",
+                  borderColor: locationFocused ? "rgba(255,255,255,0.3)" : "#22232a",
+                  background: locationFocused ? "rgba(255,255,255,0.05)" : "#1a1b21",
+                }}
+                onFocus={() => setLocationFocused(true)}
+                onBlur={() => {
+                  setTimeout(() => setLocationFocused(false), 180);
+                }}
+                autoComplete="off"
+                role="combobox"
+                aria-expanded={showDropdown}
+                aria-autocomplete="list"
+                aria-activedescendant={highlightedIdx >= 0 ? `loc-option-${highlightedIdx}` : undefined}
+              />
+              {/* Loading spinner */}
+              {suggestionsLoading && locationFocused && (
+                <div
+                  style={{
+                    position: "absolute",
+                    right: 14,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 14,
+                    height: 14,
+                    border: "2px solid rgba(255,255,255,0.1)",
+                    borderTopColor: "rgba(255,255,255,0.4)",
+                    borderRadius: "50%",
+                    animation: "loc-spin 0.6s linear infinite",
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Dropdown */}
+            {showDropdown && (
+              <motion.div
+                initial={{ opacity: 0, y: -4, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 6px)",
                   left: 0,
                   right: 0,
                   zIndex: 50,
                   borderRadius: 10,
-                  border: "1px solid #22232a",
+                  border: "1px solid rgba(255,255,255,0.1)",
                   background: "#1a1b21",
                   overflow: "hidden",
-                  boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
+                  backdropFilter: "blur(12px)",
                 }}
+                role="listbox"
               >
-                {suggestionsLoading && (
-                  <div style={{ padding: "0.6rem 1rem", fontSize: "0.8rem", color: "rgba(255,255,255,0.4)" }}>
-                    Searching...
+                {suggestionsLoading && suggestions.length === 0 && (
+                  <div
+                    style={{
+                      padding: "0.75rem 1rem",
+                      fontSize: "0.8rem",
+                      color: "rgba(255,255,255,0.35)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 12,
+                        height: 12,
+                        border: "2px solid rgba(255,255,255,0.1)",
+                        borderTopColor: "rgba(255,255,255,0.3)",
+                        borderRadius: "50%",
+                        animation: "loc-spin 0.6s linear infinite",
+                      }}
+                    />
+                    Searching locations...
                   </div>
                 )}
                 {suggestions.map((s, i) => (
                   <button
                     key={i}
+                    id={`loc-option-${i}`}
                     type="button"
+                    role="option"
+                    aria-selected={highlightedIdx === i}
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      setLocation(s.short);
-                      setUserTyping(false);
-                      setLocationFocused(false);
+                      selectSuggestion(s);
                     }}
+                    onMouseEnter={() => setHighlightedIdx(i)}
                     style={{
-                      display: "block",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
                       width: "100%",
                       textAlign: "left",
-                      padding: "0.62rem 1rem",
+                      padding: "0.65rem 1rem",
                       fontSize: "0.84rem",
                       fontFamily: "var(--font-sans)",
                       color: "#ffffff",
-                      background: "transparent",
+                      background: highlightedIdx === i ? "rgba(255,255,255,0.06)" : "transparent",
                       border: "none",
-                      borderBottom: i < suggestions.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                      borderBottom: i < suggestions.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
                       cursor: "pointer",
-                      transition: "background 0.12s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "transparent";
+                      transition: "background 0.1s",
                     }}
                   >
-                    <span>{s.short}</span>
-                    <span
-                      style={{
-                        display: "block",
-                        fontSize: "0.7rem",
-                        color: "rgba(255,255,255,0.35)",
-                        marginTop: 2,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={highlightedIdx === i ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)"}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{ flexShrink: 0, transition: "stroke 0.1s" }}
                     >
-                      {s.display_name}
-                    </span>
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: 500 }}>{s.short}</span>
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: "0.68rem",
+                          color: "rgba(255,255,255,0.3)",
+                          marginTop: 1,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {s.display_name}
+                      </span>
+                    </div>
                   </button>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
 
@@ -547,11 +800,11 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               transition: "all 0.2s",
             }}
           >
-            Analyze my business
+            Check my visibility
           </button>
 
           <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.32)", marginTop: "0.25rem" }}>
-            Free fast audit now. Full 3-platform report unlocks after preview.
+            Free — results in 30 seconds. No signup required.
           </p>
         </motion.form>
       </div>

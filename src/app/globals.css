@@ -252,6 +252,10 @@ body {
   50% { opacity: 1; transform: scale(1); }
 }
 
+@keyframes loc-spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes bw-caret-blink {
   0%, 45% { opacity: 1; }
   55%, 100% { opacity: 0; }
@@ -261,6 +265,14 @@ body {
   display: inline-block;
   margin-left: 2px;
   animation: bw-caret-blink 1s step-end infinite;
+}
+
+@keyframes bw-pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.bw-not-mentioned-pulse {
+  animation: bw-pulse-subtle 2s ease-in-out infinite;
 }
 
 /* ── RESPONSIVE ── */
