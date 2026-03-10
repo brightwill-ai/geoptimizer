@@ -47,7 +47,7 @@ export function WordFadeIn({
   useEffect(() => {
     if (!scrollDriven || externalProgress !== undefined) return
     window.addEventListener("scroll", handleScroll, { passive: true })
-    handleScroll()
+    requestAnimationFrame(handleScroll)
     return () => window.removeEventListener("scroll", handleScroll)
   }, [scrollDriven, externalProgress, handleScroll])
 

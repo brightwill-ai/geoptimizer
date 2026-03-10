@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
-import { type GEOAnalysis } from "@/lib/mock-data";
+import { type GEOAnalysis, type ActionPlan as ActionPlanType } from "@/lib/mock-data";
 import { SearchStep } from "@/components/analyze/search-step";
 import { LoadingStep } from "@/components/analyze/loading-step";
 import { PartialReport } from "@/components/analyze/partial-report";
@@ -87,6 +87,8 @@ export default function AnalyzePage() {
   const [businessName, setBusinessName] = useState("");
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<GEOAnalysis | null>(null);
+  const [actionPlan, setActionPlan] = useState<ActionPlanType | null>(null);
+  const [actionPlanStatus, setActionPlanStatus] = useState<string>("pending");
   const [jobStatuses, setJobStatuses] = useState<Record<string, string>>({});
   const [queryProgress, setQueryProgress] = useState<{
     completed: number;
@@ -125,6 +127,8 @@ export default function AnalyzePage() {
         if (data.status === "complete" && data.result) {
           stopPolling();
           setAnalysis(data.result);
+          if (data.actionPlan) setActionPlan(data.actionPlan);
+          if (data.actionPlanStatus) setActionPlanStatus(data.actionPlanStatus);
           // Don't transition here — LoadingStep will call onComplete
         } else if (data.status === "failed") {
           stopPolling();
@@ -144,6 +148,8 @@ export default function AnalyzePage() {
     setJobStatuses({});
     setQueryProgress({ completed: 0, total: 5, currentQueryText: null });
     setAnalysis(null);
+    setActionPlan(null);
+    setActionPlanStatus("pending");
     setStep("loading");
 
     try {
@@ -234,7 +240,15 @@ export default function AnalyzePage() {
               onUnlock={() => setStep("email-gate")}
             />
           )}
-          {step === "full" && analysis && <FullReport key="full" analysis={analysis} />}
+          {step === "full" && analysis && (
+            <FullReport
+              key="full"
+              analysis={analysis}
+              analysisId={analysisId ?? undefined}
+              actionPlan={actionPlan}
+              actionPlanStatus={actionPlanStatus}
+            />
+          )}
         </AnimatePresence>
 
         {/* Email gate rendered as overlay */}

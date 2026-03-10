@@ -403,7 +403,7 @@ function Hero() {
       {/* Particles — mouse-reactive */}
       <Particles
         className="absolute inset-0"
-        quantity={80}
+        quantity={120}
         staticity={40}
         ease={60}
         size={0.5}

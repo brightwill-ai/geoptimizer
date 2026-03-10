@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import type { GEOAnalysis } from "@/lib/mock-data";
+import type { GEOAnalysis, ActionPlan as ActionPlanType } from "@/lib/mock-data";
 import { FullReport } from "@/components/analyze/full-report";
 import { LoadingStep } from "@/components/analyze/loading-step";
 
@@ -13,6 +13,9 @@ export default function PublicReportPage() {
   const [analysis, setAnalysis] = useState<GEOAnalysis | null>(null);
   const [businessName, setBusinessName] = useState("");
   const [jobStatuses, setJobStatuses] = useState<Record<string, string>>({});
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const [actionPlan, setActionPlan] = useState<ActionPlanType | null>(null);
+  const [actionPlanStatus, setActionPlanStatus] = useState<string>("pending");
   const [errorMsg, setErrorMsg] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -40,6 +43,9 @@ export default function PublicReportPage() {
 
       if (data.status === "complete" && data.result) {
         setAnalysis(data.result);
+        if (data.id) setAnalysisId(data.id);
+        if (data.actionPlan) setActionPlan(data.actionPlan);
+        if (data.actionPlanStatus) setActionPlanStatus(data.actionPlanStatus);
         setStatus("complete");
         stopPolling();
       } else if (data.status === "failed") {
@@ -128,7 +134,12 @@ export default function PublicReportPage() {
         )}
 
         {status === "complete" && analysis && (
-          <FullReport analysis={analysis} />
+          <FullReport
+            analysis={analysis}
+            analysisId={analysisId ?? undefined}
+            actionPlan={actionPlan}
+            actionPlanStatus={actionPlanStatus}
+          />
         )}
 
         {status === "error" && (

@@ -35,8 +35,11 @@ src/
 │   │   ├── location/route.ts             # GET /api/location (IP geolocation)
 │   │   ├── analysis/route.ts             # POST /api/analysis (create + fire-and-forget)
 │   │   ├── analysis/[id]/
-│   │   │   ├── route.ts                  # GET /api/analysis/[id] (poll status + query progress)
-│   │   │   └── claim/route.ts            # POST /api/analysis/[id]/claim (email gate)
+│   │   │   ├── route.ts                  # GET /api/analysis/[id] (poll status + query progress + actionPlan)
+│   │   │   ├── claim/route.ts            # POST /api/analysis/[id]/claim (email gate)
+│   │   │   └── action-plan/
+│   │   │       ├── route.ts              # GET (live plan) + POST (regenerate)
+│   │   │       └── [itemId]/route.ts     # PATCH (toggle completion, notes)
 │   │   └── report/[token]/route.ts       # GET /api/report/[token] (public report data)
 │   ├── globals.css
 │   └── layout.tsx
@@ -58,7 +61,10 @@ src/
 │       ├── sentiment-badge.tsx           # Color-coded sentiment pill
 │       ├── competitor-table.tsx          # Ranked competitor list
 │       ├── llm-comparison-table.tsx      # Cross-platform comparison grid (guarded for missing providers)
-│       └── action-items.tsx             # Data-driven actionable recommendations (5-8 items)
+│       ├── action-items.tsx             # Data-driven actionable recommendations (5-8 items, free tier fallback)
+│       ├── action-plan.tsx              # Comprehensive GEO action plan (80-120 items, 10 categories)
+│       ├── action-plan-category.tsx     # Expandable accordion per category
+│       └── action-plan-item.tsx         # Individual checklist item with checkbox + priority + effort
 └── lib/
     ├── prisma.ts                         # Prisma singleton
     ├── utils.ts                          # cn(), formatDate(), slugify()
@@ -69,7 +75,8 @@ src/
         ├── runner.ts                     # runFreeAudit() + runComprehensiveAudit() + legacy runAnalysis()
         ├── parser.ts                     # GPT-4o-mini structured extraction
         ├── aggregator.ts                 # Score computation (probability-weighted) + report assembly
-        └── query-bank.ts                 # Query template bank (38 templates per category)
+        ├── query-bank.ts                 # Query template bank (38 templates per category)
+        └── action-plan-generator.ts      # GPT-4.1 generates comprehensive GEO action plan from analysis
 ```
 
 ## Architecture: GEO Analysis Flow
@@ -144,6 +151,8 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 11. **Public report** (`/report/[token]`): Standalone page polls `/api/report/[token]`. Shows loading during analysis, full report when complete.
 
+12. **Action plan generation** (`action-plan-generator.ts`): After comprehensive analysis completes, GPT-4.1 generates a personalized GEO optimization action plan (80-120 items across 10 categories). Uses the full GEOAnalysis data as context — every item references specific findings (competitor names, probability %, sentiment phrases, failed queries, source gaps). Categories: Entity Trust, Technical AI Crawlability, Schema.org, Content Structure, Citation Authority, Source Presence, Competitor Strategy, Content Marketing, Reputation & Sentiment, Monitoring. Items stored as `ActionPlanItem` DB records for progress tracking (checkbox completion persists). Non-blocking on failure — analysis completes even if action plan generation fails. Retry via `POST /api/analysis/[id]/action-plan`.
+
 ### Query Bank System
 `query-bank.ts` manages reusable query templates stored in `QueryTemplate` table.
 
@@ -172,8 +181,9 @@ model Analysis {
   id, userId?, businessName, location, category, tier, status,
   queryCount Int, recommendationProbability Float?, methodology String?,
   shareToken String? @unique,
+  actionPlanJson String?, actionPlanStatus String @default("pending"),
   resultJson?, errorMessage?, startedAt, completedAt?, expiresAt, createdAt,
-  llmJobs[], queryExecutions[], sourceInfluences[]
+  llmJobs[], queryExecutions[], sourceInfluences[], actionPlanItems[]
   @@index([businessName, location, tier])
 }
 
@@ -199,6 +209,15 @@ model QueryExecution {
 model SourceInfluence {
   id, analysisId, sourceType, sourceName, provider, citationCount, influence, createdAt
   @@index([analysisId])
+}
+
+model ActionPlanItem {
+  id, analysisId, categoryKey, categoryLabel, itemIndex Int,
+  priority, title, description, reasoning, effort,
+  dataPoints String?, completed Boolean @default(false),
+  completedAt?, notes?, createdAt
+  @@index([analysisId, categoryKey])
+  @@index([analysisId, completed])
 }
 ```
 
@@ -226,6 +245,13 @@ type LLMReport = { provider, overallScore, citations, recommendations: Recommend
   sentiment, ranking, topics, competitors, accuracy, queryResults: QueryResult[] }
 type GEOAnalysis = { businessName, reports, methodology, sourceInfluences, summary: {
   averageScore, averageProbability, bestPerformer, worstPerformer, totalCitations, totalQueries, ... } }
+
+interface ActionPlan = { generatedAt, businessName, totalItems, completedItems,
+  categories: ActionPlanCategory[], estimatedTotalEffort }
+interface ActionPlanCategory = { key, label, description, estimatedEffort,
+  priority, items: ActionPlanItemData[], completedCount }
+interface ActionPlanItemData = { id, title, description, reasoning,
+  priority, effort, dataPoints: string[], completed }
 ```
 
 ## Design System
@@ -264,6 +290,9 @@ All dark — every section uses #0c0d10 bg with #14151a cards
 | GET | `/api/analysis/[id]` | Poll status + query progress + results |
 | POST | `/api/analysis/[id]/claim` | Email gate → kick off comprehensive audit |
 | GET | `/api/report/[token]` | Public report by share token (no auth) |
+| GET | `/api/analysis/[id]/action-plan` | Live action plan with completion states |
+| POST | `/api/analysis/[id]/action-plan` | Regenerate action plan |
+| PATCH | `/api/analysis/[id]/action-plan/[itemId]` | Toggle item completion / update notes |
 
 ## Environment Variables
 

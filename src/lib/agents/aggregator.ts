@@ -155,21 +155,23 @@ export function aggregateToLLMReport(
   };
 
   // Sources
-  const sourceMap = new Map<string, { type: SourceCitation["sourceType"]; count: number }>();
+  const sourceMap = new Map<string, { type: SourceCitation["sourceType"]; count: number; url?: string }>();
   for (const p of parsed) {
     for (const src of p.sourcesCited ?? []) {
       const existing = sourceMap.get(src.name);
       if (existing) {
         existing.count++;
+        // Keep the first non-null URL found
+        if (!existing.url && src.url) existing.url = src.url;
       } else {
-        sourceMap.set(src.name, { type: src.sourceType, count: 1 });
+        sourceMap.set(src.name, { type: src.sourceType, count: 1, url: src.url ?? undefined });
       }
     }
   }
   const sources: SourceCitation[] = Array.from(sourceMap.entries())
     .sort((a, b) => b[1].count - a[1].count)
     .slice(0, 10)
-    .map(([name, data]) => ({ name, sourceType: data.type, count: data.count }));
+    .map(([name, data]) => ({ name, sourceType: data.type, count: data.count, url: data.url }));
 
   // Overall score
   const overallScore = computeGEOScore(citations, sentiment, ranking, topics, accuracy, parsed.length);
@@ -258,7 +260,7 @@ function createEmptyReport(provider: LLMInfo): LLMReport {
  * Merge per-provider sources into cross-platform SourceInfluenceEntry[].
  */
 function buildSourceInfluences(reports: Record<string, LLMReport>): SourceInfluenceEntry[] {
-  const map = new Map<string, { type: string; providers: Set<LLMProvider>; count: number }>();
+  const map = new Map<string, { type: string; providers: Set<LLMProvider>; count: number; url?: string }>();
 
   for (const [providerId, report] of Object.entries(reports)) {
     for (const src of report.sources ?? []) {
@@ -266,11 +268,13 @@ function buildSourceInfluences(reports: Record<string, LLMReport>): SourceInflue
       if (existing) {
         existing.providers.add(providerId as LLMProvider);
         existing.count += src.count;
+        if (!existing.url && src.url) existing.url = src.url;
       } else {
         map.set(src.name, {
           type: src.sourceType,
           providers: new Set([providerId as LLMProvider]),
           count: src.count,
+          url: src.url,
         });
       }
     }
@@ -287,6 +291,7 @@ function buildSourceInfluences(reports: Record<string, LLMReport>): SourceInflue
       influence: data.count >= 6 ? "high" as const
         : data.count >= 3 ? "medium" as const
         : "low" as const,
+      url: data.url,
     }));
 }
 

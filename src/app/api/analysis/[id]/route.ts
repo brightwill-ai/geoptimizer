@@ -73,6 +73,10 @@ export async function GET(
 
     if (analysis.status === "complete" && analysis.resultJson) {
       response.result = JSON.parse(analysis.resultJson);
+      response.actionPlanStatus = analysis.actionPlanStatus;
+      if (analysis.actionPlanJson) {
+        response.actionPlan = JSON.parse(analysis.actionPlanJson);
+      }
     }
 
     if (analysis.status === "failed") {

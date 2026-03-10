@@ -449,6 +449,21 @@ body {
   box-shadow: 0 0 80px rgba(22,163,74,0.08), 0 0 160px rgba(22,163,74,0.04);
 }
 
+/* Step cards */
+.step-card {
+  padding: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: #111113;
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1), border-color 0.35s ease, box-shadow 0.35s ease;
+  cursor: default;
+}
+.step-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.04);
+}
+
 /* Mockup frame */
 .mockup-frame {
   background: #09090b;
@@ -544,4 +559,23 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #2e2f38;
+}
+
+/* Thin scrollbar for query evidence response bubbles */
+.query-response-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.12) transparent;
+}
+.query-response-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.query-response-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.query-response-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px;
+}
+.query-response-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.2);
 }

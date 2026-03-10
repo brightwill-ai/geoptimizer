@@ -89,7 +89,7 @@ export const COMPREHENSIVE_PROMPTS: PromptTemplate[] = [
   },
   {
     type: "reviews",
-    generate: (business, location, category) =>
+    generate: (business, location) =>
       `What's the general reputation of ${business} in ${location}? What do customers and the community generally say about them? Any common praise or complaints?`,
   },
   {
@@ -124,7 +124,7 @@ Return a JSON object with exactly these fields:
   "factualClaims": [{"field": "address" | "services" | "specialty" | "price_range" | "hours" | "phone" | "website" | "established", "value": "claimed value"}],
   "topicsAssociated": ["topic1", "topic2"],
   "categoryInferred": "e.g. Japanese Restaurants, Personal Injury Lawyers, CrossFit Gyms" | null,
-  "sourcesCited": [{"name": "Yelp", "sourceType": "review_platform"}, {"name": "Google Maps", "sourceType": "directory"}]
+  "sourcesCited": [{"name": "Yelp", "sourceType": "review_platform", "url": "https://www.yelp.com/biz/example"}, {"name": "Google Maps", "sourceType": "directory", "url": null}]
 }
 
 sourceType must be one of: "review_platform", "directory", "news", "social_media", "official_site", "other"
@@ -136,5 +136,6 @@ Rules:
 - Extract ALL competitors mentioned in the response
 - Extract ALL factual claims about the business (services, pricing, specialties, etc.)
 - Extract ALL sources/platforms referenced (Yelp, Google Reviews, TripAdvisor, news sites, official websites, social media, etc.)
+- For sourcesCited, include the exact URL if one appears in the response text (e.g. "https://www.yelp.com/biz/..."). Set url to null if no URL is present in the text.
 - Return ONLY valid JSON, no other text`;
 }

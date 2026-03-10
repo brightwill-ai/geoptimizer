@@ -55,6 +55,7 @@ export interface SourceInfluenceEntry {
   citedBy: LLMProvider[];
   citationCount: number;
   influence: "high" | "medium" | "low" | "unknown";
+  url?: string;
 }
 
 // ── Legacy alias for backward compatibility ──
@@ -104,6 +105,7 @@ export interface SourceCitation {
   name: string;
   sourceType: "review_platform" | "directory" | "news" | "social_media" | "official_site" | "other";
   count: number;
+  url?: string;
 }
 
 // ── Per-LLM Report ──
@@ -138,6 +140,37 @@ export interface GEOAnalysis {
     overallSentiment: "positive" | "neutral" | "negative";
     scoreTrend: number;
   };
+}
+
+// ── Action Plan Types ──
+export interface ActionPlanItemData {
+  id: string;
+  title: string;
+  description: string;
+  reasoning: string;
+  priority: "critical" | "high" | "medium" | "low";
+  effort: "quick_win" | "half_day" | "1_2_days" | "1_week" | "ongoing";
+  dataPoints: string[];
+  completed: boolean;
+}
+
+export interface ActionPlanCategory {
+  key: string;
+  label: string;
+  description: string;
+  estimatedEffort: string;
+  priority: "critical" | "high" | "medium" | "low";
+  items: ActionPlanItemData[];
+  completedCount: number;
+}
+
+export interface ActionPlan {
+  generatedAt: string;
+  businessName: string;
+  totalItems: number;
+  completedItems: number;
+  categories: ActionPlanCategory[];
+  estimatedTotalEffort: string;
 }
 
 // ── Simple hash for deterministic mock data ──

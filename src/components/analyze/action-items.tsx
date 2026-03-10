@@ -175,10 +175,6 @@ function generateRecommendations(
   const directorySources = sourceInfluences.filter(
     (s) => s.sourceType === "directory"
   );
-  const reviewSources = sourceInfluences.filter(
-    (s) => s.sourceType === "review_platform"
-  );
-
   // Also check per-report sources for directory coverage
   const allSources = allReports.flatMap((r) => r.sources ?? []);
   const directorySourceCount = allSources.filter(

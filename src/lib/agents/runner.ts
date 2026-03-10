@@ -12,6 +12,7 @@ import { getPromptsForTier } from "./prompts";
 import { parseAllResponses, parseResponse } from "./parser";
 import { aggregateToLLMReport, assembleGEOAnalysis } from "./aggregator";
 import { getQueriesForTier } from "./query-bank";
+import { generateActionPlan } from "./action-plan-generator";
 
 const LLM_TIMEOUT = 30_000; // 30s per LLM call
 const RETRY_DELAY = 2_000;
@@ -330,7 +331,7 @@ export async function runFreeAudit(
           mentionType: parsed.mentionType,
           rankPosition: parsed.rankPosition,
           sentiment: parsed.sentimentTowardBusiness,
-          rawResponseExcerpt: response.slice(0, 500),
+          rawResponseExcerpt: response,
           timestamp: new Date().toISOString(),
         });
       } catch (err) {
@@ -498,7 +499,7 @@ export async function runComprehensiveAudit(
               mentionType: parsed.mentionType,
               rankPosition: parsed.rankPosition,
               sentiment: parsed.sentimentTowardBusiness,
-              rawResponseExcerpt: response.slice(0, 500),
+              rawResponseExcerpt: response,
               timestamp: new Date().toISOString(),
             });
           } catch (err) {
@@ -556,6 +557,40 @@ export async function runComprehensiveAudit(
   geoAnalysis.methodology.totalQueries = queries.length * LLM_PROVIDERS.length;
   geoAnalysis.methodology.providers = LLM_PROVIDERS.map((p) => p.id);
 
+  // Generate action plan (non-blocking on failure)
+  let actionPlanJson: string | null = null;
+  try {
+    await prisma.analysis.update({
+      where: { id: analysisId },
+      data: { actionPlanStatus: "generating" },
+    });
+
+    console.log(`[ComprehensiveAudit ${analysisId}] Generating action plan...`);
+    const actionPlan = await generateActionPlan(geoAnalysis, category, location);
+    actionPlanJson = JSON.stringify(actionPlan);
+
+    // Bulk-create individual items for progress tracking
+    const itemRecords = actionPlan.categories.flatMap((cat, ci) =>
+      cat.items.map((item, ii) => ({
+        analysisId,
+        categoryKey: cat.key,
+        categoryLabel: cat.label,
+        itemIndex: ci * 100 + ii,
+        priority: item.priority,
+        title: item.title,
+        description: item.description,
+        reasoning: item.reasoning,
+        effort: item.effort,
+        dataPoints: JSON.stringify(item.dataPoints),
+      }))
+    );
+    await prisma.actionPlanItem.createMany({ data: itemRecords });
+
+    console.log(`[ComprehensiveAudit ${analysisId}] Action plan generated: ${actionPlan.totalItems} items across ${actionPlan.categories.length} categories`);
+  } catch (err) {
+    console.warn(`[ComprehensiveAudit ${analysisId}] Action plan generation failed:`, err);
+  }
+
   await prisma.analysis.update({
     where: { id: analysisId },
     data: {
@@ -564,6 +599,8 @@ export async function runComprehensiveAudit(
       recommendationProbability: geoAnalysis.summary.averageProbability,
       shareToken: nanoid(12),
       resultJson: JSON.stringify(geoAnalysis),
+      actionPlanJson,
+      actionPlanStatus: actionPlanJson ? "complete" : "failed",
       completedAt: new Date(),
     },
   });

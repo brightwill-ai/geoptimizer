@@ -33,7 +33,7 @@ const sourceTypeColors: Record<string, string> = {
   other: "rgba(255,255,255,0.4)",
 };
 
-export function SourceInfluenceMap({ sourceInfluences, sources, providerName, blurred }: SourceInfluenceMapProps) {
+export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: SourceInfluenceMapProps) {
   // Normalize to a common shape
   const items = sourceInfluences
     ? sourceInfluences.map((si) => ({
@@ -42,6 +42,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, providerName, bl
         count: si.citationCount,
         influence: si.influence,
         providers: si.citedBy,
+        url: si.url,
       }))
     : (sources ?? []).map((s) => ({
         name: s.name,
@@ -49,6 +50,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, providerName, bl
         count: s.count,
         influence: (s.count >= 4 ? "high" : s.count >= 2 ? "medium" : "low") as "high" | "medium" | "low",
         providers: [] as LLMProvider[],
+        url: s.url,
       }));
 
   if (items.length === 0) return null;
@@ -87,7 +89,31 @@ export function SourceInfluenceMap({ sourceInfluences, sources, providerName, bl
               {/* Source name + type */}
               <div style={{ width: 140, flexShrink: 0 }}>
                 <div style={{ fontSize: "0.8rem", color: "#ffffff", fontWeight: 500, lineHeight: 1.2 }}>
-                  {item.name}
+                  {item.url ? (
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: "#ffffff",
+                        textDecoration: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                        transition: "color 0.15s",
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.color = sourceTypeColors[item.type] ?? "#4285f4")}
+                      onMouseOut={(e) => (e.currentTarget.style.color = "#ffffff")}
+                    >
+                      {item.name}
+                      <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.5, flexShrink: 0 }}>
+                        <path d="M3.5 1.5H10.5V8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M10.5 1.5L1.5 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </a>
+                  ) : (
+                    item.name
+                  )}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
                   <span

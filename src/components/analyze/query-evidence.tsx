@@ -300,6 +300,8 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                             borderRadius: "12px 12px 12px 4px",
                             padding: "0.75rem 1rem",
                             borderLeft: `3px solid ${providerColor}`,
+                            display: "flex",
+                            flexDirection: "column",
                           }}
                         >
                           <div
@@ -310,22 +312,23 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                               marginBottom: 6,
                               textTransform: "uppercase",
                               letterSpacing: "0.04em",
+                              flexShrink: 0,
                             }}
                           >
                             {providerName}
                           </div>
                           <div
+                            className="query-response-scroll"
                             style={{
                               fontSize: "0.8rem",
                               color: "rgba(255,255,255,0.6)",
                               lineHeight: 1.6,
                               whiteSpace: "pre-line",
+                              maxHeight: 220,
+                              overflowY: "auto",
                             }}
                           >
                             {cleanResponseText(q.rawResponseExcerpt)}
-                            {q.rawResponseExcerpt.length >= 490 && (
-                              <span style={{ color: "rgba(255,255,255,0.25)" }}> ...</span>
-                            )}
                           </div>
                         </div>
                       </div>

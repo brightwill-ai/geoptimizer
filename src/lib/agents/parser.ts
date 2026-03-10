@@ -33,6 +33,7 @@ export const ParsedResponseSchema = z.object({
     z.object({
       name: z.string(),
       sourceType: z.enum(["review_platform", "directory", "news", "social_media", "official_site", "other"]),
+      url: z.string().nullable().optional(),
     })
   ).default([]),
 });

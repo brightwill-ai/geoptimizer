@@ -615,6 +615,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 }}
                 autoComplete="off"
                 role="combobox"
+                aria-controls="location-listbox"
                 aria-expanded={showDropdown}
                 aria-autocomplete="list"
                 aria-activedescendant={highlightedIdx >= 0 ? `loc-option-${highlightedIdx}` : undefined}
@@ -658,6 +659,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   backdropFilter: "blur(12px)",
                 }}
                 role="listbox"
+                id="location-listbox"
               >
                 {suggestionsLoading && suggestions.length === 0 && (
                   <div

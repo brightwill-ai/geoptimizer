@@ -16,14 +16,19 @@ import { QueryEvidence } from "./query-evidence";
 import { SourceInfluenceMap } from "./source-influence-map";
 import { QueryTypeBreakdown } from "./query-type-breakdown";
 import { ActionItems } from "./action-items";
+import { ActionPlan } from "./action-plan";
 
 import { SectionDivider } from "@/components/ui/section-divider";
+import type { ActionPlan as ActionPlanType } from "@/lib/mock-data";
 
 interface FullReportProps {
   analysis: GEOAnalysis;
+  analysisId?: string;
+  actionPlan?: ActionPlanType | null;
+  actionPlanStatus?: string;
 }
 
-export function FullReport({ analysis }: FullReportProps) {
+export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus }: FullReportProps) {
   const availableProviders = LLM_PROVIDERS.filter((p) => analysis.reports[p.id]);
   const [activeTab, setActiveTab] = useState<LLMProvider>(availableProviders[0]?.id ?? "chatgpt");
   const activeReport = analysis.reports[activeTab];
@@ -637,8 +642,16 @@ export function FullReport({ analysis }: FullReportProps) {
 
         <SectionDivider spacing={2.5} />
 
-        {/* Actionable Recommendations */}
-        <ActionItems analysis={analysis} businessName={analysis.businessName} />
+        {/* Action Plan (comprehensive) or Action Items (fallback) */}
+        {analysisId ? (
+          <ActionPlan
+            analysisId={analysisId}
+            initialActionPlan={actionPlan}
+            actionPlanStatus={actionPlanStatus}
+          />
+        ) : (
+          <ActionItems analysis={analysis} businessName={analysis.businessName} />
+        )}
       </div>
     </motion.div>
   );

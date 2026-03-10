@@ -36,7 +36,7 @@ const queryTypeDescriptions: Record<string, string> = {
   rephrased_discovery: "Alternate phrasing discovery",
 };
 
-export function QueryTypeBreakdown({ queryResults, businessName, blurred }: QueryTypeBreakdownProps) {
+export function QueryTypeBreakdown({ queryResults, blurred }: QueryTypeBreakdownProps) {
   if (queryResults.length === 0) return null;
 
   // Group by query type
