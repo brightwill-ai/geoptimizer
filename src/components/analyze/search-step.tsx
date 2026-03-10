@@ -65,7 +65,7 @@ function useTypewriter(lines: string[]) {
     const doneDeleting = charIndex === 0;
 
     let delay = deleting ? 22 : 40;
-    if (!deleting && doneTyping) delay = 2400;
+    if (!deleting && doneTyping) delay = 5000;
     if (deleting && doneDeleting) delay = 350;
 
     const timer = setTimeout(() => {
@@ -178,10 +178,6 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
 
   const showDropdown = locationFocused && userTyping && (suggestions.length > 0 || suggestionsLoading);
 
-  // Reset highlighted index when suggestions change
-  useEffect(() => {
-    setHighlightedIdx(-1);
-  }, [suggestions]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -634,6 +630,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   setLocation(e.target.value);
                   setUserTyping(true);
                   setAutoDetected(false);
+                  setHighlightedIdx(-1);
                 }}
                 onKeyDown={handleLocationKeyDown}
                 placeholder={locationLoading ? "Detecting your location..." : "Search city, state, or zip..."}
