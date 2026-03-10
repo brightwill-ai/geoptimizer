@@ -18,7 +18,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
           gridTemplateColumns: "32px 1fr 1fr 80px",
           gap: 8,
           padding: "8px 0",
-          borderBottom: "1px solid #22232a",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>#</span>
@@ -79,7 +79,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
                 style={{
                   height: 6,
                   borderRadius: 3,
-                  background: "rgba(255,255,255,0.08)",
+                  background: "rgba(255,255,255,0.06)",
                   flex: 1,
                   overflow: "hidden",
                 }}

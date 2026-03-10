@@ -12,6 +12,8 @@ import { CompetitorTable } from "./competitor-table";
 import { QueryTypeBreakdown } from "./query-type-breakdown";
 import { SourceInfluenceMap } from "./source-influence-map";
 
+import { SectionDivider } from "@/components/ui/section-divider";
+
 interface PartialReportProps {
   analysis: GEOAnalysis;
   onUnlock: () => void;
@@ -139,12 +141,14 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           </div>
         </div>
 
+        <SectionDivider spacing={2} />
+
         {/* Query Evidence Table */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          style={{ marginTop: "1.5rem" }}
+          style={{ marginTop: "2.5rem" }}
         >
           <QueryEvidence
             queries={chatgpt.queryResults}
@@ -152,13 +156,15 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           />
         </motion.div>
 
+        <SectionDivider spacing={2} />
+
         {/* Query Type Breakdown */}
         {chatgpt.queryResults.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            style={{ marginTop: "1.5rem" }}
+            style={{ marginTop: "2.5rem" }}
           >
             <QueryTypeBreakdown
               queryResults={chatgpt.queryResults}
@@ -167,6 +173,8 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           </motion.div>
         )}
 
+        <SectionDivider spacing={2} />
+
         {/* Competitor + Sentiment row */}
         <div
           className="analyze-grid"
@@ -174,7 +182,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: 16,
-            marginTop: "1.5rem",
+            marginTop: "2.5rem",
           }}
         >
           {/* Competitor Snapshot */}
@@ -185,22 +193,11 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             style={{
               background: "#14151a",
               borderRadius: 12,
-              border: "1px solid #22232a",
+              border: "1px solid rgba(255,255,255,0.06)",
               padding: "1.25rem",
             }}
           >
-            <h3
-              style={{
-                fontSize: "0.8rem",
-                fontWeight: 500,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                color: "rgba(255,255,255,0.4)",
-                margin: "0 0 1rem 0",
-              }}
-            >
-              Who ChatGPT Recommends Instead
-            </h3>
+            <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Who ChatGPT Recommends Instead</h3>
             <CompetitorTable competitors={chatgpt.competitors} />
           </motion.div>
 
@@ -212,24 +209,13 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             style={{
               background: "#14151a",
               borderRadius: 12,
-              border: "1px solid #22232a",
+              border: "1px solid rgba(255,255,255,0.06)",
               padding: "1.25rem",
               display: "flex",
               flexDirection: "column",
             }}
           >
-            <h3
-              style={{
-                fontSize: "0.8rem",
-                fontWeight: 500,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                color: "rgba(255,255,255,0.4)",
-                margin: "0 0 1rem 0",
-              }}
-            >
-              Sentiment When Mentioned
-            </h3>
+            <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Sentiment When Mentioned</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
               <SentimentBadge
                 sentiment={
@@ -251,7 +237,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                 height: 8,
                 borderRadius: 4,
                 overflow: "hidden",
-                background: "rgba(255,255,255,0.08)",
+                background: "rgba(255,255,255,0.06)",
               }}
             >
               <div style={{ width: `${chatgpt.sentiment.positive}%`, background: "#16a34a", borderRadius: "4px 0 0 4px" }} />
@@ -296,7 +282,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.38 }}
-            style={{ marginTop: "1.5rem" }}
+            style={{ marginTop: "2.5rem" }}
           >
             <SourceInfluenceMap
               sources={chatgpt.sources}
@@ -304,6 +290,8 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             />
           </motion.div>
         )}
+
+        <SectionDivider spacing={2} />
 
         {/* Blurred: Claude & Gemini */}
         <motion.div
@@ -369,7 +357,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                     padding: "8px 20px",
                     borderRadius: 999,
                     background: "#14151a",
-                    border: "1px solid #22232a",
+                    border: "1px solid rgba(255,255,255,0.06)",
                     boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
                   }}
                 >
@@ -383,7 +371,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           ))}
 
           {/* Blurred comprehensive teasers */}
-          <div style={{ position: "relative", marginTop: "1.5rem" }}>
+          <div style={{ position: "relative", marginTop: "2.5rem" }}>
             <div
               style={{
                 filter: "blur(6px)",
@@ -396,10 +384,8 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
               }}
             >
               {/* Fake cross-platform source influence */}
-              <div style={{ background: "#14151a", borderRadius: 12, border: "1px solid #22232a", padding: "1.5rem" }}>
-                <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>
-                  Cross-Platform Source Influence
-                </h3>
+              <div style={{ background: "#14151a", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "1.5rem" }}>
+                <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Cross-Platform Source Influence</h3>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                   {["Google Reviews", "Yelp", "TripAdvisor", "Google Maps"].map((s, i) => (
                     <div key={s} style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -418,10 +404,8 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
               </div>
 
               {/* Fake methodology */}
-              <div style={{ background: "#14151a", borderRadius: 12, border: "1px solid #22232a", padding: "1.5rem" }}>
-                <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>
-                  Full Methodology & Verification
-                </h3>
+              <div style={{ background: "#14151a", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "1.5rem" }}>
+                <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Full Methodology & Verification</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
                   <div style={{ textAlign: "center" }}>
                     <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#fff" }}>100+</div>
@@ -485,7 +469,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           right: 0,
           background: "rgba(12,13,16,0.95)",
           backdropFilter: "blur(12px)",
-          borderTop: "1px solid #22232a",
+          borderTop: "1px solid rgba(255,255,255,0.08)",
           padding: "1rem 2rem",
           zIndex: 50,
           display: "flex",

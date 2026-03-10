@@ -28,7 +28,7 @@ function Nav() {
         height: "60px",
         background: "rgba(12,13,16,0.88)",
         backdropFilter: "blur(16px)",
-        borderBottom: "1px solid #22232a",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}
     >
       <Link

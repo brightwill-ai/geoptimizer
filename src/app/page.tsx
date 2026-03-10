@@ -4,6 +4,10 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ProviderLogo } from "@/components/ui/provider-logo";
+import { SectionDivider as DottedDivider } from "@/components/ui/section-divider";
+import { FeatureSteps } from "@/components/ui/feature-section";
+import { Particles } from "@/components/ui/particles";
+import { DottedSurface } from "@/components/ui/dotted-surface";
 
 // ── Shared scroll-reveal hook ──
 function useReveal(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
@@ -13,7 +17,11 @@ function useReveal(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add("visible");
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+          } else {
+            entry.target.classList.remove("visible");
+          }
         });
       },
       { threshold }
@@ -190,9 +198,9 @@ function Nav() {
         justifyContent: "space-between",
         padding: "0 2.5rem",
         height: "60px",
-        background: "rgba(12,13,16,0.85)",
+        background: "rgba(9,9,11,0.88)",
         backdropFilter: "blur(16px)",
-        borderBottom: "1px solid #22232a",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
       }}
     >
       <Link
@@ -258,7 +266,7 @@ function HeroReportMockup() {
   return (
     <div
       style={{
-        background: "#14151a",
+        background: "#111113",
         borderRadius: 12,
         border: "1px solid rgba(255,255,255,0.08)",
         padding: "1.75rem",
@@ -383,10 +391,46 @@ function HeroReportMockup() {
 // ── Hero Section (DARK) ──
 function Hero() {
   return (
-    <section>
+    <section style={{ position: "relative", overflow: "hidden" }}>
+      {/* Dotted surface background */}
+      <DottedSurface
+        className="absolute inset-0"
+        dotColor="rgba(255,255,255,0.08)"
+        dotSize={1}
+        gap={28}
+      />
+
+      {/* Particles — mouse-reactive */}
+      <Particles
+        className="absolute inset-0"
+        quantity={80}
+        staticity={40}
+        ease={60}
+        size={0.5}
+        color="#ffffff"
+      />
+
+      {/* Radial glow center highlight */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: "-10%",
+          left: "50%",
+          width: "100%",
+          height: "100%",
+          transform: "translateX(-50%)",
+          background: "radial-gradient(ellipse at center, rgba(255,255,255,0.04), transparent 55%)",
+          filter: "blur(40px)",
+          pointerEvents: "none",
+        }}
+      />
+
       <div
         className="hero"
         style={{
+          position: "relative",
+          zIndex: 2,
           minHeight: "100vh",
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
@@ -482,8 +526,7 @@ function PlatformBar() {
   return (
     <div
       style={{
-        borderBottom: "1px solid #22232a",
-        padding: "1.1rem 2.5rem",
+        padding: "3.5rem 2.5rem",
       }}
     >
       <div
@@ -547,7 +590,7 @@ function Stats() {
         style={{
           maxWidth: "1140px",
           margin: "0 auto",
-          padding: "5rem 2.5rem",
+          padding: "4.5rem 2.5rem",
         }}
       >
         <div
@@ -565,7 +608,7 @@ function Stats() {
               style={{
                 textAlign: "center",
                 padding: "1.5rem 2rem",
-                borderRight: i < 2 ? "1px solid #22232a" : "none",
+                borderRight: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none",
               }}
             >
               <div
@@ -593,159 +636,6 @@ function Stats() {
 }
 
 // ── How We Measure Section ──
-function HowWeMeasure() {
-  const ref = useRef<HTMLDivElement>(null);
-  useReveal(ref);
-
-  return (
-    <div
-      ref={ref}
-    >
-      <div
-        style={{
-          maxWidth: "1140px",
-          margin: "0 auto",
-          padding: "6rem 2.5rem",
-        }}
-      >
-        <div
-          className="measure-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "4rem",
-            alignItems: "center",
-          }}
-        >
-          {/* Left */}
-          <div className="reveal-left">
-            <p
-              style={{
-                fontSize: "0.72rem",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: "rgba(255,255,255,0.4)",
-                marginBottom: "0.75rem",
-                fontWeight: 500,
-              }}
-            >
-              How it works
-            </p>
-            <h2
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 300,
-                fontSize: "clamp(1.8rem, 3vw, 2.4rem)",
-                letterSpacing: "-0.04em",
-                lineHeight: 1.1,
-                marginBottom: "1.5rem",
-                color: "#ffffff",
-              }}
-            >
-              Recommendation probability, not rank.
-            </h2>
-            <p
-              style={{
-                fontSize: "0.95rem",
-                color: "rgba(255,255,255,0.6)",
-                lineHeight: 1.65,
-                marginBottom: "1.5rem",
-              }}
-            >
-              AI responses change with every query. A single test tells you nothing.
-              We run dozens of real queries and measure the actual probability that each
-              AI engine recommends your business.
-            </p>
-            <Link href="/analyze" className="btn-pill-dark" style={{ display: "inline-flex", gap: "0.4rem" }}>
-              Try it free <span>&rarr;</span>
-            </Link>
-            <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", marginTop: "0.75rem" }}>
-              Transparent process. Every query visible.
-            </p>
-          </div>
-
-          {/* Right */}
-          <div className="reveal-right">
-            <div
-              style={{
-                background: "#14151a",
-                borderRadius: 12,
-                border: "1px solid #22232a",
-                padding: "1.75rem",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "0.72rem",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.06em",
-                  color: "rgba(255,255,255,0.4)",
-                  marginBottom: "1rem",
-                }}
-              >
-                Example: Hana Sushi, Miami FL
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem", marginBottom: "1.25rem" }}>
-                <ProbabilityRing value={60} size={72} />
-                <div>
-                  <div style={{ fontSize: "1.1rem", fontWeight: 500, color: "#ffffff" }}>
-                    60% probability
-                  </div>
-                  <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>
-                    ChatGPT recommends in 3 of 5 queries
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {[
-                  { query: "Best sushi in Miami", mentioned: true },
-                  { query: "Where to get omakase near downtown Miami", mentioned: true },
-                  { query: "Top Japanese restaurants Brickell", mentioned: false },
-                  { query: "Romantic dinner spots Miami Beach", mentioned: true },
-                  { query: "Best lunch spots near me Miami", mentioned: false },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "7px 10px",
-                      borderRadius: 8,
-                      background: i % 2 === 0 ? "rgba(255,255,255,0.04)" : "transparent",
-                    }}
-                  >
-                    <span style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.6)" }}>
-                      &ldquo;{item.query}&rdquo;
-                    </span>
-                    <span
-                      style={{
-                        padding: "2px 10px",
-                        borderRadius: 999,
-                        background: item.mentioned ? "rgba(22,163,74,0.15)" : "rgba(220,38,38,0.15)",
-                        color: item.mentioned ? "#4ade80" : "#f87171",
-                        fontSize: "0.68rem",
-                        fontWeight: 500,
-                        flexShrink: 0,
-                        marginLeft: 10,
-                      }}
-                    >
-                      {item.mentioned ? "Recommended" : "Not mentioned"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Report Showcase (DARK, wider, 2-column) ──
 function ReportShowcase() {
   const ref = useRef<HTMLDivElement>(null);
@@ -755,24 +645,15 @@ function ReportShowcase() {
     <div
       ref={ref}
       style={{
-        background: "linear-gradient(180deg, transparent 0%, #14151a 100%)",
-        padding: "6rem 2.5rem",
+        background: "linear-gradient(180deg, transparent 0%, #111113 100%)",
+        padding: "8rem 2.5rem",
       }}
     >
       <div style={{ maxWidth: "1140px", margin: "0 auto" }}>
         <div className="reveal-scale" style={{ textAlign: "center", marginBottom: "3rem" }}>
-          <p
-            style={{
-              fontSize: "0.72rem",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.4)",
-              marginBottom: "0.75rem",
-              fontWeight: 500,
-            }}
-          >
-            Free audit output
-          </p>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
+            <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Report Preview</div>
+          </div>
           <h2
             style={{
               fontFamily: "var(--font-display)",
@@ -787,22 +668,49 @@ function ReportShowcase() {
           </h2>
         </div>
 
-        {/* 2-column report mockup */}
+        {/* Window frame */}
         <div
-          className="reveal-scale stagger-2 report-showcase-grid"
+          className="reveal-scale stagger-2"
           style={{
             maxWidth: 960,
             margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "1.2fr 1fr",
-            gap: "1.25rem",
+            borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.08)",
+            background: "#0e0e11",
+            overflow: "hidden",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.03)",
           }}
         >
+          {/* Window chrome top bar */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "10px 14px",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ff5f57" }} />
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#febc2e" }} />
+            <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#28c840" }} />
+          </div>
+
+          {/* Report content area */}
+          <div
+            className="report-showcase-grid"
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1.2fr 1fr",
+              gap: "1.25rem",
+              padding: "1.5rem",
+            }}
+          >
           {/* Left: Probability + Evidence */}
           <div
             style={{
-              background: "#14151a",
-              borderRadius: 12,
+              background: "#111113",
+              borderRadius: 10,
               border: "1px solid rgba(255,255,255,0.06)",
               padding: "2rem",
             }}
@@ -880,7 +788,7 @@ function ReportShowcase() {
             {/* Competitors */}
             <div
               style={{
-                background: "#14151a",
+                background: "#111113",
                 borderRadius: 12,
                 border: "1px solid rgba(255,255,255,0.06)",
                 padding: "1.5rem",
@@ -931,7 +839,7 @@ function ReportShowcase() {
             {/* Sentiment */}
             <div
               style={{
-                background: "#14151a",
+                background: "#111113",
                 borderRadius: 12,
                 border: "1px solid rgba(255,255,255,0.06)",
                 padding: "1.5rem",
@@ -958,6 +866,53 @@ function ReportShowcase() {
           </div>
         </div>
 
+          {/* Window chrome bottom bar */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "8px 14px",
+              borderTop: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {/* Settings icon */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+              {/* Help icon */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              {/* Window icon */}
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="3" y1="9" x2="21" y2="9" />
+              </svg>
+            </div>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                padding: "3px 10px",
+                borderRadius: 6,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.06)",
+                fontSize: "0.68rem",
+                fontWeight: 500,
+                color: "rgba(255,255,255,0.3)",
+              }}
+            >
+              Feedback
+            </div>
+          </div>
+        </div>
+
         {/* CTA */}
         <div className="reveal-scale stagger-3" style={{ textAlign: "center", marginTop: "2.5rem" }}>
           <Link
@@ -965,7 +920,7 @@ function ReportShowcase() {
             className="btn-pill-white"
             style={{
               background: "#ffffff",
-              color: "#0c0d10",
+              color: "#09090b",
               border: "none",
               padding: "0.7rem 2rem",
               borderRadius: 8,
@@ -1004,7 +959,7 @@ function LineChartBg() {
   );
 }
 
-// ── Features Section (redesigned — 2-col top, full-width bottom) ──
+// ── Features Section (2-col top, full-width bottom) ──
 function Features() {
   const ref = useRef<HTMLDivElement>(null);
   useReveal(ref);
@@ -1014,11 +969,11 @@ function Features() {
       id="features"
       ref={ref}
     >
-      <div style={{ maxWidth: "1140px", margin: "0 auto", padding: "6rem 2.5rem" }}>
+      <div style={{ maxWidth: "1140px", margin: "0 auto", padding: "7rem 2.5rem" }}>
         <div className="reveal-scale" style={{ textAlign: "center", marginBottom: "4rem" }}>
-          <p style={{ fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "0.75rem", fontWeight: 500 }}>
-            Platform
-          </p>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
+            <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Core Features</div>
+          </div>
           <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 300, fontSize: "clamp(2rem, 3.5vw, 2.8rem)", letterSpacing: "-0.04em", lineHeight: 1.1, color: "#ffffff" }}>
             What your audit reveals.
           </h2>
@@ -1026,15 +981,12 @@ function Features() {
 
         {/* Top row: 2 feature cards side by side */}
         <div className="features-top-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem", marginBottom: "1.25rem" }}>
-
-          {/* Card 1: Citation Tracking — line chart + provider breakdown */}
-          <div className="reveal-scale stagger-1" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", overflow: "hidden", position: "relative", minHeight: 380 }}>
-            {/* Line chart background */}
+          {/* Card 1: Citation Tracking */}
+          <div className="reveal-scale stagger-1" style={{ background: "#111113", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden", position: "relative", minHeight: 380 }}>
             <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
               <LineChartBg />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(20,21,26,0.3) 0%, rgba(20,21,26,0.85) 50%, #14151a 75%)" }} />
+              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(17,17,19,0.3) 0%, rgba(17,17,19,0.85) 50%, #111113 75%)" }} />
             </div>
-            {/* Content overlay */}
             <div style={{ position: "relative", zIndex: 1, padding: "2rem", display: "flex", flexDirection: "column", height: "100%" }}>
               <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.15rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
                 AI Recommendation Tracking
@@ -1042,8 +994,7 @@ function Features() {
               <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.55, marginBottom: "auto" }}>
                 Track how often each AI platform recommends your business across real customer queries.
               </p>
-              {/* Provider breakdown table */}
-              <div style={{ background: "rgba(12,13,16,0.7)", backdropFilter: "blur(8px)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "1.25rem" }}>
+              <div style={{ background: "rgba(9,9,11,0.7)", backdropFilter: "blur(8px)", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "1.25rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 10, padding: "0 4px" }}>
                   <span>Total</span>
                   <span style={{ fontWeight: 500, color: "rgba(255,255,255,0.6)", fontSize: "0.75rem" }}>1,130</span>
@@ -1064,8 +1015,8 @@ function Features() {
             </div>
           </div>
 
-          {/* Card 2: Sentiment Analysis — theme table + AI response */}
-          <div className="reveal-scale stagger-2" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+          {/* Card 2: Sentiment Analysis */}
+          <div className="reveal-scale stagger-2" style={{ background: "#111113", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
             <div style={{ padding: "2rem", flex: 1, display: "flex", flexDirection: "column" }}>
               <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.15rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
                 Capture the sentiment of AI responses
@@ -1073,9 +1024,7 @@ function Features() {
               <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.55, marginBottom: "1.5rem" }}>
                 Understand the brand sentiment and track changes in real-time.
               </p>
-              {/* Sentiment table */}
               <div style={{ borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden", flex: 1 }}>
-                {/* Table header */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 90px", padding: "8px 14px", background: "rgba(255,255,255,0.03)", fontSize: "0.62rem", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                   <span>Theme</span>
                   <span>Sentiment</span>
@@ -1095,9 +1044,8 @@ function Features() {
                     </div>
                   </div>
                 ))}
-                {/* Expanded AI response preview */}
                 <div style={{ padding: "14px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
-                  <div style={{ background: "rgba(12,13,16,0.6)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)", padding: "12px 14px" }}>
+                  <div style={{ background: "rgba(9,9,11,0.6)", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)", padding: "12px 14px" }}>
                     <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.3)", marginBottom: 6 }}>
                       ChatGPT &middot; Response excerpt
                     </div>
@@ -1114,7 +1062,7 @@ function Features() {
         {/* Bottom row: 2 smaller feature cards */}
         <div className="features-bottom-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
           {/* Source Influence */}
-          <div className="reveal-scale stagger-3" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", padding: "2rem" }}>
+          <div className="reveal-scale stagger-3" style={{ background: "#111113", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", padding: "2rem" }}>
             <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.05rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
               Source Influence Analysis
             </h3>
@@ -1138,7 +1086,7 @@ function Features() {
           </div>
 
           {/* Competitive Intelligence */}
-          <div className="reveal-scale stagger-4" style={{ background: "#14151a", borderRadius: 16, border: "1px solid #22232a", padding: "2rem" }}>
+          <div className="reveal-scale stagger-4" style={{ background: "#111113", borderRadius: 16, border: "1px solid rgba(255,255,255,0.06)", padding: "2rem" }}>
             <h3 style={{ fontFamily: "var(--font-sans)", fontSize: "1.05rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#ffffff", marginBottom: "0.35rem" }}>
               Competitive Intelligence
             </h3>
@@ -1188,7 +1136,7 @@ function StepMockupSearch() {
         </div>
         <div style={{ marginBottom: 10 }}>
           <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Business name</div>
-          <div style={{ background: "#1a1b21", border: "1px solid #22232a", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "#ffffff" }}>
+          <div style={{ background: "#18181b", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "#ffffff" }}>
             {typedBusiness}
             <span className="bw-typing-caret" aria-hidden>
               |
@@ -1197,18 +1145,18 @@ function StepMockupSearch() {
         </div>
         <div style={{ marginBottom: 10 }}>
           <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Location</div>
-          <div style={{ background: "#1a1b21", border: "1px solid #22232a", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "rgba(255,255,255,0.5)" }}>
+          <div style={{ background: "#18181b", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "rgba(255,255,255,0.5)" }}>
             Miami, FL
           </div>
         </div>
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>Category</div>
-          <div style={{ background: "#1a1b21", border: "1px solid #22232a", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "rgba(255,255,255,0.5)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ background: "#18181b", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "rgba(255,255,255,0.5)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             Restaurant
             <span style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.2)" }}>▼</span>
           </div>
         </div>
-        <div style={{ background: "#ffffff", color: "#0c0d10", borderRadius: 6, padding: "8px", textAlign: "center", fontSize: "0.78rem", fontWeight: 500 }}>
+        <div style={{ background: "#ffffff", color: "#09090b", borderRadius: 6, padding: "8px", textAlign: "center", fontSize: "0.78rem", fontWeight: 500 }}>
           Run free audit →
         </div>
       </div>
@@ -1393,102 +1341,39 @@ function StepMockupReport() {
   );
 }
 
-// ── How It Works Section (Cryptix-inspired cards) ──
+// ── How It Works Section (FeatureSteps with live mockups) ──
 function HowItWorks() {
-  const ref = useRef<HTMLDivElement>(null);
-  useReveal(ref);
-
-  const steps = [
+  const features = [
     {
-      num: 1,
+      step: "Step 1",
       title: "Enter your business",
-      desc: "Tell us your business name and location. We handle the rest — querying ChatGPT with real customer questions.",
+      content:
+        "Tell us your business name and location. We handle the rest — querying ChatGPT with real customer questions.",
       mockup: <StepMockupSearch />,
     },
     {
-      num: 2,
+      step: "Step 2",
       title: "Watch AI run your audit",
-      desc: "See live loading progress as prompts run, responses parse, and recommendation evidence is assembled in real time.",
+      content:
+        "See live loading progress as prompts run, responses parse, and recommendation evidence is assembled in real time.",
       mockup: <StepMockupResults />,
     },
     {
-      num: 3,
+      step: "Step 3",
       title: "Get the full report",
-      desc: "Review cross-platform scores, source influence, competitor comparisons, and a shareable report snapshot.",
+      content:
+        "Review cross-platform scores, source influence, competitor comparisons, and a shareable report snapshot.",
       mockup: <StepMockupReport />,
     },
   ];
 
   return (
-    <div id="how" ref={ref}>
-      <div style={{ maxWidth: "1140px", margin: "0 auto", padding: "6rem 2.5rem" }}>
-        <div className="reveal-scale" style={{ textAlign: "center", marginBottom: "4rem" }}>
-          <p
-            style={{
-              fontSize: "0.72rem",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.4)",
-              marginBottom: "0.75rem",
-              fontWeight: 500,
-            }}
-          >
-            How it works
-          </p>
-          <h2
-            style={{
-              fontFamily: "var(--font-display)",
-              fontWeight: 300,
-              fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
-              letterSpacing: "-0.04em",
-              lineHeight: 1.1,
-              color: "#ffffff",
-            }}
-          >
-            See how AI sees you.
-            <br />
-            In 30 seconds.
-          </h2>
-          <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.45)", marginTop: "1rem", maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
-            A simple, transparent process to measure your AI visibility.
-          </p>
-        </div>
-
-        <div
-          className="steps-row"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "1.5rem",
-          }}
-        >
-          {steps.map((step, i) => (
-            <div key={i} className={`step-card reveal-scale stagger-${i + 1}`} style={{ paddingTop: 28 }}>
-              <div className="step-number">{step.num}</div>
-              <div style={{ padding: "0 1.25rem", marginBottom: "1.25rem" }}>
-                {step.mockup}
-              </div>
-              <div style={{ padding: "0 1.5rem 1.75rem" }}>
-                <h3
-                  style={{
-                    fontFamily: "var(--font-sans)",
-                    fontSize: "1.05rem",
-                    fontWeight: 500,
-                    letterSpacing: "-0.02em",
-                    marginBottom: "0.4rem",
-                    color: "#ffffff",
-                  }}
-                >
-                  {step.title}
-                </h3>
-                <p style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
-                  {step.desc}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+    <div id="how">
+      <FeatureSteps
+        features={features}
+        title="See how AI sees you. In 30 seconds."
+        label="Getting Started"
+      />
     </div>
   );
 }
@@ -1549,10 +1434,11 @@ function Pricing() {
         style={{
           maxWidth: "1140px",
           margin: "0 auto",
-          padding: "6rem 2.5rem",
+          padding: "8rem 2.5rem",
         }}
       >
         <div className="reveal-scale" style={{ marginBottom: "3rem" }}>
+          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Plans</div>
           <h2
             style={{
               fontFamily: "var(--font-display)",
@@ -1586,8 +1472,8 @@ function Pricing() {
               key={plan.name}
               className={`plan reveal-scale stagger-${i + 1}`}
               style={{
-                background: "#14151a",
-                border: plan.featured ? "1px solid rgba(255,255,255,0.15)" : "1px solid #22232a",
+                background: "#111113",
+                border: plan.featured ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(255,255,255,0.06)",
                 borderRadius: 12,
                 padding: "2rem",
                 position: "relative",
@@ -1601,7 +1487,7 @@ function Pricing() {
                     top: "-11px",
                     left: "1.5rem",
                     background: "#ffffff",
-                    color: "#0c0d10",
+                    color: "#09090b",
                     fontSize: "0.7rem",
                     fontWeight: 500,
                     letterSpacing: "0.06em",
@@ -1730,23 +1616,14 @@ function CTA() {
   return (
     <div
       style={{
-        padding: "6rem 2.5rem",
+        padding: "8rem 2.5rem",
         textAlign: "center",
       }}
     >
       <div style={{ maxWidth: 560, margin: "0 auto" }}>
-        <p
-          style={{
-            fontSize: "0.72rem",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.4)",
-            marginBottom: "0.75rem",
-            fontWeight: 500,
-          }}
-        >
-          Free audit
-        </p>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
+          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Free Audit</div>
+        </div>
         <h2
           style={{
             fontFamily: "var(--font-display)",
@@ -1768,7 +1645,7 @@ function CTA() {
           className="btn-pill-white"
           style={{
             background: "#ffffff",
-            color: "#0c0d10",
+            color: "#09090b",
             border: "none",
             padding: "0.75rem 2rem",
             borderRadius: 8,
@@ -1798,7 +1675,7 @@ function Footer() {
   return (
     <footer
       style={{
-        borderTop: "1px solid #22232a",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
         padding: "1.5rem 2.5rem",
         display: "flex",
         justifyContent: "space-between",
@@ -1818,31 +1695,29 @@ function Footer() {
   );
 }
 
-// ── Section Divider (gradient glow line) ──
-function SectionDivider({ glow = false }: { glow?: boolean }) {
-  return <div className={glow ? "section-line-glow" : "section-line"} />;
-}
-
 // ── Main Page ──
 export default function Home() {
   return (
-    <div className="grid-bg" style={{ background: "#0c0d10" }}>
+    <div className="grid-bg" style={{ background: "#09090b" }}>
       {/* Structural edge lines */}
       <div className="edge-lines" />
       <Nav />
       <Hero />
+      <DottedDivider spacing={0} />
       <PlatformBar />
+      <DottedDivider spacing={0} />
       <Stats />
-      <SectionDivider />
+      <DottedDivider spacing={0} />
       <HowItWorks />
+      <DottedDivider spacing={0} />
       <Features />
-      <SectionDivider glow />
+      <DottedDivider spacing={0} />
       <ReportShowcase />
-      <SectionDivider />
-      <HowWeMeasure />
-      <SectionDivider glow />
+      <DottedDivider spacing={0} />
       <Pricing />
+      <DottedDivider spacing={0} />
       <CTA />
+      <DottedDivider spacing={0} />
       <Footer />
     </div>
   );

@@ -17,6 +17,8 @@ import { SourceInfluenceMap } from "./source-influence-map";
 import { QueryTypeBreakdown } from "./query-type-breakdown";
 import { ActionItems } from "./action-items";
 
+import { SectionDivider } from "@/components/ui/section-divider";
+
 interface FullReportProps {
   analysis: GEOAnalysis;
 }
@@ -53,20 +55,7 @@ export function FullReport({ analysis }: FullReportProps) {
             gap: "1.5rem",
           }}
         >
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              fontSize: "0.72rem",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              color: "rgba(255,255,255,0.4)",
-            }}
-          >
-            Complete GEO Report
-          </div>
+          <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Complete GEO Report</div>
 
           <h1
             style={{
@@ -119,7 +108,7 @@ export function FullReport({ analysis }: FullReportProps) {
               background: "#14151a",
               borderRadius: 999,
               padding: "8px 20px",
-              border: "1px solid #22232a",
+              border: "1px solid rgba(255,255,255,0.06)",
               fontSize: "0.8rem",
               fontWeight: 500,
               color: "#ffffff",
@@ -137,6 +126,8 @@ export function FullReport({ analysis }: FullReportProps) {
       </div>
 
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "2rem" }}>
+        <SectionDivider spacing={2.5} />
+
         {/* Methodology Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -145,23 +136,12 @@ export function FullReport({ analysis }: FullReportProps) {
           style={{
             background: "#14151a",
             borderRadius: 12,
-            border: "1px solid #22232a",
+            border: "1px solid rgba(255,255,255,0.06)",
             padding: "1.5rem",
-            marginBottom: "2rem",
+            marginBottom: "3rem",
           }}
         >
-          <h3
-            style={{
-              fontSize: "0.8rem",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              color: "rgba(255,255,255,0.4)",
-              margin: "0 0 1rem 0",
-            }}
-          >
-            Methodology
-          </h3>
+          <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Methodology</h3>
           <div
             style={{
               display: "grid",
@@ -172,20 +152,20 @@ export function FullReport({ analysis }: FullReportProps) {
             className="analyze-grid"
           >
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff" }}>
-                {analysis.methodology.totalQueries}
+              <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff", fontFamily: "var(--font-mono, monospace)" }}>
+                {String(analysis.methodology.totalQueries).padStart(2, "0")}
               </div>
               <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>Total queries</div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff" }}>
-                {analysis.methodology.providers.length}
+              <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff", fontFamily: "var(--font-mono, monospace)" }}>
+                {String(analysis.methodology.providers.length).padStart(2, "0")}
               </div>
               <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>AI platforms</div>
             </div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff" }}>
-                {analysis.methodology.queryTypes.length}
+              <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#ffffff", fontFamily: "var(--font-mono, monospace)" }}>
+                {String(analysis.methodology.queryTypes.length).padStart(2, "0")}
               </div>
               <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>Query types</div>
             </div>
@@ -212,6 +192,8 @@ export function FullReport({ analysis }: FullReportProps) {
           </p>
         </motion.div>
 
+        <SectionDivider spacing={2.5} />
+
         {/* Comparison Table */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -220,25 +202,16 @@ export function FullReport({ analysis }: FullReportProps) {
           style={{
             background: "#14151a",
             borderRadius: 12,
-            border: "1px solid #22232a",
+            border: "1px solid rgba(255,255,255,0.06)",
             padding: "1.5rem",
-            marginBottom: "2rem",
+            marginBottom: "3rem",
           }}
         >
-          <h3
-            style={{
-              fontSize: "0.8rem",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              color: "rgba(255,255,255,0.4)",
-              margin: "0 0 1rem 0",
-            }}
-          >
-            Cross-Platform Comparison
-          </h3>
+          <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Cross-Platform Comparison</h3>
           <LLMComparisonTable analysis={analysis} />
         </motion.div>
+
+        <SectionDivider spacing={2.5} />
 
         {/* Source Influence Map */}
         {analysis.sourceInfluences.length > 0 && (
@@ -246,11 +219,13 @@ export function FullReport({ analysis }: FullReportProps) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            style={{ marginBottom: "2rem" }}
+            style={{ marginBottom: "3rem" }}
           >
             <SourceInfluenceMap sourceInfluences={analysis.sourceInfluences} />
           </motion.div>
         )}
+
+        <SectionDivider spacing={2.5} />
 
         {/* Tabbed Deep Dive */}
         <motion.div
@@ -264,7 +239,7 @@ export function FullReport({ analysis }: FullReportProps) {
             style={{
               display: "flex",
               gap: 0,
-              borderBottom: "1px solid #22232a",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
               marginBottom: "1.5rem",
               overflowX: "auto",
             }}
@@ -357,7 +332,7 @@ export function FullReport({ analysis }: FullReportProps) {
                 gridTemplateColumns: "1fr 1fr",
                 gap: 16,
                 marginTop: "1.5rem",
-                marginBottom: "2rem",
+                marginBottom: "3rem",
               }}
             >
               <MetricCard
@@ -394,7 +369,7 @@ export function FullReport({ analysis }: FullReportProps) {
                     borderRadius: 3,
                     overflow: "hidden",
                     marginTop: 8,
-                    background: "rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.06)",
                   }}
                 >
                   <div style={{ width: `${activeReport.sentiment.positive}%`, background: "#16a34a", borderRadius: "3px 0 0 3px" }} />
@@ -418,23 +393,12 @@ export function FullReport({ analysis }: FullReportProps) {
               style={{
                 background: "#14151a",
                 borderRadius: 12,
-                border: "1px solid #22232a",
+                border: "1px solid rgba(255,255,255,0.06)",
                 padding: "1.25rem",
-                marginBottom: "2rem",
+                marginBottom: "3rem",
               }}
             >
-              <h3
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  color: "rgba(255,255,255,0.4)",
-                  margin: "0 0 1rem 0",
-                }}
-              >
-                Topic Triggers
-              </h3>
+              <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Topic Triggers</h3>
               <BarChart
                 items={activeReport.topics.slice(0, 7).map((t) => ({
                   label: t.topic,
@@ -449,23 +413,12 @@ export function FullReport({ analysis }: FullReportProps) {
               style={{
                 background: "#14151a",
                 borderRadius: 12,
-                border: "1px solid #22232a",
+                border: "1px solid rgba(255,255,255,0.06)",
                 padding: "1.25rem",
-                marginBottom: "2rem",
+                marginBottom: "3rem",
               }}
             >
-              <h3
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  color: "rgba(255,255,255,0.4)",
-                  margin: "0 0 1rem 0",
-                }}
-              >
-                Competitor Ranking
-              </h3>
+              <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Competitor Ranking</h3>
               <CompetitorTable competitors={activeReport.competitors} />
             </div>
 
@@ -474,23 +427,12 @@ export function FullReport({ analysis }: FullReportProps) {
               style={{
                 background: "#14151a",
                 borderRadius: 12,
-                border: "1px solid #22232a",
+                border: "1px solid rgba(255,255,255,0.06)",
                 padding: "1.25rem",
-                marginBottom: "2rem",
+                marginBottom: "3rem",
               }}
             >
-              <h3
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  color: "rgba(255,255,255,0.4)",
-                  margin: "0 0 1rem 0",
-                }}
-              >
-                Information Accuracy
-              </h3>
+              <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Information Accuracy</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {activeReport.accuracy.map((a) => (
                   <div
@@ -548,23 +490,12 @@ export function FullReport({ analysis }: FullReportProps) {
               style={{
                 background: "#14151a",
                 borderRadius: 12,
-                border: "1px solid #22232a",
+                border: "1px solid rgba(255,255,255,0.06)",
                 padding: "1.25rem",
-                marginBottom: "2rem",
+                marginBottom: "3rem",
               }}
             >
-              <h3
-                style={{
-                  fontSize: "0.8rem",
-                  fontWeight: 500,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.05em",
-                  color: "rgba(255,255,255,0.4)",
-                  margin: "0 0 1rem 0",
-                }}
-              >
-                What {activeReport.provider.name} Says
-              </h3>
+              <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>What {activeReport.provider.name} Says</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {activeReport.sentiment.samplePhrases.map((phrase, i) => (
                   <div
@@ -590,6 +521,8 @@ export function FullReport({ analysis }: FullReportProps) {
           </div>
         </motion.div>
 
+        <SectionDivider spacing={2.5} />
+
         {/* Cross-LLM Insights */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -598,23 +531,12 @@ export function FullReport({ analysis }: FullReportProps) {
           style={{
             background: "#14151a",
             borderRadius: 12,
-            border: "1px solid #22232a",
+            border: "1px solid rgba(255,255,255,0.06)",
             padding: "1.5rem",
-            marginBottom: "2rem",
+            marginBottom: "3rem",
           }}
         >
-          <h3
-            style={{
-              fontSize: "0.8rem",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-              color: "rgba(255,255,255,0.4)",
-              margin: "0 0 1.25rem 0",
-            }}
-          >
-            Cross-Platform Insights
-          </h3>
+          <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1.25rem 0" }}>Cross-Platform Insights</h3>
           <div
             className="analyze-grid"
             style={{
@@ -712,6 +634,8 @@ export function FullReport({ analysis }: FullReportProps) {
             </div>
           </div>
         </motion.div>
+
+        <SectionDivider spacing={2.5} />
 
         {/* Actionable Recommendations */}
         <ActionItems analysis={analysis} businessName={analysis.businessName} />

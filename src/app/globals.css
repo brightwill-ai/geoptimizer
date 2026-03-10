@@ -2,11 +2,14 @@
 
 /* BrightWill Design System — All-Dark Theme */
 :root {
-  /* Dark surfaces (softer than pure black) */
-  --bg-dark: #0c0d10;
-  --bg-dark-2: #14151a;
-  --bg-dark-3: #1a1b21;
-  --border-dark: #22232a;
+  /* Dark surfaces (1code.dev-inspired, near-black) */
+  --bg-dark: #09090b;
+  --bg-dark-2: #111113;
+  --bg-dark-3: #18181b;
+  --border-dark: #1f1f23;
+  --border-subtle: rgba(255,255,255,0.06);
+  --border-dotted: rgba(255,255,255,0.08);
+  --font-mono: "SF Mono", "Fira Code", "Consolas", monospace;
 
   /* Light surfaces (analyze pages only) */
   --bg-light: #fafafa;
@@ -19,14 +22,14 @@
   --text-muted: #9ca3af;
 
   /* Legacy aliases (analyze pages) */
-  --bg: #0c0d10;
-  --bg2: #14151a;
-  --black: #0c0d10;
+  --bg: #09090b;
+  --bg2: #111113;
+  --black: #09090b;
   --mid: #4b5563;
   --muted: #9ca3af;
-  --border: #22232a;
+  --border: #1f1f23;
   --white: #ffffff;
-  --card-bg: #14151a;
+  --card-bg: #111113;
 }
 
 @theme inline {
@@ -50,12 +53,16 @@
   padding: 0;
 }
 
-html {
-  scroll-behavior: smooth;
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+html.lenis {
+  scroll-behavior: auto;
 }
 
 body {
-  background: var(--bg-dark);
+  background: #09090b;
   color: #ffffff;
   font-family: var(--font-sans);
   font-weight: 400;
@@ -226,8 +233,8 @@ body {
 /* Feature card hover */
 .feature-card-new:hover {
   transform: translateY(-4px);
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  border-color: #22232a !important;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  border-color: rgba(255,255,255,0.1) !important;
 }
 
 /* ── FOCUS STYLES ── */
@@ -275,6 +282,11 @@ body {
   animation: bw-pulse-subtle 2s ease-in-out infinite;
 }
 
+@keyframes progress-shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 860px) {
   .analyze-grid {
@@ -294,10 +306,6 @@ body {
     order: -1;
   }
 
-  .measure-grid {
-    grid-template-columns: 1fr !important;
-  }
-
   .stats-grid {
     grid-template-columns: 1fr 1fr !important;
   }
@@ -314,6 +322,17 @@ body {
   .steps-row {
     grid-template-columns: 1fr !important;
     gap: 2.5rem !important;
+  }
+
+  .feature-2col {
+    flex-direction: column !important;
+  }
+
+  .feature-2col > div:first-child {
+    position: relative !important;
+    height: auto !important;
+    flex: none !important;
+    padding-bottom: 2rem;
   }
 
   .plans {
@@ -379,15 +398,15 @@ body {
   content: '';
   position: absolute;
   inset: -8px 0;
-  background: linear-gradient(90deg, transparent, rgba(22,163,74,0.06) 30%, rgba(22,163,74,0.06) 70%, transparent);
+  background: linear-gradient(90deg, transparent, rgba(22,163,74,0.05) 30%, rgba(22,163,74,0.05) 70%, transparent);
   pointer-events: none;
 }
 
 /* ── STEP CARDS (Cryptix-inspired) ── */
 .step-card {
   position: relative;
-  background: #14151a;
-  border: 1px solid #22232a;
+  background: #111113;
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 16px;
   overflow: visible;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, box-shadow 0.4s ease;
@@ -406,8 +425,8 @@ body {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: #0c0d10;
-  border: 1px solid #22232a;
+  background: #09090b;
+  border: 1px solid rgba(255,255,255,0.08);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -432,7 +451,7 @@ body {
 
 /* Mockup frame */
 .mockup-frame {
-  background: #0c0d10;
+  background: #09090b;
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.06);
   overflow: hidden;
@@ -464,7 +483,7 @@ body {
   left: 0;
   right: 0;
   height: 45%;
-  background: linear-gradient(to bottom, transparent, #14151a);
+  background: linear-gradient(to bottom, transparent, #111113);
   pointer-events: none;
   z-index: 2;
 }
@@ -477,7 +496,7 @@ body {
   pointer-events: none;
 }
 
-/* ── OUTER EDGE LINES — full page height, no mask ── */
+/* ── OUTER EDGE LINES — 1code.dev-inspired dashed borders ── */
 .grid-bg .edge-lines {
   position: absolute;
   top: 0;
@@ -485,8 +504,8 @@ body {
   left: 50%;
   width: 1140px;
   transform: translateX(-50%);
-  border-left: 1px solid rgba(255,255,255,0.1);
-  border-right: 1px solid rgba(255,255,255,0.1);
+  border-left: 1px dashed rgba(255,255,255,0.15);
+  border-right: 1px dashed rgba(255,255,255,0.15);
   pointer-events: none;
   z-index: 2;
 }
@@ -497,7 +516,7 @@ body {
   position: absolute;
   left: 0;
   right: 0;
-  border-top: 1px solid rgba(255,255,255,0.1);
+  border-top: 1px dashed rgba(255,255,255,0.15);
 }
 
 .grid-bg .edge-lines::before {
@@ -515,11 +534,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #14151a;
+  background: #111113;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #22232a;
+  background: #1f1f23;
   border-radius: 4px;
 }
 

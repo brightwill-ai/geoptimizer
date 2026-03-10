@@ -5,6 +5,7 @@ import type { SourceInfluenceEntry, SourceCitation, LLMProvider } from "@/lib/mo
 import { LLM_PROVIDERS } from "@/lib/mock-data";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 
+
 interface SourceInfluenceMapProps {
   /** Cross-platform source influences (comprehensive report) */
   sourceInfluences?: SourceInfluenceEntry[];
@@ -61,24 +62,13 @@ export function SourceInfluenceMap({ sourceInfluences, sources, providerName, bl
       style={{
         background: "#14151a",
         borderRadius: 12,
-        border: "1px solid #22232a",
+        border: "1px solid rgba(255,255,255,0.06)",
         padding: "1.5rem",
         ...(blurred ? { filter: "blur(6px)", userSelect: "none" as const, pointerEvents: "none" as const } : {}),
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-        <h3
-          style={{
-            fontSize: "0.8rem",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            color: "rgba(255,255,255,0.4)",
-            margin: 0,
-          }}
-        >
-          Source Influence {providerName ? `(${providerName})` : "Map"}
-        </h3>
+        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Source Influence</div>
         <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.3)" }}>
           {items.length} sources identified
         </span>

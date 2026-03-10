@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { SectionDivider } from "@/components/ui/section-divider";
 
 interface EmailGateProps {
   analysisId: string;
@@ -50,7 +51,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
     fontSize: "0.85rem",
     fontFamily: "var(--font-sans)",
     borderRadius: 8,
-    border: "1px solid #22232a",
+    border: "1px solid rgba(255,255,255,0.06)",
     background: "#1a1b21",
     color: "#ffffff",
     outline: "none",
@@ -85,8 +86,8 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
         style={{
           background: "#14151a",
           borderRadius: 12,
-          border: "1px solid #22232a",
-          padding: "2.5rem",
+          border: "1px solid rgba(255,255,255,0.06)",
+          padding: "3rem",
           maxWidth: 440,
           width: "100%",
           boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
@@ -119,6 +120,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
           ✕
         </button>
 
+        <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>Complete Analysis</div>
         <h2
           style={{
             fontFamily: "var(--font-sans)",
@@ -153,22 +155,26 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
             "Source influence map — what drives AI recommendations",
             "Verification prompts you can test yourself",
             "Actionable optimization playbook",
-          ].map((item) => (
+          ].map((item, i) => (
             <li
               key={item}
               style={{
                 display: "flex",
                 alignItems: "flex-start",
-                gap: 8,
+                gap: 10,
                 fontSize: "0.8rem",
                 color: "rgba(255,255,255,0.7)",
               }}
             >
-              <span style={{ color: "#16a34a", fontWeight: 500, flexShrink: 0, marginTop: 1 }}>✓</span>
+              <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "0.7rem", color: "rgba(255,255,255,0.25)", fontWeight: 500, flexShrink: 0, marginTop: 2 }}>
+                {String(i + 1).padStart(2, "0")}
+              </span>
               {item}
             </li>
           ))}
         </ul>
+
+        <SectionDivider spacing={1} />
 
         {error && (
           <p style={{ fontSize: "0.75rem", color: "#dc2626", margin: "0 0 0.75rem 0" }}>
@@ -185,7 +191,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
             placeholder="Your name (optional)"
             style={inputStyle}
             onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
-            onBlur={(e) => (e.target.style.borderColor = "#22232a")}
+            onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.06)")}
           />
           <input
             type="email"
@@ -195,7 +201,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
             required
             style={inputStyle}
             onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
-            onBlur={(e) => (e.target.style.borderColor = "#22232a")}
+            onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.06)")}
           />
           <button
             type="submit"

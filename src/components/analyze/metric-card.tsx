@@ -14,8 +14,8 @@ export function MetricCard({ label, value, sublabel, trend, children }: MetricCa
       style={{
         background: "#14151a",
         borderRadius: 12,
-        border: "1px solid #22232a",
-        padding: "1.25rem",
+        border: "1px solid rgba(255,255,255,0.06)",
+        padding: "1.5rem",
         display: "flex",
         flexDirection: "column",
         gap: 8,
@@ -50,7 +50,7 @@ export function MetricCard({ label, value, sublabel, trend, children }: MetricCa
       </div>
       <span
         style={{
-          fontSize: "1.75rem",
+          fontSize: "2rem",
           fontWeight: 500,
           color: "#ffffff",
           lineHeight: 1,

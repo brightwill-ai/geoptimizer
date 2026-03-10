@@ -85,6 +85,14 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
     }
   }, [allDone, onComplete]);
 
+  const fillGradient = isComprehensive
+    ? "linear-gradient(90deg, #10a37f, #4285f4)"
+    : "linear-gradient(90deg, rgba(255,255,255,0.5), #ffffff)";
+
+  const glowColor = isComprehensive
+    ? "0 0 16px rgba(16,163,127,0.25)"
+    : "0 0 12px rgba(255,255,255,0.1)";
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -101,14 +109,14 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
     >
       <div
         style={{
-          maxWidth: 680,
+          maxWidth: 560,
           width: "100%",
           display: "flex",
           flexDirection: "column",
-          gap: "1rem",
-          padding: "1.2rem",
+          gap: "1.75rem",
+          padding: "2.25rem",
           borderRadius: 12,
-          border: "1px solid #22232a",
+          border: "1px solid rgba(255,255,255,0.06)",
           background: "#14151a",
         }}
       >
@@ -130,7 +138,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
             {businessName}
           </h2>
           {isComprehensive && (
-            <p style={{ fontSize: "0.76rem", color: "rgba(255,255,255,0.42)", margin: "6px 0 0" }}>
+            <p style={{ fontSize: "0.76rem", color: "rgba(255,255,255,0.38)", margin: "8px 0 0", lineHeight: 1.5 }}>
               40+ queries across 3 AI platforms — this may take a few minutes
             </p>
           )}
@@ -153,11 +161,10 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
-                  padding: "7px 14px",
+                  padding: "8px 16px",
                   borderRadius: 999,
-                  background: done ? "#14151a" : running ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${done ? "#22232a" : running ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.05)"}`,
-                  boxShadow: running ? "0 2px 12px rgba(0,0,0,0.3)" : "none",
+                  background: done ? "#14151a" : running ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)",
+                  border: `1px solid ${done ? "rgba(255,255,255,0.08)" : running ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)"}`,
                   transition: "all 0.3s ease",
                 }}
               >
@@ -189,39 +196,75 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
           })}
         </div>
 
-        {/* Query progress counter */}
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 8 }}>
+        {/* Query progress + Progress bar */}
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: 10 }}>
           <div
             style={{
-              fontSize: "0.85rem",
-              fontWeight: 500,
-              color: "rgba(255,255,255,0.9)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "baseline",
             }}
           >
-            {isComprehensive
-              ? `${completedCount} of ${providers.length} platforms complete — query ${Math.min(qCompleted + 1, qTotal)} of ${qTotal}${dots}`
-              : `Running query ${Math.min(qCompleted + 1, qTotal)} of ${qTotal}${dots}`}
+            <span
+              style={{
+                fontSize: "0.82rem",
+                fontWeight: 500,
+                color: "rgba(255,255,255,0.85)",
+              }}
+            >
+              {isComprehensive
+                ? `${completedCount} of ${providers.length} platforms complete — query ${Math.min(qCompleted + 1, qTotal)} of ${qTotal}${dots}`
+                : `Running query ${Math.min(qCompleted + 1, qTotal)} of ${qTotal}${dots}`}
+            </span>
+            <span
+              style={{
+                fontSize: "0.75rem",
+                fontWeight: 500,
+                color: "rgba(255,255,255,0.35)",
+                fontFamily: "var(--font-mono, monospace)",
+                letterSpacing: "0.02em",
+              }}
+            >
+              {Math.round(progress)}%
+            </span>
           </div>
 
           {/* Progress bar */}
           <div
             style={{
               width: "100%",
-              height: 6,
+              height: 8,
               borderRadius: 999,
-              background: "rgba(255,255,255,0.12)",
+              background: "rgba(255,255,255,0.06)",
               overflow: "hidden",
+              position: "relative",
             }}
           >
             <div
               style={{
                 height: "100%",
                 borderRadius: 999,
-                background: "#ffffff",
-                transition: "width 0.45s ease-out",
-                width: `${Math.max(progress, 4)}%`,
+                background: fillGradient,
+                transition: "width 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+                width: `${Math.max(progress, 3)}%`,
+                position: "relative",
+                overflow: "hidden",
+                boxShadow: progress > 5 ? glowColor : "none",
               }}
-            />
+            >
+              {/* Shimmer overlay */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
+                  animation: "progress-shine 1.8s ease-in-out infinite",
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -229,10 +272,10 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
         <div
           style={{
             borderRadius: 10,
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.06)",
             background: "rgba(255,255,255,0.02)",
-            padding: "0.78rem 0.9rem",
-            minHeight: 74,
+            padding: "1rem 1.25rem",
+            minHeight: 80,
           }}
         >
           <p
@@ -248,11 +291,11 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
           </p>
           <p
             style={{
-              fontSize: "0.8rem",
-              color: "rgba(255,255,255,0.72)",
-              margin: "0.55rem 0 0",
+              fontSize: "0.82rem",
+              color: "rgba(255,255,255,0.68)",
+              margin: "0.65rem 0 0",
               fontStyle: "italic",
-              lineHeight: 1.45,
+              lineHeight: 1.5,
               overflow: "hidden",
               textOverflow: "ellipsis",
               display: "-webkit-box",

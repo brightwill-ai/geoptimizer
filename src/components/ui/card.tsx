@@ -3,7 +3,7 @@
 import { forwardRef } from "react";
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: "default" | "elevated" | "interactive";
+  variant?: "default" | "elevated" | "interactive" | "subtle";
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -22,6 +22,9 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       },
       interactive: {
         cursor: "pointer",
+      },
+      subtle: {
+        border: "1px solid rgba(255,255,255,0.06)",
       },
     };
 

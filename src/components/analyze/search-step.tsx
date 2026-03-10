@@ -257,7 +257,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
     fontSize: "0.88rem",
     fontFamily: "var(--font-sans)",
     borderRadius: 10,
-    border: "1px solid #22232a",
+    border: "1px solid rgba(255,255,255,0.06)",
     background: "#1a1b21",
     color: "#ffffff",
     outline: "none",
@@ -295,9 +295,9 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
           transition={{ delay: 0.08, duration: 0.45 }}
           style={{
             borderRadius: 12,
-            border: "1px solid #22232a",
+            border: "1px solid rgba(255,255,255,0.06)",
             background: "#14151a",
-            padding: "1.2rem",
+            padding: "1.75rem",
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
@@ -306,28 +306,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
         >
           {/* Header */}
           <div>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                fontSize: "0.72rem",
-                fontWeight: 500,
-                textTransform: "uppercase",
-                letterSpacing: "0.08em",
-                color: "rgba(255,255,255,0.4)",
-              }}
-            >
-              <span
-                style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: "#16a34a",
-                }}
-              />
-              Instant AI Audit
-            </div>
+            <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Instant AI Audit</div>
 
             <h1
               style={{
@@ -355,7 +334,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.3 }}
-                  style={{ borderRadius: 10, border: "1px solid #22232a", background: "#1a1b21", overflow: "hidden" }}
+                  style={{ borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", background: "#1a1b21", overflow: "hidden" }}
                 >
                   {/* ChatGPT header */}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.55rem 0.85rem", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
@@ -366,7 +345,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   <div style={{ padding: "0.75rem 0.85rem" }}>
                     {/* User query */}
                     <div style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: "0.75rem" }}>
-                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,0.08)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
                         </svg>
@@ -408,7 +387,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.3 }}
-                  style={{ borderRadius: 10, border: "1px solid #22232a", background: "#1a1b21", overflow: "hidden" }}
+                  style={{ borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", background: "#1a1b21", overflow: "hidden" }}
                 >
                   {/* Search bar */}
                   <div style={{ padding: "0.6rem 0.85rem", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", gap: 8 }}>
@@ -485,25 +464,15 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
           onSubmit={handleSubmit}
           style={{
             borderRadius: 12,
-            border: "1px solid #22232a",
+            border: "1px solid rgba(255,255,255,0.06)",
             background: "#14151a",
-            padding: "1.2rem",
+            padding: "1.75rem",
             display: "flex",
             flexDirection: "column",
             gap: "0.75rem",
           }}
         >
-          <p
-            style={{
-              fontSize: "0.68rem",
-              fontWeight: 500,
-              color: "rgba(255,255,255,0.5)",
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-            }}
-          >
-            Business Inputs
-          </p>
+          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Business Details</div>
 
           <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
             Business Name
@@ -519,7 +488,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               e.target.style.background = "rgba(255,255,255,0.05)";
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = "#22232a";
+              e.target.style.borderColor = "rgba(255,255,255,0.06)";
               e.target.style.background = "#1a1b21";
             }}
           />
@@ -547,7 +516,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 e.target.style.backgroundColor = "rgba(255,255,255,0.05)";
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = "#22232a";
+                e.target.style.borderColor = "rgba(255,255,255,0.06)";
                 e.target.style.backgroundColor = "#1a1b21";
               }}
             >
@@ -572,7 +541,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   e.target.style.background = "rgba(255,255,255,0.05)";
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = "#22232a";
+                  e.target.style.borderColor = "rgba(255,255,255,0.06)";
                   e.target.style.background = "#1a1b21";
                 }}
               />
@@ -637,7 +606,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 style={{
                   ...inputStyle,
                   paddingLeft: "2.5rem",
-                  borderColor: locationFocused ? "rgba(255,255,255,0.3)" : "#22232a",
+                  borderColor: locationFocused ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.06)",
                   background: locationFocused ? "rgba(255,255,255,0.05)" : "#1a1b21",
                 }}
                 onFocus={() => setLocationFocused(true)}

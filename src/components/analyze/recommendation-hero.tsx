@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 
+
 interface RecommendationHeroProps {
   probability: number; // 0-1
   totalQueries: number;
@@ -36,8 +37,8 @@ export function RecommendationHero({
       style={{
         background: "#14151a",
         borderRadius: 12,
-        border: "1px solid #22232a",
-        padding: "2rem",
+        border: "1px solid rgba(255,255,255,0.06)",
+        padding: "2.5rem",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -46,17 +47,7 @@ export function RecommendationHero({
       }}
     >
       {/* Eyebrow */}
-      <div
-        style={{
-          fontSize: "0.72rem",
-          fontWeight: 500,
-          textTransform: "uppercase",
-          letterSpacing: "0.08em",
-          color: "rgba(255,255,255,0.4)",
-        }}
-      >
-        Recommendation Probability
-      </div>
+      <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Recommendation Probability</div>
 
       {/* Score ring */}
       <div style={{ position: "relative", width: size, height: size }}>

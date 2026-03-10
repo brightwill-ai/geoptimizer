@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { motion } from "framer-motion";
 import type { GEOAnalysis, LLMProvider } from "@/lib/mock-data";
 
+
 interface ActionItemsProps {
   analysis: GEOAnalysis;
   businessName: string;
@@ -292,19 +293,7 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
     >
       {/* Section header */}
       <div style={{ marginBottom: "1.25rem" }}>
-        <h3
-          style={{
-            fontSize: "0.8rem",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            color: "rgba(255,255,255,0.4)",
-            margin: "0 0 0.25rem 0",
-            fontFamily: "var(--font-sans)",
-          }}
-        >
-          Action Items
-        </h3>
+        <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 12px 0" }}>Action Items</h3>
         <p
           style={{
             fontSize: "0.82rem",
@@ -342,7 +331,7 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
               style={{
                 background: "#14151a",
                 borderRadius: 12,
-                border: "1px solid #22232a",
+                border: "1px solid rgba(255,255,255,0.06)",
                 padding: "1.25rem",
                 display: "flex",
                 gap: 16,
@@ -363,10 +352,10 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                   fontSize: "0.82rem",
                   fontWeight: 500,
                   color: "rgba(255,255,255,0.3)",
-                  fontFamily: "var(--font-sans)",
+                  fontFamily: "var(--font-mono, monospace)",
                 }}
               >
-                {index + 1}
+                {String(index + 1).padStart(2, "0")}
               </div>
 
               {/* Content */}

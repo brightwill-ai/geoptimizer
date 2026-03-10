@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import type { QueryResult } from "@/lib/mock-data";
 
+
 interface QueryTypeBreakdownProps {
   queryResults: QueryResult[];
   businessName: string;
@@ -71,24 +72,13 @@ export function QueryTypeBreakdown({ queryResults, businessName, blurred }: Quer
       style={{
         background: "#14151a",
         borderRadius: 12,
-        border: "1px solid #22232a",
+        border: "1px solid rgba(255,255,255,0.06)",
         padding: "1.5rem",
         ...(blurred ? { filter: "blur(6px)", userSelect: "none" as const, pointerEvents: "none" as const } : {}),
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-        <h3
-          style={{
-            fontSize: "0.8rem",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            color: "rgba(255,255,255,0.4)",
-            margin: 0,
-          }}
-        >
-          Visibility by Query Type
-        </h3>
+        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Query Type Breakdown</div>
         <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.3)" }}>
           {queryResults.length} queries across {types.length} types
         </span>

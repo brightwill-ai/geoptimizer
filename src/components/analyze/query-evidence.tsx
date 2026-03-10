@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { QueryResult, LLMProvider } from "@/lib/mock-data";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 
+
 interface QueryEvidenceProps {
   queries: QueryResult[];
   businessName: string;
@@ -72,7 +73,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
       style={{
         background: "#14151a",
         borderRadius: 12,
-        border: "1px solid #22232a",
+        border: "1px solid rgba(255,255,255,0.06)",
         overflow: "hidden",
       }}
     >
@@ -84,18 +85,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
           justifyContent: "space-between",
         }}
       >
-        <h3
-          style={{
-            fontSize: "0.8rem",
-            fontWeight: 500,
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            color: "rgba(255,255,255,0.4)",
-            margin: 0,
-          }}
-        >
-          Query Evidence
-        </h3>
+        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Query Evidence</div>
         <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>
           {queries.filter((q) => q.businessMentioned).length} of {queries.length} mentioned{" "}
           {businessName}
@@ -155,18 +145,19 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                   style={{
                     width: 24,
                     height: 24,
-                    borderRadius: "50%",
+                    borderRadius: 6,
                     background: "rgba(255,255,255,0.06)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "0.7rem",
                     fontWeight: 500,
+                    fontFamily: "var(--font-mono, monospace)",
                     color: "rgba(255,255,255,0.4)",
                     flexShrink: 0,
                   }}
                 >
-                  {i + 1}
+                  {String(i + 1).padStart(2, "0")}
                 </span>
 
                 {/* Query text */}
@@ -246,7 +237,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                             background: "#1a1b21",
                             borderRadius: "12px 12px 4px 12px",
                             padding: "0.75rem 1rem",
-                            border: "1px solid #22232a",
+                            border: "1px solid rgba(255,255,255,0.06)",
                           }}
                         >
                           <div

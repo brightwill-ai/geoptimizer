@@ -82,7 +82,7 @@ export default function SignupPage() {
           height: "60px",
           background: "rgba(12,13,16,0.88)",
           backdropFilter: "blur(16px)",
-          borderBottom: "1px solid #22232a",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         <Link
@@ -156,10 +156,11 @@ export default function SignupPage() {
               background: "#14151a",
               borderRadius: "12px",
               padding: "2.5rem",
-              border: "1px solid #22232a",
+              border: "1px solid rgba(255,255,255,0.06)",
             }}
           >
             <div style={{ marginBottom: "2rem" }}>
+              <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Join Waitlist</div>
               <h1
                 style={{
                   fontFamily: "var(--font-sans)",
@@ -278,7 +279,7 @@ export default function SignupPage() {
       {/* Simple Footer */}
       <footer
         style={{
-          borderTop: "1px solid #22232a",
+          borderTop: "1px solid rgba(255,255,255,0.06)",
           padding: "1.5rem 2.5rem",
           display: "flex",
           justifyContent: "space-between",
