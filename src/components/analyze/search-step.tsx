@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { BUSINESS_CATEGORIES } from "@/lib/agents/prompts";
 import { ProviderLogo } from "@/components/ui/provider-logo";
@@ -56,14 +56,96 @@ function useTypewriter(lines: string[]) {
   return lines[lineIndex]?.slice(0, charIndex) ?? "";
 }
 
+interface LocationSuggestion {
+  display_name: string;
+  short: string;
+}
+
+function useLocationAutocomplete(query: string, enabled: boolean) {
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!enabled || query.length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    debounceRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&dedupe=1`,
+          { headers: { "Accept-Language": "en" } }
+        );
+        const data = await res.json();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const mapped: LocationSuggestion[] = data.map((item: any) => {
+          const addr = item.address || {};
+          const city = addr.city || addr.town || addr.village || addr.county || "";
+          const state = addr.state || "";
+          const country = addr.country_code?.toUpperCase() || "";
+          const short = [city, state, country === "US" ? "" : addr.country]
+            .filter(Boolean)
+            .join(", ");
+          return {
+            display_name: item.display_name,
+            short: short || item.display_name.split(",").slice(0, 2).join(",").trim(),
+          };
+        });
+        // Deduplicate by short name
+        const seen = new Set<string>();
+        const unique = mapped.filter((s) => {
+          if (seen.has(s.short)) return false;
+          seen.add(s.short);
+          return true;
+        });
+        setSuggestions(unique);
+      } catch {
+        setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 280);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query, enabled]);
+
+  return { suggestions, loading, clear: () => setSuggestions([]) };
+}
+
 export function SearchStep({ onSubmit }: SearchStepProps) {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [locationLoading, setLocationLoading] = useState(true);
+  const [locationFocused, setLocationFocused] = useState(false);
+  const [userTyping, setUserTyping] = useState(false);
   const [category, setCategory] = useState("restaurant");
   const [customCategory, setCustomCategory] = useState("");
   const [showCustom, setShowCustom] = useState(false);
+  const locationRef = useRef<HTMLDivElement>(null);
   const typedPrompt = useTypewriter(DEMO_PROMPTS);
+
+  const { suggestions, loading: suggestionsLoading, clear: clearSuggestions } =
+    useLocationAutocomplete(location, userTyping && locationFocused);
+
+  const showDropdown = locationFocused && userTyping && suggestions.length > 0;
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
+        setLocationFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // Auto-detect location from IP
   useEffect(() => {
@@ -298,25 +380,6 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
           />
 
           <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
-            Location
-          </label>
-          <input
-            type="text"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder={locationLoading ? "Detecting your location..." : "e.g. Miami, FL"}
-            style={inputStyle}
-            onFocus={(e) => {
-              e.target.style.borderColor = "rgba(255,255,255,0.3)";
-              e.target.style.background = "rgba(255,255,255,0.05)";
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = "#22232a";
-              e.target.style.background = "#1a1b21";
-            }}
-          />
-
-          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
             Category
           </label>
           <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -368,6 +431,101 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   e.target.style.background = "#1a1b21";
                 }}
               />
+            )}
+          </div>
+
+          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
+            Location
+          </label>
+          <div ref={locationRef} style={{ position: "relative" }}>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                setUserTyping(true);
+              }}
+              placeholder={locationLoading ? "Detecting your location..." : "e.g. Miami, FL"}
+              style={{
+                ...inputStyle,
+                borderColor: locationFocused ? "rgba(255,255,255,0.3)" : "#22232a",
+                background: locationFocused ? "rgba(255,255,255,0.05)" : "#1a1b21",
+              }}
+              onFocus={() => setLocationFocused(true)}
+              onBlur={() => {
+                // Delay so click on suggestion registers
+                setTimeout(() => setLocationFocused(false), 180);
+              }}
+              autoComplete="off"
+            />
+            {showDropdown && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 4px)",
+                  left: 0,
+                  right: 0,
+                  zIndex: 50,
+                  borderRadius: 10,
+                  border: "1px solid #22232a",
+                  background: "#1a1b21",
+                  overflow: "hidden",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+                }}
+              >
+                {suggestionsLoading && (
+                  <div style={{ padding: "0.6rem 1rem", fontSize: "0.8rem", color: "rgba(255,255,255,0.4)" }}>
+                    Searching...
+                  </div>
+                )}
+                {suggestions.map((s, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setLocation(s.short);
+                      setUserTyping(false);
+                      setLocationFocused(false);
+                    }}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "0.62rem 1rem",
+                      fontSize: "0.84rem",
+                      fontFamily: "var(--font-sans)",
+                      color: "#ffffff",
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: i < suggestions.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
+                      cursor: "pointer",
+                      transition: "background 0.12s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    <span>{s.short}</span>
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: "0.7rem",
+                        color: "rgba(255,255,255,0.35)",
+                        marginTop: 2,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {s.display_name}
+                    </span>
+                  </button>
+                ))}
+              </div>
             )}
           </div>
 
