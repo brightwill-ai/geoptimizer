@@ -470,6 +470,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             display: "flex",
             flexDirection: "column",
             gap: "0.75rem",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.4)",
           }}
         >
           <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Business Details</div>
@@ -486,10 +487,12 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             onFocus={(e) => {
               e.target.style.borderColor = "rgba(255,255,255,0.3)";
               e.target.style.background = "rgba(255,255,255,0.05)";
+              e.target.style.boxShadow = "0 0 0 3px rgba(255,255,255,0.08)";
             }}
             onBlur={(e) => {
               e.target.style.borderColor = "rgba(255,255,255,0.06)";
               e.target.style.background = "#1a1b21";
+              e.target.style.boxShadow = "none";
             }}
           />
 
@@ -514,10 +517,12 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               onFocus={(e) => {
                 e.target.style.borderColor = "rgba(255,255,255,0.3)";
                 e.target.style.backgroundColor = "rgba(255,255,255,0.05)";
+                e.target.style.boxShadow = "0 0 0 3px rgba(255,255,255,0.08)";
               }}
               onBlur={(e) => {
                 e.target.style.borderColor = "rgba(255,255,255,0.06)";
                 e.target.style.backgroundColor = "#1a1b21";
+                e.target.style.boxShadow = "none";
               }}
             >
               {BUSINESS_CATEGORIES.map((cat) => (
@@ -539,10 +544,12 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 onFocus={(e) => {
                   e.target.style.borderColor = "rgba(255,255,255,0.3)";
                   e.target.style.background = "rgba(255,255,255,0.05)";
+                  e.target.style.boxShadow = "0 0 0 3px rgba(255,255,255,0.08)";
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = "rgba(255,255,255,0.06)";
                   e.target.style.background = "#1a1b21";
+                  e.target.style.boxShadow = "none";
                 }}
               />
             )}

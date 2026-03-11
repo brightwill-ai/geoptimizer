@@ -126,6 +126,19 @@ export function DashboardShell({
           paddingRight: "2rem",
         }}
       >
+        {/* Pseudo-glow overlay */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "100%",
+            background: "radial-gradient(ellipse at center top, rgba(255,255,255,0.02), transparent 60%)",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
         {kpiItems && kpiItems.length > 0 && (
           <div style={{ marginBottom: 16 }} className="dashboard-shell-kpis">
             <KPIRow items={kpiItems} />
@@ -147,7 +160,7 @@ export function DashboardShell({
             initial={{ opacity: 0, y: -16, filter: "blur(4px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             exit={{ opacity: 0, y: 16, filter: "blur(4px)" }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             {children}
           </motion.div>

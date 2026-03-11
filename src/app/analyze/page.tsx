@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { Suspense, useState, useCallback, useRef, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence } from "framer-motion";
 import { type GEOAnalysis, type ActionPlan as ActionPlanType } from "@/lib/mock-data";
@@ -83,6 +84,15 @@ function Nav() {
 }
 
 export default function AnalyzePage() {
+  return (
+    <Suspense>
+      <AnalyzePageInner />
+    </Suspense>
+  );
+}
+
+function AnalyzePageInner() {
+  const searchParams = useSearchParams();
   const [step, setStep] = useState<Step>("search");
   const [businessName, setBusinessName] = useState("");
   const [analysisId, setAnalysisId] = useState<string | null>(null);
@@ -98,6 +108,7 @@ export default function AnalyzePage() {
   const [tier, setTier] = useState<"fast" | "comprehensive">("fast");
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stripeHandled = useRef(false);
 
   // Cleanup polling on unmount
   useEffect(() => {
@@ -105,6 +116,68 @@ export default function AnalyzePage() {
       if (pollRef.current) clearInterval(pollRef.current);
     };
   }, []);
+
+  // Handle Stripe redirect-back: complete payment → start comprehensive audit
+  useEffect(() => {
+    const sessionId = searchParams.get("session_id");
+    const returnedAnalysisId = searchParams.get("analysis_id");
+    const emailParam = searchParams.get("email");
+
+    if (!sessionId || !returnedAnalysisId || stripeHandled.current) return;
+    stripeHandled.current = true;
+
+    const email =
+      emailParam ||
+      (typeof window !== "undefined"
+        ? sessionStorage.getItem("bw_checkout_email") || ""
+        : "");
+    const name =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("bw_checkout_name") || ""
+        : "";
+
+    // Claim the analysis with Stripe session verification
+    (async () => {
+      try {
+        setTier("comprehensive");
+        setStep("loading");
+        setQueryProgress({ completed: 0, total: 100, currentQueryText: null });
+
+        const res = await fetch(`/api/analysis/${returnedAnalysisId}/claim`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email,
+            name: name || undefined,
+            stripeSessionId: sessionId === "dev_bypass" ? undefined : sessionId,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Failed to start analysis");
+        }
+
+        setAnalysisId(data.comprehensiveAnalysisId);
+        startPolling(data.comprehensiveAnalysisId);
+
+        // Clean up sessionStorage
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("bw_checkout_email");
+          sessionStorage.removeItem("bw_checkout_name");
+        }
+
+        // Clean up URL params
+        window.history.replaceState({}, "", "/analyze");
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Payment verification failed"
+        );
+        setStep("search");
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const stopPolling = () => {
     if (pollRef.current) {

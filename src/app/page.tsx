@@ -1385,42 +1385,47 @@ function Pricing() {
 
   const plans = [
     {
-      name: "Free Audit",
+      name: "Free Snapshot",
       price: "0",
       href: "/analyze",
+      cta: "Try free audit",
       features: [
-        "5 real ChatGPT queries",
+        "ChatGPT analysis only",
+        "5 real queries with web search",
         "Recommendation probability score",
         "Query evidence with responses",
         "Competitor snapshot",
-        "Sentiment analysis",
+        "Instant results (~30 seconds)",
       ],
     },
     {
       name: "Full Audit",
-      price: "399",
+      price: "99",
       featured: true,
       href: "/analyze",
+      cta: "Get full audit",
       features: [
-        "40+ queries across 3 AI engines",
         "ChatGPT, Claude & Gemini analysis",
+        "40+ queries across all 3 AI engines",
         "Source influence map",
-        "Verification prompts",
-        "Actionable optimization playbook",
+        "Cross-platform verification",
+        "80-step optimization action plan",
+        "Downloadable PDF report",
         "Shareable report link",
       ],
     },
     {
-      name: "Management",
-      price: "299",
-      href: "/signup",
+      name: "Audit + Strategy",
+      price: "199",
+      href: "/analyze",
+      cta: "Get started",
       features: [
-        "Monthly comprehensive audits",
-        "Citation building & submissions",
-        "AI-optimized content creation",
-        "Structured data management",
-        "Review velocity strategy",
-        "Dedicated account manager",
+        "Everything in Full Audit",
+        "Dedicated execution roadmap",
+        "Monthly re-audit to track progress",
+        "3 competitor monitoring dashboards",
+        "Custom GEO strategy call (30 min)",
+        "Priority email support",
       ],
     },
   ];
@@ -1455,7 +1460,7 @@ function Pricing() {
             No surprises.
           </h2>
           <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.95rem" }}>
-            No contracts. Cancel any time. Results typically visible in 30-60 days.
+            No subscriptions. Pay once, get your full report. Free snapshot available instantly.
           </p>
         </div>
 
@@ -1464,6 +1469,8 @@ function Pricing() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
+            maxWidth: 1040,
+            margin: "0 auto",
             gap: "1rem",
           }}
         >
@@ -1472,12 +1479,13 @@ function Pricing() {
               key={plan.name}
               className={`plan reveal-scale stagger-${i + 1}`}
               style={{
-                background: "#111113",
+                background: plan.featured ? "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, #111113 100%)" : "#111113",
                 border: plan.featured ? "1px solid rgba(255,255,255,0.15)" : "1px solid rgba(255,255,255,0.06)",
                 borderRadius: 12,
                 padding: "2rem",
                 position: "relative",
                 transition: "transform 0.2s, box-shadow 0.2s",
+                transform: plan.featured ? "scale(1.02)" : undefined,
               }}
             >
               {plan.featured && (
@@ -1534,7 +1542,7 @@ function Pricing() {
                   marginBottom: "1.5rem",
                 }}
               >
-                {plan.price === "0" ? "forever" : plan.name === "Full Audit" ? "one-time" : "per month"}
+                {plan.price === "0" ? "forever" : "one-time"}
               </div>
 
               <div
@@ -1601,11 +1609,113 @@ function Pricing() {
                   display: "block",
                 }}
               >
-                {plan.price === "0" ? "Try free audit" : plan.name === "Management" ? "Contact us" : "Get started"}
+                {plan.cta}
               </Link>
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── FAQ Section ──
+function FAQ() {
+  const ref = useRef<HTMLDivElement>(null);
+  useReveal(ref);
+
+  const [open, setOpen] = useState<number | null>(null);
+
+  const faqs = [
+    {
+      q: "What is GEO?",
+      a: "GEO (Generative Engine Optimization) is how you ensure AI assistants like ChatGPT, Claude, and Gemini recommend your business when people ask for suggestions. Think of it like SEO, but for AI instead of Google.",
+    },
+    {
+      q: "How is this different from SEO?",
+      a: "SEO optimizes your website for Google search rankings. GEO optimizes your online presence so AI assistants recommend you. They use different signals — AI pulls from reviews, directories, structured data, and citations, not just keywords and backlinks.",
+    },
+    {
+      q: "Will this actually help my business?",
+      a: "Millions of people now ask AI for local recommendations instead of searching Google. If AI doesn't recommend you, those customers go to your competitors. Our audit shows you exactly where you stand and gives you a step-by-step plan to fix it.",
+    },
+    {
+      q: "How long does the full audit take?",
+      a: "The free snapshot takes about 30 seconds. The full audit runs 40+ queries across all 3 AI platforms and takes 5-15 minutes. We'll email you when your report is ready.",
+    },
+    {
+      q: "What do I get with the full audit?",
+      a: "A comprehensive report showing how you appear on ChatGPT, Claude, and Gemini, a source influence map showing what drives AI recommendations, cross-platform comparison, and an 80-step action plan customized to your business.",
+    },
+  ];
+
+  return (
+    <div ref={ref} style={{ maxWidth: 740, margin: "0 auto", padding: "6rem 2.5rem" }}>
+      <div className="reveal-scale" style={{ marginBottom: "2.5rem" }}>
+        <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>FAQ</div>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontWeight: 300,
+            fontSize: "clamp(1.8rem, 3vw, 2.4rem)",
+            letterSpacing: "-0.04em",
+            lineHeight: 1.1,
+            color: "#ffffff",
+          }}
+        >
+          Common questions
+        </h2>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+        {faqs.map((faq, i) => (
+          <div
+            key={i}
+            className={`reveal-scale stagger-${Math.min(i + 1, 5)}`}
+            style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+          >
+            <button
+              onClick={() => setOpen(open === i ? null : i)}
+              style={{
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "1.25rem 0",
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                textAlign: "left",
+                fontFamily: "var(--font-sans)",
+              }}
+            >
+              <span style={{ fontSize: "0.95rem", fontWeight: 500, color: "#ffffff" }}>{faq.q}</span>
+              <span
+                style={{
+                  fontSize: "1.2rem",
+                  color: "rgba(255,255,255,0.3)",
+                  transition: "transform 0.2s",
+                  transform: open === i ? "rotate(45deg)" : "rotate(0deg)",
+                  flexShrink: 0,
+                  marginLeft: 16,
+                }}
+              >
+                +
+              </span>
+            </button>
+            <div
+              style={{
+                maxHeight: open === i ? 200 : 0,
+                overflow: "hidden",
+                transition: "max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+              }}
+            >
+              <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.6, padding: "0 0 1.25rem", margin: 0 }}>
+                {faq.a}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1715,6 +1825,8 @@ export default function Home() {
       <ReportShowcase />
       <DottedDivider spacing={0} />
       <Pricing />
+      <DottedDivider spacing={0} />
+      <FAQ />
       <DottedDivider spacing={0} />
       <CTA />
       <DottedDivider spacing={0} />

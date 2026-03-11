@@ -47,10 +47,10 @@ export function RecommendationHero({
       }}
     >
       {/* Eyebrow */}
-      <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Recommendation Probability</div>
+      <div style={{ fontSize: "1.4rem", fontWeight: 500, letterSpacing: "-0.02em", color: "rgba(255,255,255,0.4)" }}>Recommendation Probability</div>
 
       {/* Score ring */}
-      <div style={{ position: "relative", width: size, height: size }}>
+      <div style={{ position: "relative", width: size, height: size, filter: `drop-shadow(0 0 20px ${color}40)` }}>
         <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
           <circle
             cx={size / 2}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { ActionPlan as ActionPlanType, GEOAnalysis, InformationAccuracy, LLMProvider } from "@/lib/mock-data";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
 import { ProviderLogo } from "@/components/ui/provider-logo";
@@ -128,7 +128,20 @@ function AccuracyIssueList({ issues }: { issues: InformationAccuracy[] }) {
 }
 
 export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus }: FullReportProps) {
+  const [pdfLoading, setPdfLoading] = useState(false);
   const availableProviders = LLM_PROVIDERS.filter((provider) => analysis.reports[provider.id]);
+
+  const handleDownloadPDF = useCallback(async () => {
+    setPdfLoading(true);
+    try {
+      const { generateReportPDF } = await import("@/lib/pdf");
+      await generateReportPDF(analysis, actionPlan);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+    } finally {
+      setPdfLoading(false);
+    }
+  }, [analysis, actionPlan]);
   const analysisSnapshot = getAnalysisSnapshot(analysis);
   const [dashTab, setDashTab] = useState<DashboardTab>("overview");
   const [providerTab, setProviderTab] = useState<LLMProvider>(availableProviders[0]?.id ?? "chatgpt");
@@ -208,7 +221,47 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
         </div>
       }
       headerMeta={headerMeta}
-      headerRight={headerRight}
+      headerRight={
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {headerRight}
+          <button
+          onClick={handleDownloadPDF}
+          disabled={pdfLoading}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "6px 14px",
+            borderRadius: 8,
+            background: "rgba(255,255,255,0.06)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            color: pdfLoading ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.7)",
+            fontSize: "0.78rem",
+            fontWeight: 500,
+            fontFamily: "var(--font-sans)",
+            cursor: pdfLoading ? "not-allowed" : "pointer",
+            transition: "all 0.15s",
+          }}
+          onMouseOver={(e) => {
+            if (!pdfLoading) {
+              e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+            }
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = "rgba(255,255,255,0.06)";
+            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="7 10 12 15 17 10" />
+            <line x1="12" y1="15" x2="12" y2="3" />
+          </svg>
+          {pdfLoading ? "Generating..." : "Download PDF"}
+        </button>
+        </div>
+      }
       kpiItems={kpiItems}
       tabs={[
         { id: "overview", label: "Overview" },
@@ -222,9 +275,10 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
       navLayoutId="full-report-tab"
       stickyMode="compact"
     >
+      <div>
       {dashTab === "overview" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-          <DashboardCard span={2} accentColor={analysisSnapshot.visibility.color}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
+          <DashboardCard span={2} accentColor={analysisSnapshot.visibility.color} style={{ background: `linear-gradient(135deg, ${analysisSnapshot.visibility.color}08, transparent 60%)` }}>
             <div className="analysis-hero-grid">
               <div>
                 <div
@@ -289,7 +343,9 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
               </div>
 
               <div className="analysis-hero-score">
-                <ScoreRing score={Math.round(analysisSnapshot.averageProbability * 100)} size={136} strokeWidth={10} />
+                <div style={{ filter: `drop-shadow(0 0 20px ${analysisSnapshot.visibility.color}40)` }}>
+                  <ScoreRing score={Math.round(analysisSnapshot.averageProbability * 100)} size={136} strokeWidth={10} />
+                </div>
                 <div style={{ display: "grid", gap: 10, width: "100%" }}>
                   <div className="analysis-mini-stat">
                     <span>Best provider</span>
@@ -341,6 +397,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                   title={provider.name}
                   icon={<ProviderLogo provider={provider.id} size={14} />}
                   accentColor={provider.color}
+                  style={{ background: `linear-gradient(180deg, ${provider.color}0a, transparent 60px)` }}
                 >
                   <div style={{ display: "grid", gap: 14 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
@@ -502,14 +559,14 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ marginBottom: 4 }}>
             <DashboardNav
-              tabs={availableProviders.map((provider) => ({ id: provider.id, label: provider.name }))}
+              tabs={availableProviders.map((provider) => ({ id: provider.id, label: provider.name, color: provider.color }))}
               activeTab={providerTab}
               onTabChange={(id) => setProviderTab(id as LLMProvider)}
               layoutId="provider-deep-dive"
             />
           </div>
 
-          <DashboardCard accentColor={activeReport.provider.color}>
+          <DashboardCard accentColor={activeReport.provider.color} style={{ background: `radial-gradient(circle at 70% 30%, ${activeReport.provider.color}08, transparent 70%)` }}>
             <div className="analysis-hero-grid">
               <div>
                 <div
@@ -555,7 +612,9 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
               </div>
 
               <div className="analysis-hero-score">
-                <ScoreRing score={Math.round(activeReport.recommendations.recommendationProbability * 100)} size={126} strokeWidth={9} />
+                <div style={{ filter: `drop-shadow(0 0 20px ${activeReport.provider.color}40)` }}>
+                  <ScoreRing score={Math.round(activeReport.recommendations.recommendationProbability * 100)} size={126} strokeWidth={9} />
+                </div>
                 <div style={{ display: "grid", gap: 10, width: "100%" }}>
                   <div className="analysis-mini-stat">
                     <span>Prompt coverage</span>
@@ -693,6 +752,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
               id: provider.id,
               label: provider.name,
               count: analysis.reports[provider.id]?.queryResults.length,
+              color: provider.color,
             }))}
             activeTab={evidenceProvider}
             onTabChange={(id) => setEvidenceProvider(id as LLMProvider)}
@@ -734,6 +794,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
           )}
         </div>
       )}
+    </div>
     </DashboardShell>
   );
 }

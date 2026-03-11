@@ -509,6 +509,7 @@ body {
 
   .plans {
     grid-template-columns: 1fr !important;
+    max-width: 420px !important;
   }
 
   .nav-links {

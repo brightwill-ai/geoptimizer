@@ -409,7 +409,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                         <div
                           style={{
                             maxWidth: "85%",
-                            background: "#1a1b21",
+                            background: "#22232a",
                             borderRadius: "12px 12px 4px 12px",
                             padding: "0.75rem 1rem",
                             border: "1px solid rgba(255,255,255,0.06)",
@@ -462,6 +462,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                             justifyContent: "center",
                             flexShrink: 0,
                             marginTop: 2,
+                            boxShadow: `0 0 0 2px ${providerColor}30`,
                           }}
                         >
                           <ProviderLogo provider={q.provider} size={14} />
@@ -477,6 +478,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                             borderLeft: `3px solid ${providerColor}`,
                             display: "flex",
                             flexDirection: "column",
+                            boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
                           }}
                         >
                           <div

@@ -5,10 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { ActionPlanItemData } from "@/lib/mock-data";
 
 const PRIORITY_CONFIG = {
-  critical: { color: "#dc2626", bg: "rgba(220,38,38,0.12)", label: "Critical" },
-  high: { color: "#d97706", bg: "rgba(217,119,6,0.12)", label: "High" },
-  medium: { color: "rgba(255,255,255,0.7)", bg: "rgba(255,255,255,0.06)", label: "Medium" },
-  low: { color: "#16a34a", bg: "rgba(22,163,74,0.12)", label: "Low" },
+  critical: { color: "#dc2626", bg: "rgba(220,38,38,0.2)", label: "Critical" },
+  high: { color: "#d97706", bg: "rgba(217,119,6,0.2)", label: "High" },
+  medium: { color: "rgba(255,255,255,0.7)", bg: "rgba(255,255,255,0.08)", label: "Medium" },
+  low: { color: "#16a34a", bg: "rgba(22,163,74,0.2)", label: "Low" },
 } as const;
 
 const EFFORT_CONFIG = {

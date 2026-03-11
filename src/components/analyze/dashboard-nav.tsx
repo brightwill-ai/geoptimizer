@@ -6,6 +6,7 @@ interface DashboardNavTab {
   id: string;
   label: string;
   count?: number;
+  color?: string;
 }
 
 interface DashboardNavProps {
@@ -76,7 +77,7 @@ export function DashboardNav({
                 style={{
                   position: "absolute",
                   inset: 0,
-                  background: "rgba(255,255,255,0.08)",
+                  background: tab.color ? `${tab.color}20` : "rgba(255,255,255,0.08)",
                   borderRadius: 8,
                   zIndex: -1,
                 }}

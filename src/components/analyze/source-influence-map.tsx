@@ -85,7 +85,23 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
             : "rgba(255,255,255,0.4)";
 
           return (
-            <div key={item.name} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              key={item.name}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "4px 0",
+                borderRadius: 6,
+                transition: "background 0.15s ease",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
+            >
               {/* Source name + type */}
               <div style={{ width: 140, flexShrink: 0 }}>
                 <div style={{ fontSize: "0.8rem", color: "#ffffff", fontWeight: 500, lineHeight: 1.2 }}>
@@ -139,6 +155,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
                     borderRadius: 4,
                     background: `linear-gradient(90deg, ${sourceTypeColors[item.type] ?? "#ffffff"}88, ${sourceTypeColors[item.type] ?? "#ffffff"})`,
                     transition: "width 0.8s ease-out",
+                    filter: `drop-shadow(0 0 6px ${(sourceTypeColors[item.type] ?? "#ffffff")}40)`,
                   }}
                 />
               </div>

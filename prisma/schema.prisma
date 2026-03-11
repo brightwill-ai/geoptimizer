@@ -46,6 +46,9 @@ model Analysis {
   createdAt                 DateTime          @default(now())
   actionPlanJson            String?
   actionPlanStatus          String            @default("pending")
+  paid                      Boolean           @default(false)
+  stripeSessionId           String?
+  paidAt                    DateTime?
   llmJobs                   LLMJob[]
   queryExecutions           QueryExecution[]
   sourceInfluences          SourceInfluence[]

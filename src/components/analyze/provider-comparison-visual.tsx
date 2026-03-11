@@ -44,6 +44,13 @@ export function ProviderComparisonVisual({ analysis }: ProviderComparisonVisualP
               padding: "1.25rem",
               position: "relative",
               overflow: "hidden",
+              transition: "border-color 0.2s ease",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.borderColor = `${p.color}40`;
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
             }}
           >
             {/* Corner glow */}
@@ -54,7 +61,7 @@ export function ProviderComparisonVisual({ analysis }: ProviderComparisonVisualP
                 right: 0,
                 width: 100,
                 height: 100,
-                background: `radial-gradient(circle at top right, ${p.color}0a, transparent 70%)`,
+                background: `radial-gradient(circle at top right, ${p.color}15, transparent 70%)`,
                 pointerEvents: "none",
               }}
             />
@@ -78,12 +85,14 @@ export function ProviderComparisonVisual({ analysis }: ProviderComparisonVisualP
 
             {/* Ring */}
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16, position: "relative", zIndex: 1 }}>
-              <ScoreRing
-                score={prob}
-                size={72}
-                strokeWidth={6}
-                animated
-              />
+              <div style={{ filter: `drop-shadow(0 0 12px ${p.color}30)` }}>
+                <ScoreRing
+                  score={prob}
+                  size={72}
+                  strokeWidth={6}
+                  animated
+                />
+              </div>
             </div>
 
             {/* Probability label */}

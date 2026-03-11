@@ -96,7 +96,7 @@ function InsightColumn({
         WebkitBackdropFilter: "blur(12px)",
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: 12,
-        borderTopWidth: 2,
+        borderTopWidth: 3,
         borderTopColor: config.color,
         overflow: "hidden",
       }}
@@ -171,10 +171,12 @@ function InsightColumn({
               cursor: "default",
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+              e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+              e.currentTarget.style.borderRadius = "6px";
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.borderRadius = "0px";
             }}
           >
             <div style={{ flexShrink: 0, marginTop: 1 }}>{config.icon}</div>

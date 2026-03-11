@@ -84,6 +84,14 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
   const probability = Math.round(chatgpt.recommendations.recommendationProbability * 100);
   const visibilityRatio = `${chatgpt.recommendations.mentionCount}/${chatgpt.recommendations.totalQueries} prompts`;
 
+  // Competitor-first data
+  const topCompetitor = snapshot.topCompetitor;
+  const competitorWins = chatgpt.recommendations.notMentionedCount;
+  const totalQueries = chatgpt.recommendations.totalQueries;
+  const worstDiscoveryQuery = chatgpt.queryResults.find(
+    (q) => (q.queryType === "discovery" || q.queryType === "subcategory_discovery") && !q.businessMentioned
+  ) ?? chatgpt.queryResults.find((q) => !q.businessMentioned);
+
   const kpiItems: KPIItem[] = [
     {
       label: "Visibility",
@@ -115,7 +123,10 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
         ))}
       </div>
       <span style={{ fontSize: "0.84rem", color: "rgba(255,255,255,0.62)" }}>
-        See how ChatGPT, Claude, and Gemini compare across 40+ prompts.
+        {topCompetitor
+          ? `${topCompetitor} is beating you on ChatGPT. Find out if they're winning everywhere.`
+          : "See how ChatGPT, Claude, and Gemini compare across 40+ prompts."
+        }
       </span>
       <button
         onClick={onUnlock}
@@ -131,7 +142,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           cursor: "pointer",
         }}
       >
-        Unlock full audit
+        Unlock full audit — $99
       </button>
     </div>
   );
@@ -176,7 +187,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
       >
         {activeTab === "overview" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-            <DashboardCard span={2} accentColor={snapshot.visibility.color}>
+            <DashboardCard span={2} accentColor={snapshot.visibility.color} style={{ background: `linear-gradient(135deg, ${snapshot.visibility.color}08, transparent 60%)` }}>
               <div className="analysis-hero-grid">
                 <div>
                   <div
@@ -204,7 +215,10 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       letterSpacing: "-0.04em",
                     }}
                   >
-                    ChatGPT sees {analysis.businessName}, but not reliably enough yet.
+                    {topCompetitor
+                      ? <>ChatGPT recommends <strong style={{ color: "#d97706" }}>{topCompetitor}</strong> over you for {competitorWins} of {totalQueries} queries</>
+                      : <>ChatGPT doesn&apos;t mention {analysis.businessName} in {competitorWins} of {totalQueries} relevant queries</>
+                    }
                   </h2>
                   <p
                     style={{
@@ -215,15 +229,26 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       lineHeight: 1.6,
                     }}
                   >
-                    {snapshot.visibility.description} The clearest gap is in{" "}
-                    <strong style={{ color: "#ffffff" }}>
-                      {snapshot.weakestQueryType?.label ?? "discovery"}
-                    </strong>{" "}
-                    prompts, where AI still defaults to{" "}
-                    <strong style={{ color: "#ffffff" }}>
-                      {snapshot.topCompetitor ?? "other practices"}
-                    </strong>
-                    .
+                    {topCompetitor ? (
+                      <>When someone asks for the best in your category near{" "}
+                        <strong style={{ color: "#ffffff" }}>
+                          {analysis.businessName.split(",")[0]}
+                        </strong>
+                        , ChatGPT sends them to{" "}
+                        <strong style={{ color: "#ffffff" }}>{topCompetitor}</strong> instead.
+                        The biggest gap is in{" "}
+                        <strong style={{ color: "#ffffff" }}>
+                          {snapshot.weakestQueryType?.label ?? "discovery"}
+                        </strong>{" "}prompts.
+                      </>
+                    ) : (
+                      <>{snapshot.visibility.description} The clearest gap is in{" "}
+                        <strong style={{ color: "#ffffff" }}>
+                          {snapshot.weakestQueryType?.label ?? "discovery"}
+                        </strong>{" "}
+                        prompts, where AI still defaults to other businesses.
+                      </>
+                    )}
                   </p>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
                     <span className="analysis-meta-pill">Snapshot first</span>
@@ -233,7 +258,9 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                 </div>
 
                 <div className="analysis-hero-score">
-                  <ScoreRing score={probability} size={132} strokeWidth={10} />
+                  <div style={{ filter: `drop-shadow(0 0 20px ${snapshot.visibility.color}40)` }}>
+                    <ScoreRing score={probability} size={132} strokeWidth={10} />
+                  </div>
                   <div style={{ display: "grid", gap: 10, width: "100%" }}>
                     <div className="analysis-mini-stat">
                       <span>Mentioned in prompts</span>
@@ -249,6 +276,70 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                 </div>
               </div>
             </DashboardCard>
+
+            {/* What your customers see — verbatim AI response */}
+            {worstDiscoveryQuery && (
+              <DashboardCard title="What your customers see" subtitle={`When someone asks: "${worstDiscoveryQuery.queryText}"`} accentColor="#10a37f">
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {/* User query bubble */}
+                  <div style={{
+                    alignSelf: "flex-end",
+                    maxWidth: "85%",
+                    padding: "10px 14px",
+                    borderRadius: "12px 12px 2px 12px",
+                    background: "#22232a",
+                    fontSize: "0.84rem",
+                    color: "rgba(255,255,255,0.8)",
+                    lineHeight: 1.5,
+                  }}>
+                    {worstDiscoveryQuery.queryText}
+                  </div>
+                  {/* AI response bubble */}
+                  <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                    <div style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: "#10a37f20",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      boxShadow: "0 0 0 2px rgba(16,163,127,0.3)",
+                    }}>
+                      <ProviderLogo provider="chatgpt" size={14} />
+                    </div>
+                    <div style={{
+                      flex: 1,
+                      padding: "12px 14px",
+                      borderRadius: "2px 12px 12px 12px",
+                      background: "#1a1b21",
+                      borderLeft: "3px solid #10a37f",
+                      fontSize: "0.82rem",
+                      color: "rgba(255,255,255,0.7)",
+                      lineHeight: 1.6,
+                      boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
+                    }}>
+                      {worstDiscoveryQuery.rawResponseExcerpt}
+                      {!worstDiscoveryQuery.businessMentioned && (
+                        <div style={{
+                          marginTop: 10,
+                          padding: "6px 10px",
+                          borderRadius: 6,
+                          background: "rgba(220,38,38,0.1)",
+                          border: "1px solid rgba(220,38,38,0.15)",
+                          fontSize: "0.75rem",
+                          color: "#dc2626",
+                          fontWeight: 500,
+                        }}>
+                          {analysis.businessName} was not mentioned in this response
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </DashboardCard>
+            )}
 
             <div>
               <SectionLabel>Snapshot</SectionLabel>
@@ -367,30 +458,44 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                 </div>
               </DashboardCard>
 
-              <DashboardCard title="Unlock full audit" subtitle="What you know now vs what comes next" accentColor="#ffffff">
-                <div className="analysis-upgrade-grid">
-                  <div className="analysis-mini-panel">
-                    <span>What this free audit tells you</span>
-                    <strong>Enough to understand the current problem</strong>
-                    <small>
-                      Visibility level, strongest and weakest prompt types, top competitor, and the evidence behind the result.
-                    </small>
+              <DashboardCard
+                title={topCompetitor ? `Is ${topCompetitor} winning on Claude and Gemini too?` : "Unlock full audit"}
+                subtitle="Get the full picture across all 3 AI engines"
+                accentColor="#ffffff"
+              >
+                <div style={{ display: "grid", gap: 14 }}>
+                  <p style={{ margin: 0, fontSize: "0.84rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.55 }}>
+                    {topCompetitor
+                      ? `You've seen how ChatGPT favors ${topCompetitor}. The full audit reveals whether Claude and Gemini do the same — plus an 80-step action plan to fix it.`
+                      : "40+ prompts across ChatGPT, Claude, and Gemini. Source influence mapping, accuracy checks, and a personalized 80-step action plan."
+                    }
+                  </p>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    {LLM_PROVIDERS.map((provider) => (
+                      <span key={provider.id} className="analysis-provider-pill">
+                        <ProviderLogo provider={provider.id} size={12} />
+                        {provider.name}
+                      </span>
+                    ))}
                   </div>
-                  <div className="analysis-mini-panel">
-                    <span>What the full audit adds</span>
-                    <strong>Enough to decide what to fix first</strong>
-                    <small>
-                      40+ prompts across three AI engines, source overlap, accuracy issues, and a ranked action plan.
-                    </small>
-                  </div>
-                </div>
-                <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  {LLM_PROVIDERS.map((provider) => (
-                    <span key={provider.id} className="analysis-provider-pill">
-                      <ProviderLogo provider={provider.id} size={12} />
-                      {provider.name}
-                    </span>
-                  ))}
+                  <button
+                    onClick={onUnlock}
+                    style={{
+                      width: "100%",
+                      padding: "0.75rem",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      fontFamily: "var(--font-sans)",
+                      borderRadius: 8,
+                      border: "none",
+                      background: "#ffffff",
+                      color: "#0c0d10",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    Unlock full audit — $99
+                  </button>
                 </div>
               </DashboardCard>
             </div>

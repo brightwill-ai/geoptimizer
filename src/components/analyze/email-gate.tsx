@@ -6,11 +6,11 @@ import { SectionDivider } from "@/components/ui/section-divider";
 
 interface EmailGateProps {
   analysisId: string;
-  onSubmit: (comprehensiveAnalysisId: string) => void;
+  onSubmit?: (comprehensiveAnalysisId: string) => void;
   onClose: () => void;
 }
 
-export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
+export function EmailGate({ analysisId, onClose }: EmailGateProps) {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -24,21 +24,26 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
     setError("");
 
     try {
-      const res = await fetch(`/api/analysis/${analysisId}/claim`, {
+      // Request Stripe Checkout session (dev mode bypasses to direct redirect)
+      const checkoutRes = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), name: name.trim() || undefined }),
+        body: JSON.stringify({ analysisId, email: email.trim() }),
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to submit");
+      const checkoutData = await checkoutRes.json();
+      if (!checkoutRes.ok) {
+        throw new Error(checkoutData.error || "Failed to create checkout");
       }
 
-      onSubmit(data.comprehensiveAnalysisId);
+      // Store email in sessionStorage for the redirect-back flow
+      sessionStorage.setItem("bw_checkout_email", email.trim());
+      sessionStorage.setItem("bw_checkout_name", name.trim());
+
+      // Redirect to Stripe Checkout (or dev bypass URL)
+      window.location.href = checkoutData.url;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
-    } finally {
       setLoading(false);
     }
   };
@@ -120,7 +125,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
           ✕
         </button>
 
-        <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>Complete Analysis</div>
+        <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>Full GEO Audit</div>
         <h2
           style={{
             fontFamily: "var(--font-sans)",
@@ -135,8 +140,24 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
         </h2>
 
         <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.5)", margin: "0 0 1.5rem 0", lineHeight: 1.5 }}>
-          We&apos;ll run 40+ queries across all 3 AI platforms and email you when ready (typically 5-15 minutes).
+          40+ queries across all 3 AI platforms. We&apos;ll email you when your report is ready (typically 5-15 minutes).
         </p>
+
+        {/* Price */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "0.75rem 1rem",
+          borderRadius: 8,
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          marginBottom: "1.5rem",
+        }}>
+          <span style={{ fontSize: "1.5rem", fontWeight: 700, color: "#ffffff" }}>$99</span>
+          <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)" }}>one-time</span>
+          <span style={{ marginLeft: "auto", fontSize: "0.7rem", color: "rgba(255,255,255,0.3)", background: "rgba(22,163,74,0.15)", padding: "3px 8px", borderRadius: 999, fontWeight: 500 }}>Best value</span>
+        </div>
 
         {/* Benefits */}
         <ul
@@ -154,7 +175,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
             "40+ real queries with response evidence",
             "Source influence map — what drives AI recommendations",
             "Verification prompts you can test yourself",
-            "Actionable optimization playbook",
+            "80-step actionable optimization playbook",
           ].map((item, i) => (
             <li
               key={item}
@@ -220,7 +241,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
               transition: "all 0.15s",
             }}
           >
-            {loading ? "Submitting..." : "Send me the full report"}
+            {loading ? "Redirecting to payment..." : "Pay & unlock full report — $99"}
           </button>
         </form>
 
@@ -232,7 +253,7 @@ export function EmailGate({ analysisId, onSubmit, onClose }: EmailGateProps) {
             margin: "1rem 0 0 0",
           }}
         >
-          No spam, ever. We respect your privacy.
+          Secure payment via Stripe. No spam, ever.
         </p>
       </motion.div>
     </motion.div>

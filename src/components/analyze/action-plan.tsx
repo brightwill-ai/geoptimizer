@@ -240,7 +240,7 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
           }}
         >
           {/* Completion ring */}
-          <div style={{ position: "relative", width: 72, height: 72 }}>
+          <div style={{ position: "relative", width: 72, height: 72, filter: "drop-shadow(0 0 16px rgba(22,163,74,0.3))" }}>
             <svg width={72} height={72} viewBox="0 0 72 72">
               <circle
                 cx={36}

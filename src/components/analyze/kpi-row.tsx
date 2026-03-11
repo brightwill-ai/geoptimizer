@@ -32,19 +32,20 @@ export function KPIRow({ items }: KPIRowProps) {
           key={item.label}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: i * 0.05, ease: "easeOut" }}
+          transition={{ duration: 0.35, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            background: "rgba(20, 21, 26, 0.8)",
+            background: item.accentColor
+              ? `linear-gradient(135deg, ${item.accentColor}08, transparent 60%)`
+              : "rgba(20, 21, 26, 0.8)",
             border: "1px solid rgba(255,255,255,0.06)",
             borderRadius: 12,
             padding: "1.25rem 1.5rem",
             position: "relative",
             overflow: "hidden",
+            boxShadow: "0 2px 16px rgba(0,0,0,0.25)",
             ...(item.accentColor
               ? {
-                  borderTopWidth: 2,
-                  borderTopStyle: "solid" as const,
-                  borderTopColor: item.accentColor,
+                  borderLeft: `3px solid ${item.accentColor}`,
                 }
               : {}),
           }}
@@ -58,7 +59,7 @@ export function KPIRow({ items }: KPIRowProps) {
                 right: 0,
                 width: 100,
                 height: 100,
-                background: `radial-gradient(circle at top right, ${item.accentColor}0a, transparent 70%)`,
+                background: `radial-gradient(circle at top right, ${item.accentColor}15, transparent 70%)`,
                 pointerEvents: "none",
               }}
             />
@@ -101,8 +102,8 @@ export function KPIRow({ items }: KPIRowProps) {
               {/* Value */}
               <div
                 style={{
-                  fontSize: "1.75rem",
-                  fontWeight: 600,
+                  fontSize: "1.5rem",
+                  fontWeight: 700,
                   color: "#ffffff",
                   lineHeight: 1.1,
                   fontVariantNumeric: "tabular-nums",

@@ -28,8 +28,14 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
         <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Count</span>
       </div>
       {/* Rows */}
-      {sortedCompetitors.map((c) => {
+      {sortedCompetitors.map((c, idx) => {
         const pct = (c.mentionCount / maxMentions) * 100;
+        const isTopRow = idx === 0;
+        const defaultBg = c.isSubject
+          ? "rgba(255,255,255,0.03)"
+          : isTopRow
+            ? "rgba(217,119,6,0.04)"
+            : "transparent";
         return (
           <div
             key={`${c.rank}-${c.name}`}
@@ -39,11 +45,18 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
               gap: 8,
               padding: "10px 0",
               borderBottom: "1px solid rgba(255,255,255,0.04)",
-              background: c.isSubject ? "rgba(255,255,255,0.03)" : "transparent",
-              borderRadius: c.isSubject ? 8 : 0,
-              paddingLeft: c.isSubject ? 8 : 0,
-              marginLeft: c.isSubject ? -8 : 0,
-              paddingRight: c.isSubject ? 8 : 0,
+              background: defaultBg,
+              borderRadius: c.isSubject ? 8 : isTopRow ? 6 : 0,
+              paddingLeft: c.isSubject ? 8 : isTopRow ? 8 : 0,
+              marginLeft: c.isSubject ? -8 : isTopRow ? -8 : 0,
+              paddingRight: c.isSubject ? 8 : isTopRow ? 8 : 0,
+              transition: "background 0.15s ease",
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = defaultBg;
             }}
           >
             <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>{c.rank}</span>

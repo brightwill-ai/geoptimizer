@@ -118,8 +118,23 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
           borderRadius: 12,
           border: "1px solid rgba(255,255,255,0.06)",
           background: "#14151a",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.4)",
+          position: "relative",
         }}
       >
+        {/* Ambient glow */}
+        <div
+          style={{
+            position: "absolute",
+            top: "-50%",
+            left: "-25%",
+            width: "150%",
+            height: "200%",
+            background: "radial-gradient(circle, rgba(255,255,255,0.02), transparent 50%)",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+        />
         {/* Business name */}
         <div>
           <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", margin: 0, letterSpacing: "0.08em", textTransform: "uppercase" }}>
@@ -166,6 +181,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
                   background: done ? "#14151a" : running ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)",
                   border: `1px solid ${done ? "rgba(255,255,255,0.08)" : running ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)"}`,
                   transition: "all 0.3s ease",
+                  boxShadow: running ? `0 0 12px ${p.color}30` : "none",
                 }}
               >
                 <ProviderLogo
