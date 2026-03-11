@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { QueryResult, LLMProvider } from "@/lib/mock-data";
 import { ProviderLogo } from "@/components/ui/provider-logo";
+import { formatQueryTypeLabel } from "@/lib/report-insights";
 
 
 interface QueryEvidenceProps {
@@ -70,10 +71,41 @@ function cleanResponseText(text: string): string {
 export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [mentionFilter, setMentionFilter] = useState<"all" | "mentioned" | "not_mentioned">("all");
+  const [queryTypeFilter, setQueryTypeFilter] = useState<string>("all");
 
-  const totalPages = Math.ceil(queries.length / ITEMS_PER_PAGE);
+  const queryTypeOptions = Array.from(new Set(queries.map((query) => query.queryType)));
+  const mentionedCount = queries.filter((query) => query.businessMentioned).length;
+  const primaryCount = queries.filter((query) => query.mentionType === "primary_recommendation").length;
+
+  const filteredQueries = queries.filter((query) => {
+    if (mentionFilter === "mentioned" && !query.businessMentioned) return false;
+    if (mentionFilter === "not_mentioned" && query.businessMentioned) return false;
+    if (queryTypeFilter !== "all" && query.queryType !== queryTypeFilter) return false;
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredQueries.length / ITEMS_PER_PAGE);
   const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-  const pageQueries = queries.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+  const pageQueries = filteredQueries.slice(startIdx, startIdx + ITEMS_PER_PAGE);
+
+  const selectChipStyle = (active: boolean) => ({
+    border: `1px solid ${active ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.08)"}`,
+    background: active ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
+    color: active ? "#ffffff" : "rgba(255,255,255,0.48)",
+  });
+
+  const handleMentionFilter = (value: "all" | "mentioned" | "not_mentioned") => {
+    setMentionFilter(value);
+    setCurrentPage(1);
+    setExpandedIndex(null);
+  };
+
+  const handleQueryTypeFilter = (value: string) => {
+    setQueryTypeFilter(value);
+    setCurrentPage(1);
+    setExpandedIndex(null);
+  };
 
   return (
     <div
@@ -94,12 +126,147 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
       >
         <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Query Evidence</div>
         <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>
-          {queries.filter((q) => q.businessMentioned).length} of {queries.length} mentioned{" "}
-          {businessName}
+          {mentionedCount} of {queries.length} mentioned {businessName}
         </span>
       </div>
 
+      <div
+        style={{
+          padding: "0 1.25rem 1rem",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+            gap: 10,
+          }}
+        >
+          <div
+            style={{
+              padding: "12px 14px",
+              borderRadius: 10,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Mentioned
+            </div>
+            <div style={{ marginTop: 8, fontSize: "1.3rem", fontWeight: 600, color: "#ffffff" }}>
+              {mentionedCount}/{queries.length}
+            </div>
+          </div>
+          <div
+            style={{
+              padding: "12px 14px",
+              borderRadius: 10,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Primary recommendations
+            </div>
+            <div style={{ marginTop: 8, fontSize: "1.3rem", fontWeight: 600, color: "#ffffff" }}>
+              {primaryCount}
+            </div>
+          </div>
+          <div
+            style={{
+              padding: "12px 14px",
+              borderRadius: 10,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}
+          >
+            <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Query types
+            </div>
+            <div style={{ marginTop: 8, fontSize: "1.3rem", fontWeight: 600, color: "#ffffff" }}>
+              {queryTypeOptions.length}
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              { id: "all", label: "All queries" },
+              { id: "mentioned", label: "Mentioned only" },
+              { id: "not_mentioned", label: "Not mentioned" },
+            ].map((option) => {
+              const active = mentionFilter === option.id;
+              return (
+                <button
+                  key={option.id}
+                  onClick={() => handleMentionFilter(option.id as "all" | "mentioned" | "not_mentioned")}
+                  style={{
+                    padding: "6px 10px",
+                    borderRadius: 999,
+                    cursor: "pointer",
+                    fontSize: "0.74rem",
+                    fontWeight: 500,
+                    transition: "all 0.15s ease",
+                    ...selectChipStyle(active),
+                  }}
+                >
+                  {option.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.38)" }}>Query type</span>
+            <select
+              value={queryTypeFilter}
+              onChange={(event) => handleQueryTypeFilter(event.target.value)}
+              style={{
+                borderRadius: 999,
+                border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(255,255,255,0.03)",
+                color: "#ffffff",
+                padding: "7px 12px",
+                fontSize: "0.75rem",
+              }}
+            >
+              <option value="all">All types</option>
+              {queryTypeOptions.map((queryType) => (
+                <option key={queryType} value={queryType}>
+                  {formatQueryTypeLabel(queryType)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div style={{ display: "flex", flexDirection: "column" }}>
+        {pageQueries.length === 0 && (
+          <div
+            style={{
+              padding: "2rem 1.25rem",
+              textAlign: "center",
+              color: "rgba(255,255,255,0.42)",
+              fontSize: "0.84rem",
+              borderTop: "1px solid rgba(255,255,255,0.04)",
+            }}
+          >
+            No query evidence matches the current filters.
+          </div>
+        )}
         {pageQueries.map((q, pageIdx) => {
           const globalIdx = startIdx + pageIdx;
           const isExpanded = expandedIndex === globalIdx;

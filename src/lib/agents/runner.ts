@@ -12,6 +12,7 @@ import { getPromptsForTier } from "./prompts";
 import { parseAllResponses, parseResponse } from "./parser";
 import { aggregateToLLMReport, assembleGEOAnalysis } from "./aggregator";
 import { getQueriesForTier } from "./query-bank";
+import { profileBusiness } from "./profiler";
 import { generateActionPlan } from "./action-plan-generator";
 import { sendReportReadyEmail } from "@/lib/email";
 
@@ -270,8 +271,11 @@ export async function runFreeAudit(
   }
 
   try {
+    // Profile the business to get subcategory-specific search terms
+    const profile = await profileBusiness(businessName, location, category);
+
     // Load 5 free-tier queries from query bank
-    const queries = await getQueriesForTier("free", category, businessName, location);
+    const queries = await getQueriesForTier("free", category, businessName, location, profile);
     const querySlice = queries.slice(0, 5);
 
     // Set queryCount upfront so polling API knows the total
@@ -355,6 +359,15 @@ export async function runFreeAudit(
     report.queryResults = queryResults;
     report.recommendations.totalQueries = querySlice.length;
 
+    // Compute split metrics: organic discovery vs brand awareness
+    const directTypes = new Set(["direct", "reviews", "specifics", "source_probing", "verification"]);
+    const organicQR = queryResults.filter(qr => !directTypes.has(qr.queryType));
+    const brandQR = queryResults.filter(qr => directTypes.has(qr.queryType));
+    report.recommendations.organicDiscoveryRate = organicQR.length > 0
+      ? organicQR.filter(qr => qr.businessMentioned).length / organicQR.length : 0;
+    report.recommendations.brandAwarenessRate = brandQR.length > 0
+      ? brandQR.filter(qr => qr.businessMentioned).length / brandQR.length : 0;
+
     // For free tier, only chatgpt has a report
     const reports = { chatgpt: report } as Record<LLMProvider, LLMReport>;
 
@@ -430,8 +443,11 @@ export async function runComprehensiveAudit(
 
   const jobs = await prisma.lLMJob.findMany({ where: { analysisId } });
 
+  // Profile the business to get subcategory-specific search terms
+  const profile = await profileBusiness(businessName, location, category);
+
   // Load comprehensive queries
-  const queries = await getQueriesForTier("comprehensive", category, businessName, location);
+  const queries = await getQueriesForTier("comprehensive", category, businessName, location, profile);
 
   // Set queryCount upfront so polling API knows the total
   await prisma.analysis.update({
@@ -520,6 +536,15 @@ export async function runComprehensiveAudit(
         const report = aggregateToLLMReport(providerInfo, allParsed, businessName);
         report.queryResults = queryResults;
         report.recommendations.totalQueries = queries.length;
+
+        // Compute split metrics: organic discovery vs brand awareness
+        const directTypes = new Set(["direct", "reviews", "specifics", "source_probing", "verification"]);
+        const organicQR = queryResults.filter(qr => !directTypes.has(qr.queryType));
+        const brandQR = queryResults.filter(qr => directTypes.has(qr.queryType));
+        report.recommendations.organicDiscoveryRate = organicQR.length > 0
+          ? organicQR.filter(qr => qr.businessMentioned).length / organicQR.length : 0;
+        report.recommendations.brandAwarenessRate = brandQR.length > 0
+          ? brandQR.filter(qr => qr.businessMentioned).length / brandQR.length : 0;
 
         await prisma.lLMJob.update({
           where: { id: job.id },

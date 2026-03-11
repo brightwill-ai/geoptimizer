@@ -8,6 +8,12 @@ export async function GET(
   try {
     const { id } = await params;
 
+    // Demo fixture — serves real report data without DB for frontend dev
+    if (id === "demo") {
+      const fixture = await import("@/lib/fixtures/demo-report.json");
+      return NextResponse.json(fixture.default);
+    }
+
     const analysis = await prisma.analysis.findUnique({
       where: { id },
       include: {

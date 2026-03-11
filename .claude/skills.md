@@ -140,24 +140,36 @@ Each step is a separate component. Orchestrator manages:
 - analysisId, analysisData, jobStatuses
 - Polling interval (2s) during loading
 
-### Report layout pattern
+### Dashboard layout pattern (v2)
+
+Both reports use `DashboardShell` → sticky KPI row + animated tab nav + cross-fade content.
+
+**Dashboard wrapper components:**
+- `DashboardShell`: full-width (maxWidth 1400px), sticky section (KPI + nav at top: 60px), cross-fade tab transitions (AnimatePresence + blur)
+- `DashboardCard`: glassmorphism card (rgba(20,21,26,0.7), backdrop-blur, hover lift), lock overlay support
+- `DashboardNav`: animated sliding pill tabs (motion.div layoutId spring), pill-style active state
+- `KPIRow`: auto-fit grid (minmax 180px) stat cards with accent-colored top borders + mini ScoreRings
+- `InsightCards`: 3-column severity grid (strengths/opportunities/gaps) with colored icons
+- `ProviderComparisonVisual`: 3-column provider cards with rings + stat rows
 
 **Partial report (free tier):**
-1. 2-column: Recommendation probability hero ring + key metrics stack
-2. Query evidence table (expandable rows with response excerpts)
-3. 2-column: Competitor snapshot + Sentiment summary with phrases
-4. Blurred: Claude + Gemini sections with unlock overlay (pill-style)
-5. Sticky CTA bar at bottom
+- KPI row: Probability, Mentions, Primary, Avg Rank
+- 2 tabs: Overview (2-col grid with hero, breakdown, competitors, sentiment, sources, locked teasers) + Evidence
+- Locked cards use DashboardCard `locked={true}` with blur overlay + ProviderLogo pill
+- Sticky CTA bar at bottom
 
 **Full report (comprehensive):**
-1. Methodology section (total queries, platforms, query types badges)
-2. Per-provider probability rings in header
-3. Cross-platform comparison table (includes recommendation probability row, sources cited)
-4. Cross-platform Source Influence Map
-5. Tabbed deep-dive per provider:
-   - RecommendationHero → QueryEvidence (chat UI) → QueryTypeBreakdown → SourceInfluenceMap → MetricCards → Topics → Competitors → Accuracy → Sentiment
-6. Cross-LLM Insights (strengths, opportunities, gaps)
-7. Actionable Recommendations (data-driven, priority-ranked)
+- KPI row: Avg Probability + per-provider probabilities with mini rings
+- 5 tabs: Overview, Deep Dive, Sources, Evidence, Action Plan
+- Overview: 2-col grid (ProviderComparisonVisual + InsightCards + SourceInfluenceMap + Methodology + LLMComparisonTable)
+- Deep Dive: provider sub-tabs → 2-col asymmetric grid (1.2fr + 0.8fr)
+- Sources: cross-platform + per-provider source maps
+- Evidence: provider sub-tabs → QueryEvidence
+- Action Plan: ActionPlan or ActionItems
+
+**Responsive:** 1024px (2-col → 1-col), 860px (full stack, existing analyze-grid)
+
+**CSS classes:** `.dashboard-grid` (1fr 1fr), `.dashboard-grid-deep` (1.2fr 0.8fr), `.dashboard-grid-insights` (1fr 1fr 1fr), `.dash-card` (hover transitions)
 
 ### LLM provider colors
 Always use these exact colors for LLM badges/indicators:

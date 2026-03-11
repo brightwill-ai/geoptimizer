@@ -1,8 +1,9 @@
 import { seedAllCategories } from "../src/lib/agents/query-bank";
 
 async function main() {
-  console.log("Seeding query bank...");
-  await seedAllCategories();
+  const force = process.argv.includes("--force");
+  console.log(`Seeding query bank...${force ? " (force re-seed)" : ""}`);
+  await seedAllCategories(force);
   console.log("Done!");
 }
 

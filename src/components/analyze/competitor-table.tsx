@@ -7,7 +7,8 @@ interface CompetitorTableProps {
 }
 
 export function CompetitorTable({ competitors }: CompetitorTableProps) {
-  const maxMentions = Math.max(...competitors.map((c) => c.mentionCount), 1);
+  const sortedCompetitors = [...competitors].sort((a, b) => a.rank - b.rank);
+  const maxMentions = Math.max(...sortedCompetitors.map((c) => c.mentionCount), 1);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
@@ -27,11 +28,11 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
         <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Count</span>
       </div>
       {/* Rows */}
-      {competitors.map((c) => {
+      {sortedCompetitors.map((c) => {
         const pct = (c.mentionCount / maxMentions) * 100;
         return (
           <div
-            key={c.rank}
+            key={`${c.rank}-${c.name}`}
             style={{
               display: "grid",
               gridTemplateColumns: "32px 1fr 1fr 80px",

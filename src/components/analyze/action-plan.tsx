@@ -173,6 +173,54 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
         </h3>
       </div>
 
+      {/* CTA */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
+          borderRadius: 12,
+          border: "1px solid rgba(255,255,255,0.08)",
+          padding: "28px 24px",
+          textAlign: "center",
+          marginBottom: 16,
+        }}
+      >
+        <p
+          style={{
+            fontSize: "1rem",
+            fontWeight: 600,
+            color: "#ffffff",
+            margin: "0 0 8px",
+          }}
+        >
+          Need help implementing this plan?
+        </p>
+        <p
+          style={{
+            fontSize: "0.82rem",
+            color: "rgba(255,255,255,0.5)",
+            margin: "0 0 16px",
+            lineHeight: 1.45,
+          }}
+        >
+          BrightWill can execute every item in this action plan for you — from technical SEO to content creation and authority building.
+        </p>
+        <a
+          href="/signup"
+          style={{
+            display: "inline-block",
+            padding: "10px 28px",
+            borderRadius: 8,
+            background: "#ffffff",
+            color: "#0c0d10",
+            fontSize: "0.84rem",
+            fontWeight: 600,
+            textDecoration: "none",
+          }}
+        >
+          Get Started
+        </a>
+      </div>
+
       {/* Progress dashboard */}
       <div
         style={{
@@ -324,54 +372,6 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
             />
           </motion.div>
         ))}
-      </div>
-
-      {/* CTA */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.08)",
-          padding: "28px 24px",
-          textAlign: "center",
-          marginTop: 24,
-        }}
-      >
-        <p
-          style={{
-            fontSize: "1rem",
-            fontWeight: 600,
-            color: "#ffffff",
-            margin: "0 0 8px",
-          }}
-        >
-          Need help implementing this plan?
-        </p>
-        <p
-          style={{
-            fontSize: "0.82rem",
-            color: "rgba(255,255,255,0.5)",
-            margin: "0 0 16px",
-            lineHeight: 1.45,
-          }}
-        >
-          BrightWill can execute every item in this action plan for you — from technical SEO to content creation and authority building.
-        </p>
-        <a
-          href="/signup"
-          style={{
-            display: "inline-block",
-            padding: "10px 28px",
-            borderRadius: 8,
-            background: "#ffffff",
-            color: "#0c0d10",
-            fontSize: "0.84rem",
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
-        >
-          Get Started
-        </a>
       </div>
     </motion.div>
   );

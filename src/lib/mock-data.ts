@@ -23,6 +23,8 @@ export interface RecommendationMetrics {
   recommendationProbability: number; // 0-1
   primaryProbability: number;        // 0-1
   mentionTrend: number;              // % change from previous audit
+  organicDiscoveryRate?: number;     // 0-1, mentions in generic/discovery queries only
+  brandAwarenessRate?: number;       // 0-1, mentions in direct/reviews/specifics queries
 }
 
 // ── Per-Query Result (for evidence table) ──

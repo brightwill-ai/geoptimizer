@@ -1,511 +1,411 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
 import type { GEOAnalysis } from "@/lib/mock-data";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
 import { ProviderLogo } from "@/components/ui/provider-logo";
-import { RecommendationHero } from "./recommendation-hero";
+import { ScoreRing } from "./score-ring";
 import { QueryEvidence } from "./query-evidence";
-import { MetricCard } from "./metric-card";
-import { SentimentBadge } from "./sentiment-badge";
-import { CompetitorTable } from "./competitor-table";
 import { QueryTypeBreakdown } from "./query-type-breakdown";
 import { SourceInfluenceMap } from "./source-influence-map";
-
-import { SectionDivider } from "@/components/ui/section-divider";
+import { CompetitorTable } from "./competitor-table";
+import { DashboardShell } from "./dashboard-shell";
+import { DashboardCard } from "./dashboard-card";
+import { SentimentBadge } from "./sentiment-badge";
+import type { KPIItem } from "./kpi-row";
+import { getReportSnapshot } from "@/lib/report-insights";
 
 interface PartialReportProps {
   analysis: GEOAnalysis;
   onUnlock: () => void;
 }
 
-export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
-  const chatgpt = analysis.reports.chatgpt;
-  const lockedProviders = LLM_PROVIDERS.filter((p) => p.id !== "chatgpt");
-  const pct = Math.round(chatgpt.recommendations.recommendationProbability * 100);
+type PartialTab = "overview" | "evidence";
 
-  // Compute position stats from query results
-  const positions = chatgpt.queryResults
-    .filter((q) => q.rankPosition !== null && q.rankPosition !== undefined)
-    .map((q) => q.rankPosition!);
-  const avgPosition = positions.length > 0
-    ? (positions.reduce((a, b) => a + b, 0) / positions.length).toFixed(1)
-    : null;
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        fontSize: "0.72rem",
+        fontWeight: 600,
+        color: "rgba(255,255,255,0.38)",
+        textTransform: "uppercase",
+        letterSpacing: "0.1em",
+        marginBottom: 12,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function FindingBlock({
+  title,
+  detail,
+  tone,
+}: {
+  title: string;
+  detail: string;
+  tone: "positive" | "warning" | "negative" | "neutral";
+}) {
+  const accent =
+    tone === "positive"
+      ? "#16a34a"
+      : tone === "warning"
+        ? "#d97706"
+        : tone === "negative"
+          ? "#dc2626"
+          : "rgba(255,255,255,0.35)";
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      style={{ paddingBottom: 100, background: "#0c0d10" }}
+    <div
+      style={{
+        padding: "12px 14px",
+        borderRadius: 12,
+        border: `1px solid ${accent}22`,
+        background: `${accent}10`,
+      }}
     >
-      {/* Header */}
-      <div
+      <div style={{ fontSize: "0.86rem", color: "#ffffff", fontWeight: 600, marginBottom: 4 }}>
+        {title}
+      </div>
+      <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.58)", lineHeight: 1.45 }}>
+        {detail}
+      </div>
+    </div>
+  );
+}
+
+export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
+  const chatgpt = analysis.reports.chatgpt;
+  const snapshot = getReportSnapshot(chatgpt);
+  const [activeTab, setActiveTab] = useState<PartialTab>("overview");
+  const lockedProviders = LLM_PROVIDERS.filter((provider) => provider.id !== "chatgpt");
+  const probability = Math.round(chatgpt.recommendations.recommendationProbability * 100);
+  const visibilityRatio = `${chatgpt.recommendations.mentionCount}/${chatgpt.recommendations.totalQueries} prompts`;
+
+  const kpiItems: KPIItem[] = [
+    {
+      label: "Visibility",
+      value: `${probability}%`,
+      sublabel: `${snapshot.visibility.label} in ChatGPT`,
+      detail: visibilityRatio,
+      accentColor: snapshot.visibility.color,
+      ring: { score: probability },
+    },
+    {
+      label: "Strongest query",
+      value: snapshot.strongestQueryType?.label ?? "N/A",
+      sublabel: snapshot.strongestQueryType
+        ? `${Math.round(snapshot.strongestQueryType.mentionRate * 100)}% mention rate`
+        : "No query data",
+    },
+    {
+      label: "Top competitor",
+      value: snapshot.topCompetitor ?? "None",
+      sublabel: "Most often recommended ahead of you",
+    },
+  ];
+
+  const stickyCta = (
+    <div className="analysis-sticky-cta">
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {LLM_PROVIDERS.map((provider) => (
+          <ProviderLogo key={provider.id} provider={provider.id} size={14} />
+        ))}
+      </div>
+      <span style={{ fontSize: "0.84rem", color: "rgba(255,255,255,0.62)" }}>
+        See how ChatGPT, Claude, and Gemini compare across 40+ prompts.
+      </span>
+      <button
+        onClick={onUnlock}
         style={{
-          background: "#0c0d10",
-          padding: "5rem 2rem 3rem",
-          textAlign: "center",
+          padding: "0.7rem 1.2rem",
+          fontSize: "0.82rem",
+          fontWeight: 600,
+          fontFamily: "var(--font-sans)",
+          borderRadius: 10,
+          border: "none",
+          background: "#ffffff",
+          color: "#0c0d10",
+          cursor: "pointer",
         }}
       >
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          style={{
-            maxWidth: 800,
-            margin: "0 auto",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "0.75rem",
-          }}
-        >
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              fontSize: "0.72rem",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              color: "rgba(255,255,255,0.4)",
-            }}
-          >
-            <ProviderLogo provider="chatgpt" size={14} />
-            ChatGPT Audit
-          </div>
-          <h1
-            style={{
-              fontFamily: "var(--font-sans)",
-              fontSize: "1.75rem",
-              fontWeight: 500,
-              color: "#ffffff",
-              margin: 0,
-            }}
-          >
-            {analysis.businessName}
-          </h1>
-          <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.4)", margin: 0 }}>
-            Based on {chatgpt.recommendations.totalQueries} real queries through ChatGPT
-          </p>
-        </motion.div>
-      </div>
+        Unlock full audit
+      </button>
+    </div>
+  );
 
-      {/* Main content */}
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "0 2rem 2rem" }}>
-        {/* Top row: Probability + Key metrics */}
-        <div
-          className="analyze-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 16,
-          }}
-        >
-          {/* Recommendation Probability Hero */}
-          <RecommendationHero
-            probability={chatgpt.recommendations.recommendationProbability}
-            totalQueries={chatgpt.recommendations.totalQueries}
-            mentionCount={chatgpt.recommendations.mentionCount}
-            businessName={analysis.businessName}
-          />
+  const headerMeta = (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      <span className="analysis-meta-pill">Free audit</span>
+      <span className="analysis-meta-pill">ChatGPT only</span>
+      <span className="analysis-meta-pill">{chatgpt.recommendations.totalQueries} real queries</span>
+    </div>
+  );
 
-          {/* Key Metrics Stack */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <MetricCard
-              label="Mention Rate"
-              value={`${chatgpt.recommendations.mentionCount}/${chatgpt.recommendations.totalQueries}`}
-              sublabel={`${pct}% of queries mention your business`}
-            />
-            <MetricCard
-              label="Primary Recommendations"
-              value={chatgpt.recommendations.primaryRecommendationCount}
-              sublabel={`${Math.round(chatgpt.recommendations.primaryProbability * 100)}% primary recommendation rate`}
-            />
-            <div
-              className="analyze-grid"
-              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}
-            >
-              <MetricCard
-                label="Ranking"
-                value={chatgpt.ranking.position > 0 ? `#${chatgpt.ranking.position}` : "N/A"}
-                sublabel={chatgpt.ranking.position > 0 ? `of ${chatgpt.ranking.totalCompetitors} in ${chatgpt.ranking.category}` : "Not ranked in results"}
-              />
-              <MetricCard
-                label="Avg Position"
-                value={avgPosition ?? "N/A"}
-                sublabel={avgPosition ? `across ${positions.length} ranked queries` : "No rank data yet"}
-              />
-            </div>
-          </div>
-        </div>
+  const headerRight = (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+      {lockedProviders.map((provider) => (
+        <span key={provider.id} className="analysis-provider-pill">
+          <ProviderLogo provider={provider.id} size={12} />
+          {provider.name}
+        </span>
+      ))}
+    </div>
+  );
 
-        <SectionDivider spacing={2} />
-
-        {/* Query Type Breakdown */}
-        {chatgpt.queryResults.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            style={{ marginTop: "2.5rem" }}
-          >
-            <QueryTypeBreakdown
-              queryResults={chatgpt.queryResults}
-              businessName={analysis.businessName}
-            />
-          </motion.div>
-        )}
-
-        <SectionDivider spacing={2} />
-
-        {/* Competitor + Sentiment row */}
-        <div
-          className="analyze-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 16,
-            marginTop: "2.5rem",
-          }}
-        >
-          {/* Competitor Snapshot */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            style={{
-              background: "#14151a",
-              borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.06)",
-              padding: "1.25rem",
-            }}
-          >
-            <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Who ChatGPT Recommends Instead</h3>
-            <CompetitorTable competitors={chatgpt.competitors} />
-          </motion.div>
-
-          {/* Sentiment Summary */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35 }}
-            style={{
-              background: "#14151a",
-              borderRadius: 12,
-              border: "1px solid rgba(255,255,255,0.06)",
-              padding: "1.25rem",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Sentiment When Mentioned</h3>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-              <SentimentBadge
-                sentiment={
-                  chatgpt.sentiment.positive > 60
-                    ? "positive"
-                    : chatgpt.sentiment.negative > 30
-                      ? "negative"
-                      : "neutral"
-                }
-                size="md"
-              />
-              <span style={{ fontSize: "0.85rem", color: "#ffffff", fontWeight: 500 }}>
-                {chatgpt.sentiment.positive}% positive
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                height: 8,
-                borderRadius: 4,
-                overflow: "hidden",
-                background: "rgba(255,255,255,0.06)",
-              }}
-            >
-              <div style={{ width: `${chatgpt.sentiment.positive}%`, background: "#16a34a", borderRadius: "4px 0 0 4px" }} />
-              <div style={{ width: `${chatgpt.sentiment.neutral}%`, background: "#d97706" }} />
-              <div style={{ width: `${chatgpt.sentiment.negative}%`, background: "#dc2626", borderRadius: "0 4px 4px 0" }} />
-            </div>
-            <div style={{ display: "flex", gap: 16, marginTop: 10, fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>
-              <span>{chatgpt.sentiment.positive}% positive</span>
-              <span>{chatgpt.sentiment.neutral}% neutral</span>
-              <span>{chatgpt.sentiment.negative}% negative</span>
-            </div>
-
-            {/* Sentiment phrases preview */}
-            {chatgpt.sentiment.samplePhrases.length > 0 && (
-              <div style={{ marginTop: "auto", paddingTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-                {chatgpt.sentiment.samplePhrases.slice(0, 2).map((phrase, i) => (
+  return (
+    <div style={{ paddingBottom: 110 }}>
+      <DashboardShell
+        businessName={analysis.businessName}
+        subtitle={`ChatGPT recommended this business in ${chatgpt.recommendations.mentionCount} of ${chatgpt.recommendations.totalQueries} relevant prompts.`}
+        headerLeft={<ProviderLogo provider="chatgpt" size={20} />}
+        headerMeta={headerMeta}
+        headerRight={headerRight}
+        kpiItems={kpiItems}
+        tabs={[
+          { id: "overview", label: "Overview" },
+          { id: "evidence", label: "Evidence" },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(id) => setActiveTab(id as PartialTab)}
+        navLayoutId="partial-report-tab"
+        stickyFooter={stickyCta}
+        stickyMode="compact"
+      >
+        {activeTab === "overview" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+            <DashboardCard span={2} accentColor={snapshot.visibility.color}>
+              <div className="analysis-hero-grid">
+                <div>
                   <div
-                    key={i}
                     style={{
-                      display: "flex",
-                      alignItems: "flex-start",
+                      display: "inline-flex",
+                      alignItems: "center",
                       gap: 8,
-                      padding: "8px 10px",
-                      borderRadius: 8,
-                      background: "rgba(255,255,255,0.03)",
+                      padding: "5px 12px",
+                      borderRadius: 999,
+                      background: snapshot.visibility.background,
+                      color: snapshot.visibility.color,
+                      fontSize: "0.74rem",
+                      fontWeight: 600,
+                      marginBottom: 14,
                     }}
                   >
-                    <SentimentBadge sentiment={phrase.sentiment} />
-                    <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.5)", fontStyle: "italic", lineHeight: 1.4 }}>
-                      {phrase.text}
-                    </span>
+                    {snapshot.visibility.label} visibility
                   </div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        </div>
-
-        {/* Source Influence (ChatGPT only) */}
-        {(chatgpt.sources?.length ?? 0) > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.38 }}
-            style={{ marginTop: "2.5rem" }}
-          >
-            <SourceInfluenceMap
-              sources={chatgpt.sources}
-              providerName="ChatGPT"
-            />
-          </motion.div>
-        )}
-
-        <SectionDivider spacing={2} />
-
-        {/* Query Evidence Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          style={{ marginTop: "2.5rem" }}
-        >
-          <QueryEvidence
-            queries={chatgpt.queryResults}
-            businessName={analysis.businessName}
-          />
-        </motion.div>
-
-        <SectionDivider spacing={2} />
-
-        {/* Blurred: Claude & Gemini */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          style={{ marginTop: "2.5rem" }}
-        >
-          <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-            <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", margin: 0 }}>
-              Want the full picture?
-            </p>
-            <h3
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: "1.1rem",
-                fontWeight: 500,
-                color: "#ffffff",
-                margin: "4px 0 0",
-              }}
-            >
-              Unlock Claude & Gemini analysis
-            </h3>
-          </div>
-
-          {lockedProviders.map((provider) => (
-            <div key={provider.id} style={{ position: "relative", marginBottom: "1.5rem" }}>
-              <div
-                style={{
-                  filter: "blur(6px)",
-                  userSelect: "none",
-                  pointerEvents: "none",
-                  opacity: 0.5,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: "1rem" }}>
-                  <ProviderLogo provider={provider.id} size={18} />
-                  <h2 style={{ fontFamily: "var(--font-sans)", fontSize: "1.1rem", fontWeight: 500, color: "#ffffff", margin: 0 }}>
-                    {provider.name} Analysis
+                  <h2
+                    style={{
+                      margin: 0,
+                      fontSize: "clamp(1.55rem, 3vw, 2.25rem)",
+                      lineHeight: 1.06,
+                      color: "#ffffff",
+                      letterSpacing: "-0.04em",
+                    }}
+                  >
+                    ChatGPT sees {analysis.businessName}, but not reliably enough yet.
                   </h2>
+                  <p
+                    style={{
+                      margin: "14px 0 0",
+                      maxWidth: 720,
+                      fontSize: "0.95rem",
+                      color: "rgba(255,255,255,0.62)",
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {snapshot.visibility.description} The clearest gap is in{" "}
+                    <strong style={{ color: "#ffffff" }}>
+                      {snapshot.weakestQueryType?.label ?? "discovery"}
+                    </strong>{" "}
+                    prompts, where AI still defaults to{" "}
+                    <strong style={{ color: "#ffffff" }}>
+                      {snapshot.topCompetitor ?? "other practices"}
+                    </strong>
+                    .
+                  </p>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
+                    <span className="analysis-meta-pill">Snapshot first</span>
+                    <span className="analysis-meta-pill">Why it happened next</span>
+                    <span className="analysis-meta-pill">Full audit adds cross-platform proof</span>
+                  </div>
                 </div>
-                <div className="analyze-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <MetricCard label="Recommendation Probability" value="—%" />
-                  <MetricCard label="Category Ranking" value="#—" />
+
+                <div className="analysis-hero-score">
+                  <ScoreRing score={probability} size={132} strokeWidth={10} />
+                  <div style={{ display: "grid", gap: 10, width: "100%" }}>
+                    <div className="analysis-mini-stat">
+                      <span>Mentioned in prompts</span>
+                      <strong>
+                        {visibilityRatio}
+                      </strong>
+                    </div>
+                    <div className="analysis-mini-stat">
+                      <span>Primary recommendations</span>
+                      <strong>{chatgpt.recommendations.primaryRecommendationCount}</strong>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: "rgba(12,13,16,0.3)",
-                  borderRadius: 12,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "8px 20px",
-                    borderRadius: 999,
-                    background: "#14151a",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                  }}
-                >
-                  <ProviderLogo provider={provider.id} size={14} />
-                  <span style={{ fontSize: "0.78rem", fontWeight: 500, color: "#ffffff" }}>
-                    Unlock {provider.name}
-                  </span>
-                </div>
+            </DashboardCard>
+
+            <div>
+              <SectionLabel>Snapshot</SectionLabel>
+              <div className="dashboard-grid">
+                <DashboardCard title="Top blockers" accentColor="#d97706">
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {snapshot.blockers.map((blocker) => (
+                      <FindingBlock
+                        key={blocker.title}
+                        title={blocker.title}
+                        detail={blocker.detail}
+                        tone={blocker.tone}
+                      />
+                    ))}
+                  </div>
+                </DashboardCard>
+
+                <DashboardCard title="What is already working" accentColor="#16a34a">
+                  <div style={{ display: "grid", gap: 10 }}>
+                    {snapshot.wins.map((win) => (
+                      <FindingBlock
+                        key={win.title}
+                        title={win.title}
+                        detail={win.detail}
+                        tone={win.tone}
+                      />
+                    ))}
+                  </div>
+                </DashboardCard>
               </div>
             </div>
-          ))}
 
-          {/* Blurred comprehensive teasers */}
-          <div style={{ position: "relative", marginTop: "2.5rem" }}>
-            <div
-              style={{
-                filter: "blur(6px)",
-                userSelect: "none",
-                pointerEvents: "none",
-                opacity: 0.5,
-                display: "flex",
-                flexDirection: "column",
-                gap: 16,
-              }}
-            >
-              {/* Fake cross-platform source influence */}
-              <div style={{ background: "#14151a", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "1.5rem" }}>
-                <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Cross-Platform Source Influence</h3>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {["Google Reviews", "Yelp", "TripAdvisor", "Google Maps"].map((s, i) => (
-                    <div key={s} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      <span style={{ width: 120, fontSize: "0.8rem", color: "#fff", fontWeight: 500 }}>{s}</span>
-                      <div style={{ flex: 1, height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${80 - i * 15}%`, borderRadius: 3, background: "#d9770666" }} />
+            <div>
+              <SectionLabel>Why This Happened</SectionLabel>
+              <div className="dashboard-grid">
+                <DashboardCard title="Query pattern" subtitle="Where ChatGPT sees the business">
+                  <div style={{ display: "grid", gap: 14 }}>
+                    <div className="analysis-mini-grid">
+                      <div className="analysis-mini-panel">
+                        <span>Strongest</span>
+                        <strong>{snapshot.strongestQueryType?.label ?? "N/A"}</strong>
+                        <small>
+                          {snapshot.strongestQueryType
+                            ? `${Math.round(snapshot.strongestQueryType.mentionRate * 100)}% mention rate`
+                            : "No query data"}
+                        </small>
                       </div>
-                      <div style={{ display: "flex", gap: 3, alignItems: "center" }}>
-                        {LLM_PROVIDERS.map((p) => (
-                          <ProviderLogo key={p.id} provider={p.id} size={10} />
-                        ))}
+                      <div className="analysis-mini-panel">
+                        <span>Weakest</span>
+                        <strong>{snapshot.weakestQueryType?.label ?? "N/A"}</strong>
+                        <small>
+                          {snapshot.weakestQueryType
+                            ? `${Math.round(snapshot.weakestQueryType.mentionRate * 100)}% mention rate`
+                            : "No query data"}
+                        </small>
                       </div>
                     </div>
+                    <QueryTypeBreakdown
+                      queryResults={chatgpt.queryResults}
+                      businessName={analysis.businessName}
+                    />
+                  </div>
+                </DashboardCard>
+
+                <DashboardCard title="Competitive context" subtitle="Who wins when you do not">
+                  <div style={{ display: "grid", gap: 14 }}>
+                    <div className="analysis-mini-panel">
+                      <span>Main threat</span>
+                      <strong>{snapshot.topCompetitor ?? "No competitor data"}</strong>
+                      <small>Currently the competitor most likely to be recommended first.</small>
+                    </div>
+                    <CompetitorTable competitors={chatgpt.competitors} />
+                  </div>
+                </DashboardCard>
+              </div>
+            </div>
+
+            <div className="dashboard-grid">
+              <DashboardCard title="Source and sentiment readout" subtitle="Why ChatGPT formed this impression">
+                <div style={{ display: "grid", gap: 14 }}>
+                  <div className="analysis-mini-grid">
+                    <div className="analysis-mini-panel">
+                      <span>Most cited source</span>
+                      <strong>{snapshot.topSource?.name ?? "No source data"}</strong>
+                      <small>
+                        {snapshot.topSource
+                          ? `${snapshot.topSource.count} citations`
+                          : "No source data available"}
+                      </small>
+                    </div>
+                    <div className="analysis-mini-panel">
+                      <span>Sentiment</span>
+                      <strong style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <SentimentBadge sentiment={snapshot.sentimentLabel} size="md" />
+                      </strong>
+                      <small>{chatgpt.sentiment.positive}% positive phrasing when mentioned</small>
+                    </div>
+                  </div>
+                  {snapshot.sampleQuote && (
+                    <div
+                      style={{
+                        padding: "14px 16px",
+                        borderRadius: 12,
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        color: "rgba(255,255,255,0.62)",
+                        fontStyle: "italic",
+                      }}
+                    >
+                      {snapshot.sampleQuote}
+                    </div>
+                  )}
+                  {(chatgpt.sources?.length ?? 0) > 0 && (
+                    <SourceInfluenceMap sources={chatgpt.sources} providerName="ChatGPT" />
+                  )}
+                </div>
+              </DashboardCard>
+
+              <DashboardCard title="Unlock full audit" subtitle="What you know now vs what comes next" accentColor="#ffffff">
+                <div className="analysis-upgrade-grid">
+                  <div className="analysis-mini-panel">
+                    <span>What this free audit tells you</span>
+                    <strong>Enough to understand the current problem</strong>
+                    <small>
+                      Visibility level, strongest and weakest prompt types, top competitor, and the evidence behind the result.
+                    </small>
+                  </div>
+                  <div className="analysis-mini-panel">
+                    <span>What the full audit adds</span>
+                    <strong>Enough to decide what to fix first</strong>
+                    <small>
+                      40+ prompts across three AI engines, source overlap, accuracy issues, and a ranked action plan.
+                    </small>
+                  </div>
+                </div>
+                <div style={{ marginTop: 14, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {LLM_PROVIDERS.map((provider) => (
+                    <span key={provider.id} className="analysis-provider-pill">
+                      <ProviderLogo provider={provider.id} size={12} />
+                      {provider.name}
+                    </span>
                   ))}
                 </div>
-              </div>
-
-              {/* Fake methodology */}
-              <div style={{ background: "#14151a", borderRadius: 12, border: "1px solid rgba(255,255,255,0.06)", padding: "1.5rem" }}>
-                <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 1rem 0" }}>Full Methodology & Verification</h3>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#fff" }}>100+</div>
-                    <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>Total queries</div>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#fff" }}>3</div>
-                    <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>AI platforms</div>
-                  </div>
-                  <div style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: "1.5rem", fontWeight: 500, color: "#fff" }}>8</div>
-                    <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>Query types</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "rgba(12,13,16,0.3)",
-                borderRadius: 12,
-              }}
-            >
-              <button
-                onClick={onUnlock}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "12px 28px",
-                  borderRadius: 8,
-                  background: "#ffffff",
-                  border: "none",
-                  cursor: "pointer",
-                  boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
-                  transition: "opacity 0.15s",
-                  fontFamily: "var(--font-sans)",
-                }}
-                onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
-                onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
-              >
-                <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "#0c0d10" }}>
-                  Unlock full cross-platform report
-                </span>
-              </button>
+              </DashboardCard>
             </div>
           </div>
-        </motion.div>
-      </div>
+        )}
 
-      {/* Sticky CTA */}
-      <div
-        style={{
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          background: "rgba(12,13,16,0.95)",
-          backdropFilter: "blur(12px)",
-          borderTop: "1px solid rgba(255,255,255,0.08)",
-          padding: "1rem 2rem",
-          zIndex: 50,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 16,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {LLM_PROVIDERS.map((p) => (
-            <ProviderLogo key={p.id} provider={p.id} size={14} />
-          ))}
-        </div>
-        <span style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.6)" }}>
-          Full report: 40+ queries, 3 AI engines, source attribution
-        </span>
-        <button
-          onClick={onUnlock}
-          style={{
-            padding: "0.6rem 1.5rem",
-            fontSize: "0.85rem",
-            fontWeight: 500,
-            fontFamily: "var(--font-sans)",
-            borderRadius: 8,
-            border: "none",
-            background: "#ffffff",
-            color: "#0c0d10",
-            cursor: "pointer",
-            transition: "opacity 0.15s",
-          }}
-          onMouseOver={(e) => (e.currentTarget.style.opacity = "0.85")}
-          onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
-        >
-          Unlock full report
-        </button>
-      </div>
-    </motion.div>
+        {activeTab === "evidence" && (
+          <DashboardCard noPadding>
+            <QueryEvidence
+              queries={chatgpt.queryResults}
+              businessName={analysis.businessName}
+            />
+          </DashboardCard>
+        )}
+      </DashboardShell>
+    </div>
   );
 }

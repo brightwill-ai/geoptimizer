@@ -12,6 +12,7 @@ interface QueryTypeBreakdownProps {
 
 const queryTypeLabels: Record<string, string> = {
   discovery: "Discovery",
+  subcategory_discovery: "Niche Search",
   direct: "Direct",
   comparison: "Comparison",
   use_case: "Use Case",
@@ -25,6 +26,7 @@ const queryTypeLabels: Record<string, string> = {
 
 const queryTypeDescriptions: Record<string, string> = {
   discovery: "Generic search queries",
+  subcategory_discovery: "Subcategory-specific search terms",
   direct: "Directly asking about your business",
   comparison: "Comparing you to competitors",
   use_case: "Scenario-based recommendations",

@@ -49,9 +49,15 @@ src/
 │   └── analyze/                          # Analysis feature components
 │       ├── search-step.tsx               # Business name + location (Nominatim autocomplete) + category form
 │       ├── loading-step.tsx              # Provider badges + query progress (tier-aware)
-│       ├── partial-report.tsx            # Probability hero + evidence + source influence + blurred teasers
+│       ├── partial-report.tsx            # Dashboard layout: 2 tabs (Overview + Evidence), locked teasers
 │       ├── email-gate.tsx                # Email collection modal → returns comprehensiveAnalysisId
-│       ├── full-report.tsx               # All 3 LLMs in tabs with source map + query breakdown
+│       ├── full-report.tsx               # Dashboard layout: 5 tabs (Overview, Deep Dive, Sources, Evidence, Action Plan)
+│       ├── dashboard-shell.tsx           # Dashboard outer container: sticky KPI + nav, cross-fade tab content
+│       ├── dashboard-card.tsx            # Glassmorphism card wrapper with lock overlay support
+│       ├── dashboard-nav.tsx             # Animated sliding pill tab bar (layoutId spring animation)
+│       ├── kpi-row.tsx                   # Auto-flowing stat card strip with accent borders + mini rings
+│       ├── insight-cards.tsx             # Severity-coded insight cards (strengths/opportunities/gaps)
+│       ├── provider-comparison-visual.tsx # 3-column visual provider comparison with rings + stat rows
 │       ├── recommendation-hero.tsx       # Large probability ring + description
 │       ├── query-evidence.tsx            # Chat-style query/response viewer with provider avatars
 │       ├── query-type-breakdown.tsx      # Visibility by query type (stacked bars + stats)
@@ -74,10 +80,11 @@ src/
     └── agents/                           # LLM analysis pipeline
         ├── clients.ts                    # SDK singletons + MODEL_CONFIG
         ├── prompts.ts                    # Prompt templates + BUSINESS_CATEGORIES
+        ├── profiler.ts                   # Business profiler (GPT-4.1-mini + web search → subcategory/specialties)
         ├── runner.ts                     # runFreeAudit() + runComprehensiveAudit() + legacy runAnalysis()
         ├── parser.ts                     # GPT-4o-mini structured extraction
         ├── aggregator.ts                 # Score computation (probability-weighted) + report assembly
-        ├── query-bank.ts                 # Query template bank (38 templates per category)
+        ├── query-bank.ts                 # Query template bank (37 templates per category, ~65% generic / ~35% direct)
         └── action-plan-generator.ts      # GPT-4.1 generates comprehensive GEO action plan from analysis
 ```
 
@@ -89,10 +96,12 @@ User input → POST /api/analysis (tier=fast) → 1 Analysis + 1 LLMJob (ChatGPT
                                                           ↓
                                                runFreeAudit() fire-and-forget
                                                           ↓
-                                          5 queries from query bank (sequential)
+                                          profileBusiness() → subcategory/specialties (~2-4s)
+                                                          ↓
+                                          5 queries from query bank (sequential, subcategory-aware)
                                           each: queryLLM → parseResponse → QueryExecution record
                                                           ↓
-                                               aggregator → DB update
+                                               aggregator + split metrics → DB update
                                                           ↑
 Frontend polls GET /api/analysis/[id] every 2s (includes queryProgress) ─┘
 ```
@@ -102,6 +111,8 @@ Frontend polls GET /api/analysis/[id] every 2s (includes queryProgress) ─┘
 Email gate → POST /api/analysis/[id]/claim → new Analysis + 3 LLMJobs
                                                           ↓
                                           runComprehensiveAudit() fire-and-forget
+                                                          ↓
+                                          profileBusiness() → subcategory/specialties (~2-4s)
                                                           ↓
                                        3 providers in parallel (Promise.allSettled)
                                        each: 33+ queries sequential → parse → QueryExecution
@@ -123,14 +134,17 @@ Public report page /report/[token] polls /api/report/[token] ─┘
    - Returns `{ id, status }` immediately
 
 3. **Free audit** (`runner.ts` → `runFreeAudit()`):
-   - Loads 5 free-tier queries from QueryTemplate bank for the business's category
+   - Profiles business via `profileBusiness()` → gets subcategory, specialties, search terms (~2-4s)
+   - Loads 5 free-tier queries from QueryTemplate bank, rendered with subcategory-aware placeholders
    - Runs each query sequentially through ChatGPT (15-25s total)
    - Creates a `QueryExecution` record per query with raw response + parsed data
    - Computes recommendation probability: `mentions / totalQueries`
+   - Computes split metrics: `organicDiscoveryRate` (generic queries) + `brandAwarenessRate` (direct queries)
    - Stores `queryResults` on the LLMReport for frontend display
 
 4. **Comprehensive audit** (`runner.ts` → `runComprehensiveAudit()`):
-   - Loads 33+ comprehensive queries from query bank
+   - Profiles business first (same as free audit)
+   - Loads 37 comprehensive queries from query bank (subcategory-aware)
    - Runs 3 providers in parallel, each processing queries sequentially
    - Creates `QueryExecution` records per query per provider
    - Generates `shareToken` (nanoid) for public report URL
@@ -146,11 +160,11 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 7. **Frontend polling** (`analyze/page.tsx`): Polls every 2s. Response includes `queryProgress: { completed, total, currentQueryText }`. `total` comes from `Analysis.queryCount` (set before the query loop starts). Loading step is tier-aware: free shows ChatGPT badge only, comprehensive shows all 3 provider badges with individual status.
 
-8. **Partial report** (`partial-report.tsx`): Shows recommendation probability hero ring, query evidence table, query type breakdown, competitor snapshot, sentiment, ChatGPT source influence. Blurred teasers for: Claude/Gemini analysis, cross-platform source comparison, full methodology.
+8. **Partial report** (`partial-report.tsx`): Dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: 2-column CSS grid with RecommendationHero, QueryTypeBreakdown, CompetitorTable, sentiment card, SourceInfluenceMap. Locked DashboardCards for Claude/Gemini with blur overlay. Sticky CTA bar at bottom.
 
 9. **Email gate** (`email-gate.tsx`): Collects email → `POST /api/analysis/[id]/claim` → returns `comprehensiveAnalysisId` → parent starts polling comprehensive analysis with loading step.
 
-10. **Full report** (`full-report.tsx`): Methodology section, per-provider probability rings, cross-platform comparison table (with sources cited row), source influence map (cross-platform), tabbed deep-dive per provider with: query evidence, query type breakdown, per-provider source influence, metrics, topics, competitors, accuracy, sentiment.
+10. **Full report** (`full-report.tsx`): Dashboard layout with sticky KPI row (avg + per-provider probabilities with mini rings) + 5 tabs. Overview: ProviderComparisonVisual + InsightCards + SourceInfluenceMap + Methodology + LLMComparisonTable. Deep Dive: provider sub-tabs → 2-column grid with hero, metrics, query breakdown, competitors, topics, accuracy, sources, sentiment, evidence. Sources: cross-platform + per-provider maps. Evidence: provider sub-tabs → QueryEvidence. Action Plan: ActionPlan or ActionItems.
 
 11. **Public report** (`/report/[token]`): Standalone page polls `/api/report/[token]`. Shows loading during analysis, full report when complete.
 
@@ -159,10 +173,15 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 ### Query Bank System
 `query-bank.ts` manages reusable query templates stored in `QueryTemplate` table.
 
-- **38 templates per category** (5 free + 33 comprehensive) across 8 query types: discovery, direct, comparison, use_case, reviews, specifics, source_probing, verification
-- Templates use placeholders: `{businessName}`, `{location}`, `{categoryPlural}`, `{categoryDescriptor}`
+- **37 templates per category** (5 free + 32 comprehensive) across 9 query types: discovery, subcategory_discovery, direct, comparison, use_case, reviews, specifics, source_probing, verification
+- **~65% generic / ~35% direct-mention** — most queries do NOT mention the business name, mirroring real user search behavior. Only direct, reviews, specifics, source_probing, and verification queries mention `{businessName}`.
+- Templates use placeholders: `{businessName}`, `{location}`, `{categoryPlural}`, `{categoryDescriptor}`, `{subcategoryPlural}`, `{specialty}`, `{searchTerm}`
+- Subcategory-aware placeholders (`{subcategoryPlural}`, `{specialty}`, `{searchTerm}`) are populated by the business profiler — e.g., a sushi restaurant gets "sushi restaurants" not "restaurants"
 - Falls back to "generic" category if no specific templates found
-- Seeded via `npx tsx prisma/seed.ts` (seeds all 10 categories + generic = 418 templates)
+- Seeded via `npx tsx prisma/seed.ts` (seeds all 10 categories + generic = 407 templates). Use `--force` flag to clear and re-seed.
+
+### Business Profiler
+`profiler.ts` runs a quick GPT-4.1-mini call with web search before queries start (~2-4s, ~$0.002) to determine the business's subcategory, specialties, and realistic search terms. Returns a `BusinessProfile` with `subcategory`, `specialties[]`, `searchTerms[]`, `subcategoryPlural`. Falls back to generic category profile on failure — analysis never fails due to profiling.
 
 ### Prompts (category-aware)
 `prompts.ts` exports `BUSINESS_CATEGORIES` and helper functions `categoryPlural()`, `categoryDescriptor()`.
@@ -233,7 +252,8 @@ type LLMProvider = "chatgpt" | "claude" | "gemini"  // NO perplexity
 
 interface RecommendationMetrics {
   totalQueries, mentionCount, primaryRecommendationCount, passingMentionCount,
-  notMentionedCount, recommendationProbability (0-1), primaryProbability (0-1), mentionTrend
+  notMentionedCount, recommendationProbability (0-1), primaryProbability (0-1), mentionTrend,
+  organicDiscoveryRate? (0-1), brandAwarenessRate? (0-1)
 }
 
 interface QueryResult {

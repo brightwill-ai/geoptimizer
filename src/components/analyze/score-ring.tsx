@@ -17,14 +17,15 @@ export function ScoreRing({
   sublabel,
   animated = true,
 }: ScoreRingProps) {
+  const clampedScore = Math.max(0, Math.min(100, score));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
+  const dashOffset = 100 - clampedScore;
 
   return (
     <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
       <div style={{ position: "relative", width: size, height: size }}>
-        <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+        <svg width={size} height={size} style={{ transform: "rotate(-90deg)", overflow: "visible" }}>
           {/* Track */}
           <circle
             cx={size / 2}
@@ -33,6 +34,7 @@ export function ScoreRing({
             fill="none"
             stroke="rgba(255,255,255,0.08)"
             strokeWidth={strokeWidth}
+            pathLength={100}
           />
           {/* Fill */}
           <circle
@@ -43,13 +45,14 @@ export function ScoreRing({
             stroke="#ffffff"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
+            pathLength={100}
+            strokeDasharray="100"
+            strokeDashoffset={dashOffset}
             style={animated ? {
               animation: "score-fill 1s ease-out forwards",
-              strokeDashoffset: circumference,
+              strokeDashoffset: 100,
               animationDelay: "0.3s",
-            } : { strokeDashoffset: offset }}
+            } : { strokeDashoffset: dashOffset }}
           />
         </svg>
         <div
@@ -65,7 +68,7 @@ export function ScoreRing({
             color: "#ffffff",
           }}
         >
-          {score}
+          {clampedScore}
         </div>
       </div>
       {label && (
@@ -77,7 +80,7 @@ export function ScoreRing({
       <style jsx>{`
         @keyframes score-fill {
           to {
-            stroke-dashoffset: ${offset};
+            stroke-dashoffset: ${dashOffset};
           }
         }
       `}</style>
