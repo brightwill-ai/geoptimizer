@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getOpenAIClient } from "./clients";
+import { getOpenAIClient, MODEL_CONFIG } from "./clients";
 import type {
   GEOAnalysis,
   LLMProvider,
@@ -9,29 +9,29 @@ import type {
 } from "@/lib/mock-data";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
 
-// ── Zod schema for LLM output validation ──
+// ── Zod schema for LLM output validation (lenient — filters malformed items) ──
 
 const ActionPlanItemSchema = z.object({
   title: z.string(),
-  description: z.string(),
-  reasoning: z.string(),
-  priority: z.enum(["critical", "high", "medium", "low"]),
-  effort: z.enum(["quick_win", "half_day", "1_2_days", "1_week", "ongoing"]),
-  dataPoints: z.array(z.string()),
+  description: z.string().default(""),
+  reasoning: z.string().default(""),
+  priority: z.enum(["critical", "high", "medium", "low"]).default("medium"),
+  effort: z.enum(["quick_win", "half_day", "1_2_days", "1_week", "ongoing"]).default("half_day"),
+  dataPoints: z.array(z.string()).default([]),
 });
 
 const ActionPlanCategorySchema = z.object({
   key: z.string(),
   label: z.string(),
-  description: z.string(),
-  estimatedEffort: z.string(),
-  priority: z.enum(["critical", "high", "medium", "low"]),
-  items: z.array(ActionPlanItemSchema),
+  description: z.string().default(""),
+  estimatedEffort: z.string().default("~2-4 days"),
+  priority: z.enum(["critical", "high", "medium", "low"]).default("medium"),
+  items: z.array(z.unknown()).default([]),
 });
 
 const ActionPlanOutputSchema = z.object({
   categories: z.array(ActionPlanCategorySchema),
-  estimatedTotalEffort: z.string(),
+  estimatedTotalEffort: z.string().default("6-8 weeks"),
 });
 
 // ── Analysis data extraction for prompt ──
@@ -237,7 +237,7 @@ export async function generateActionPlan(
   const analysisSummary = buildAnalysisSummary(analysis, category, location);
 
   const completion = await client.chat.completions.create({
-    model: "gpt-4.1",
+    model: MODEL_CONFIG.chatgpt.comprehensive,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       {
@@ -246,8 +246,9 @@ export async function generateActionPlan(
       },
     ],
     temperature: 0.3,
+    max_tokens: 16000,
     response_format: { type: "json_object" },
-  }, { timeout: 120000 });
+  }, { timeout: 180000 });
 
   const content = completion.choices[0]?.message?.content;
   if (!content) {
@@ -255,27 +256,127 @@ export async function generateActionPlan(
   }
 
   const raw = JSON.parse(content);
-  const validated = ActionPlanOutputSchema.parse(raw);
 
-  // Assemble the final ActionPlan with IDs and counts
-  const categories: ActionPlanCategory[] = validated.categories.map((cat) => ({
-    key: cat.key,
-    label: cat.label,
-    description: cat.description,
-    estimatedEffort: cat.estimatedEffort,
-    priority: cat.priority,
-    items: cat.items.map((item, idx) => ({
-      id: `${cat.key}-${idx}`, // Temporary IDs — replaced with DB IDs after createMany
-      title: item.title,
-      description: item.description,
-      reasoning: item.reasoning,
-      priority: item.priority,
-      effort: item.effort,
-      dataPoints: item.dataPoints,
-      completed: false,
-    })),
-    completedCount: 0,
-  }));
+  // Known category metadata — used to fill defaults when LLM omits them
+  const CATEGORY_META: Record<string, { label: string; description: string; priority: "critical" | "high" | "medium" | "low" }> = {
+    entity_trust: { label: "Entity Trust & Business Consistency", description: "NAP consistency, Google Business Profile, platform presence alignment.", priority: "critical" },
+    technical_foundation: { label: "Technical AI Crawlability", description: "Robots.txt, SSR, llms.txt, sitemap, AI crawler access.", priority: "critical" },
+    structured_data: { label: "Schema.org & Structured Data", description: "Organization, LocalBusiness, FAQ, HowTo, Product schema markup.", priority: "high" },
+    content_structure: { label: "Content Structure for AI Retrieval", description: "Chunk-level optimization, answer-first formatting, topic clusters.", priority: "high" },
+    citation_authority: { label: "Citation-Worthiness & Authority Building", description: "Original research, E-E-A-T signals, freshness, earned media.", priority: "high" },
+    source_presence: { label: "Source & Directory Presence", description: "Review platforms, directories, and listings AI engines cite.", priority: "high" },
+    competitor_strategy: { label: "Competitor Differentiation", description: "Comparison pages, unique positioning vs competitors found in analysis.", priority: "medium" },
+    content_marketing: { label: "Content Marketing & Knowledge Platforms", description: "Blog articles, Reddit/Quora answers, case studies targeting failed queries.", priority: "medium" },
+    reputation_sentiment: { label: "Reputation & Sentiment Management", description: "Address negative sentiment, encourage reviews, build review velocity.", priority: "medium" },
+    monitoring: { label: "AI Visibility Monitoring & Testing", description: "Monthly re-testing, citation tracking, competitive benchmarking.", priority: "low" },
+  };
+
+  // Normalize LLM output — it may return categories as top-level keys instead of an array
+  let parseable = raw;
+  if (!raw.categories && typeof raw === "object") {
+    const CATEGORY_KEYS = Object.keys(CATEGORY_META);
+    const foundCategories = CATEGORY_KEYS
+      .filter((k) => raw[k] && typeof raw[k] === "object")
+      .map((k) => {
+        const catData = raw[k];
+        const meta = CATEGORY_META[k];
+        // Normalize items: could be catData.items array or catData itself could be an array
+        const items = Array.isArray(catData.items) ? catData.items : Array.isArray(catData) ? catData : [];
+        return {
+          key: k,
+          label: catData.label ?? meta.label,
+          description: catData.description ?? meta.description,
+          estimatedEffort: catData.estimatedEffort ?? catData.estimated_effort ?? "~2-4 days",
+          priority: catData.priority ?? meta.priority,
+          items,
+        };
+      });
+
+    if (foundCategories.length > 0) {
+      parseable = {
+        categories: foundCategories,
+        estimatedTotalEffort: raw.estimatedTotalEffort ?? raw.estimated_total_effort ?? "6-8 weeks",
+      };
+    } else {
+      // Fallback: check for nested wrapper or array values
+      for (const key of Object.keys(raw)) {
+        const val = raw[key];
+        if (val && typeof val === "object" && !Array.isArray(val) && Array.isArray(val.categories)) {
+          parseable = val;
+          break;
+        }
+        if (Array.isArray(val) && val.length > 0 && val[0]?.key && val[0]?.items) {
+          parseable = { categories: val, estimatedTotalEffort: raw.estimatedTotalEffort ?? "6-8 weeks" };
+          break;
+        }
+      }
+    }
+  }
+
+  // Also normalize snake_case fields inside categories/items
+  if (parseable.categories && Array.isArray(parseable.categories)) {
+    parseable.categories = parseable.categories.map((cat: Record<string, unknown>) => ({
+      ...cat,
+      estimatedEffort: cat.estimatedEffort ?? cat.estimated_effort ?? "~2-4 days",
+      items: Array.isArray(cat.items) ? (cat.items as Record<string, unknown>[]).map((item) => ({
+        ...item,
+        dataPoints: item.dataPoints ?? item.data_points ?? [],
+      })) : [],
+    }));
+  }
+
+  const validated = ActionPlanOutputSchema.parse(parseable);
+
+  // Assemble the final ActionPlan — filter out malformed/truncated items
+  const categories: ActionPlanCategory[] = validated.categories.map((cat) => {
+    let rawItems = cat.items as Record<string, unknown>[];
+
+    // Handle case where items is an object (not array) with titles as keys
+    if (!Array.isArray(cat.items) && typeof cat.items === "object" && cat.items !== null) {
+      rawItems = Object.entries(cat.items as Record<string, unknown>).map(([title, data]) => ({
+        title,
+        ...(typeof data === "object" && data !== null ? data : {}),
+      })) as Record<string, unknown>[];
+    }
+    const validItems = rawItems
+      .filter((item) => item && typeof item === "object")
+      .map((item) => {
+        // Normalize: LLM may omit title/reasoning — derive from description
+        const desc = (item.description ?? item.title ?? "") as string;
+        const title = (item.title ?? (desc.length > 80 ? desc.slice(0, 77) + "..." : desc)) as string;
+        const reasoning = (item.reasoning ?? item.reason ?? desc) as string;
+        if (!title) return null;
+
+        const parsed = ActionPlanItemSchema.safeParse({
+          ...item,
+          title,
+          description: desc,
+          reasoning,
+          dataPoints: item.dataPoints ?? item.data_points ?? [],
+        });
+        return parsed.success ? parsed.data : null;
+      })
+      .filter((item): item is z.infer<typeof ActionPlanItemSchema> => item !== null);
+
+    return {
+      key: cat.key,
+      label: cat.label,
+      description: cat.description,
+      estimatedEffort: cat.estimatedEffort,
+      priority: cat.priority,
+      items: validItems.map((item, idx) => ({
+        id: `${cat.key}-${idx}`,
+        title: item.title,
+        description: item.description,
+        reasoning: item.reasoning,
+        priority: item.priority,
+        effort: item.effort,
+        dataPoints: item.dataPoints,
+        completed: false,
+      })),
+      completedCount: 0,
+    };
+  }).filter((cat) => cat.items.length > 0);
 
   const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
 

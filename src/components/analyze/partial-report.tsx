@@ -143,21 +143,6 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
 
         <SectionDivider spacing={2} />
 
-        {/* Query Evidence Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          style={{ marginTop: "2.5rem" }}
-        >
-          <QueryEvidence
-            queries={chatgpt.queryResults}
-            businessName={analysis.businessName}
-          />
-        </motion.div>
-
-        <SectionDivider spacing={2} />
-
         {/* Query Type Breakdown */}
         {chatgpt.queryResults.length > 0 && (
           <motion.div
@@ -290,6 +275,21 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             />
           </motion.div>
         )}
+
+        <SectionDivider spacing={2} />
+
+        {/* Query Evidence Table */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          style={{ marginTop: "2.5rem" }}
+        >
+          <QueryEvidence
+            queries={chatgpt.queryResults}
+            businessName={analysis.businessName}
+          />
+        </motion.div>
 
         <SectionDivider spacing={2} />
 

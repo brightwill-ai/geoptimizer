@@ -18,6 +18,7 @@ npm run dev
 - **Database:** SQLite (`prisma/dev.db`) via Prisma ORM
 - **LLM SDKs:** OpenAI (`openai`), Anthropic (`@anthropic-ai/sdk`), Google (`@google/genai`)
 - **Animations:** Framer Motion + CSS keyframes
+- **Email:** Resend SDK (`resend`) — sends report-ready notification after comprehensive analysis
 - **Auth:** None (email gate for full reports)
 - **Deployment:** Docker on Alibaba Cloud VPC, GitHub Actions CI/CD
 
@@ -68,6 +69,7 @@ src/
 └── lib/
     ├── prisma.ts                         # Prisma singleton
     ├── utils.ts                          # cn(), formatDate(), slugify()
+    ├── email.ts                          # Resend client + sendReportReadyEmail() (dark-themed HTML template)
     ├── mock-data.ts                      # Types + mock data generator (source of truth for LLMProvider)
     └── agents/                           # LLM analysis pipeline
         ├── clients.ts                    # SDK singletons + MODEL_CONFIG
@@ -132,6 +134,7 @@ Public report page /report/[token] polls /api/report/[token] ─┘
    - Runs 3 providers in parallel, each processing queries sequentially
    - Creates `QueryExecution` records per query per provider
    - Generates `shareToken` (nanoid) for public report URL
+   - Sends report-ready email via Resend with unique report link (`/report/[token]`)
    - Target: 5-15 minutes
 
 5. **Parsing** (`parser.ts`): Raw LLM text → GPT-4.1-mini (via LiteLLM or direct OpenAI) extracts: businessMentioned, mentionType, rankPosition, sentiment (nullable — null when business not mentioned), competitors, topics, accuracy, sourcesCited (review platforms, directories, news, etc.).
@@ -302,6 +305,9 @@ OPENAI_API_KEY=sk-...                # Required for ChatGPT + parser
 OPENAI_BASE_URL=                     # Optional: LiteLLM proxy URL (e.g. Duke AI Gateway)
 ANTHROPIC_API_KEY=sk-ant-...         # Required for Claude
 GOOGLE_AI_API_KEY=AI...              # Required for Gemini
+RESEND_API_KEY=re_...                # Required for report emails (Resend)
+APP_URL=http://localhost:3000        # Base URL for report links in emails
+RESEND_FROM_EMAIL=                   # Optional: custom from address (default: onboarding@resend.dev)
 ```
 
 ## Key Commands

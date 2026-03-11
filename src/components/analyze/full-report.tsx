@@ -299,16 +299,6 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
               providerName={activeReport.provider.name}
             />
 
-            {/* Query Evidence */}
-            {activeReport.queryResults.length > 0 && (
-              <div style={{ marginTop: "1.5rem" }}>
-                <QueryEvidence
-                  queries={activeReport.queryResults}
-                  businessName={analysis.businessName}
-                />
-              </div>
-            )}
-
             {/* Query Type Breakdown */}
             {activeReport.queryResults.length > 0 && (
               <div style={{ marginTop: "1.5rem" }}>
@@ -522,6 +512,16 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                 ))}
               </div>
             </div>
+
+            {/* Query Evidence — at the bottom */}
+            {activeReport.queryResults.length > 0 && (
+              <div style={{ marginBottom: "3rem" }}>
+                <QueryEvidence
+                  queries={activeReport.queryResults}
+                  businessName={analysis.businessName}
+                />
+              </div>
+            )}
           </>)}
           </div>
         </motion.div>

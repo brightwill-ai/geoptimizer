@@ -23,6 +23,8 @@ const PROVIDER_NAMES: Record<LLMProvider, string> = {
   gemini: "Gemini",
 };
 
+const ITEMS_PER_PAGE = 7;
+
 /** Strip markdown artifacts and return clean readable text. */
 function cleanResponseText(text: string): string {
   let cleaned = text;
@@ -67,6 +69,11 @@ function cleanResponseText(text: string): string {
 
 export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(queries.length / ITEMS_PER_PAGE);
+  const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+  const pageQueries = queries.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
   return (
     <div
@@ -93,8 +100,9 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column" }}>
-        {queries.map((q, i) => {
-          const isExpanded = expandedIndex === i;
+        {pageQueries.map((q, pageIdx) => {
+          const globalIdx = startIdx + pageIdx;
+          const isExpanded = expandedIndex === globalIdx;
           const mentionColor =
             q.mentionType === "primary_recommendation"
               ? "#16a34a"
@@ -118,10 +126,10 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
           const providerName = PROVIDER_NAMES[q.provider] ?? q.provider;
 
           return (
-            <div key={i}>
+            <div key={globalIdx}>
               {/* Row header — click to expand */}
               <button
-                onClick={() => setExpandedIndex(isExpanded ? null : i)}
+                onClick={() => setExpandedIndex(isExpanded ? null : globalIdx)}
                 style={{
                   width: "100%",
                   padding: "0.875rem 1.25rem",
@@ -157,7 +165,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                     flexShrink: 0,
                   }}
                 >
-                  {String(i + 1).padStart(2, "0")}
+                  {String(globalIdx + 1).padStart(2, "0")}
                 </span>
 
                 {/* Query text */}
@@ -324,8 +332,9 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                               color: "rgba(255,255,255,0.6)",
                               lineHeight: 1.6,
                               whiteSpace: "pre-line",
-                              maxHeight: 220,
+                              maxHeight: 160,
                               overflowY: "auto",
+                              overscrollBehavior: "contain",
                             }}
                           >
                             {cleanResponseText(q.rawResponseExcerpt)}
@@ -395,6 +404,128 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
           );
         })}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+            padding: "0.75rem 1.25rem 1rem",
+            borderTop: "1px solid rgba(255,255,255,0.04)",
+          }}
+        >
+          {/* Previous */}
+          <button
+            onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); setExpandedIndex(null); }}
+            disabled={currentPage === 1}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: currentPage === 1 ? "transparent" : "rgba(255,255,255,0.04)",
+              color: currentPage === 1 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.5)",
+              cursor: currentPage === 1 ? "default" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "0.75rem",
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseOver={(e) => { if (currentPage > 1) e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = currentPage === 1 ? "transparent" : "rgba(255,255,255,0.04)"; }}
+          >
+            &#8249;
+          </button>
+
+          {/* Page numbers */}
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+            // Show: first, last, current, and neighbors of current
+            const show =
+              page === 1 ||
+              page === totalPages ||
+              Math.abs(page - currentPage) <= 1;
+            const showEllipsis =
+              !show &&
+              (page === currentPage - 2 || page === currentPage + 2);
+
+            if (showEllipsis) {
+              return (
+                <span
+                  key={page}
+                  style={{
+                    width: 24,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.7rem",
+                    color: "rgba(255,255,255,0.25)",
+                  }}
+                >
+                  &middot;&middot;&middot;
+                </span>
+              );
+            }
+
+            if (!show) return null;
+
+            const isActive = page === currentPage;
+            return (
+              <button
+                key={page}
+                onClick={() => { setCurrentPage(page); setExpandedIndex(null); }}
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  border: isActive ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.08)",
+                  background: isActive ? "rgba(255,255,255,0.1)" : "transparent",
+                  color: isActive ? "#ffffff" : "rgba(255,255,255,0.45)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "0.75rem",
+                  fontWeight: isActive ? 600 : 400,
+                  fontFamily: "var(--font-mono, monospace)",
+                  transition: "all 0.15s",
+                }}
+                onMouseOver={(e) => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+                onMouseOut={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+              >
+                {page}
+              </button>
+            );
+          })}
+
+          {/* Next */}
+          <button
+            onClick={() => { setCurrentPage((p) => Math.min(totalPages, p + 1)); setExpandedIndex(null); }}
+            disabled={currentPage === totalPages}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.08)",
+              background: currentPage === totalPages ? "transparent" : "rgba(255,255,255,0.04)",
+              color: currentPage === totalPages ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.5)",
+              cursor: currentPage === totalPages ? "default" : "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "0.75rem",
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseOver={(e) => { if (currentPage < totalPages) e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = currentPage === totalPages ? "transparent" : "rgba(255,255,255,0.04)"; }}
+          >
+            &#8250;
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -565,6 +565,7 @@ body {
 .query-response-scroll {
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,0.12) transparent;
+  transition: max-height 0.35s ease, mask-image 0.35s ease, -webkit-mask-image 0.35s ease;
 }
 .query-response-scroll::-webkit-scrollbar {
   width: 4px;

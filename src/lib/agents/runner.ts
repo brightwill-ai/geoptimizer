@@ -13,6 +13,7 @@ import { parseAllResponses, parseResponse } from "./parser";
 import { aggregateToLLMReport, assembleGEOAnalysis } from "./aggregator";
 import { getQueriesForTier } from "./query-bank";
 import { generateActionPlan } from "./action-plan-generator";
+import { sendReportReadyEmail } from "@/lib/email";
 
 const LLM_TIMEOUT = 30_000; // 30s per LLM call
 const RETRY_DELAY = 2_000;
@@ -591,13 +592,15 @@ export async function runComprehensiveAudit(
     console.warn(`[ComprehensiveAudit ${analysisId}] Action plan generation failed:`, err);
   }
 
+  const shareToken = nanoid(12);
+
   await prisma.analysis.update({
     where: { id: analysisId },
     data: {
       status: "complete",
       queryCount: queries.length * LLM_PROVIDERS.length,
       recommendationProbability: geoAnalysis.summary.averageProbability,
-      shareToken: nanoid(12),
+      shareToken,
       resultJson: JSON.stringify(geoAnalysis),
       actionPlanJson,
       actionPlanStatus: actionPlanJson ? "complete" : "failed",
@@ -606,4 +609,23 @@ export async function runComprehensiveAudit(
   });
 
   console.log(`[ComprehensiveAudit ${analysisId}] Complete. Avg probability: ${(geoAnalysis.summary.averageProbability * 100).toFixed(0)}%`);
+
+  // Send report email to user (non-blocking on failure)
+  try {
+    const analysis = await prisma.analysis.findUnique({
+      where: { id: analysisId },
+      select: { user: { select: { email: true } } },
+    });
+    if (analysis?.user?.email) {
+      await sendReportReadyEmail({
+        to: analysis.user.email,
+        businessName,
+        shareToken,
+        recommendationProbability: geoAnalysis.summary.averageProbability,
+      });
+      console.log(`[ComprehensiveAudit ${analysisId}] Report email sent to ${analysis.user.email}`);
+    }
+  } catch (emailErr) {
+    console.warn(`[ComprehensiveAudit ${analysisId}] Email notification failed:`, emailErr);
+  }
 }
