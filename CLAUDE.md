@@ -14,7 +14,7 @@ npm run dev
 ## Tech Stack
 
 - **Framework:** Next.js 16 (App Router) + TypeScript
-- **Styling:** Tailwind CSS v4 + inline styles (dark-first, cool-neutral palette)
+- **Styling:** Tailwind CSS v4 + inline styles (warm beige palette, Anthropic-inspired)
 - **Database:** SQLite (`prisma/dev.db`) via Prisma ORM
 - **LLM SDKs:** OpenAI (`openai`), Anthropic (`@anthropic-ai/sdk`), Google (`@google/genai`)
 - **Animations:** Framer Motion + CSS keyframes
@@ -292,36 +292,47 @@ interface ActionPlanItemData = { id, title, description, reasoning,
 - **Accent:** Instrument Serif — available but rarely used (landing page uses Instrument Sans only)
 - Loaded via Google Fonts in layout.tsx
 
-### Colors (Light Theme)
+### Colors (Warm Beige Theme)
 ```
-Surfaces:    #ffffff (cards), #f7f7f8 (page bg / elevated), #f0f0f0 (hover / track)
+Page bg:     #f3efe8 (warm beige, Anthropic-inspired)
+Surfaces:    #ffffff (cards), #f7f7f8 (elevated / input), #f0f0f0 (hover / track)
 Borders:     #e5e5e5 (default), #ececec (subtle)
 Text:        #171717 (primary), #6e6e80 (secondary), #8e8ea0 (muted)
 Status:      #16a34a (green), #d97706 (amber), #dc2626 (red)
 LLM accents: #10a37f (ChatGPT), #c084fc (Claude), #4285f4 (Gemini)
-Mesh hero:   #fdf3ee (base), #fb923c (amber orb), #f472b6 (rose orb), #fde68a (gold orb)
+Mesh base:   #fdf8f5 (warm blush base for orb container)
+Mesh orbs:   #f0a070 (amber-orange), #f490b0 (rose-pink), #f5c080 (warm gold),
+             #f0a0b0 (coral-rose), #f5d0a0 (peach)
 ```
 
 ### Mesh gradient background
-Animated fluid mesh at the top of landing, analyze, and report pages:
-- **Container:** `position: fixed`, 520px tall, `background: #fdf3ee`, `zIndex: 0`
-- **Orbs:** 3 blurred circles (`border-radius: 50%`, `filter: blur(80px)`) with `radial-gradient` fills
-- **Animation:** CSS keyframes with prime-ish durations (6s, 8s, 11s) and `ease-in-out infinite alternate`
-- **Bottom fade:** Internal `linear-gradient(to bottom, transparent 0%, #f7f7f8 100%)` at 60% height
+Animated warm blush mesh at the top of landing, analyze, and report pages. Five blurred orbs with saturated warm tones over a `#fdf8f5` base, creating a soft fluid light effect:
+- **Container:** `position: fixed` (fixed mode) or `position: absolute` (hero/inline), 520px tall, `background: #fdf8f5`
+- **Orbs:** 5 blurred circles (`border-radius: 50%`, `filter: blur(90px)`) with `radial-gradient` fills:
+  - Amber-orange `#f0a070` (700px, opacity 0.92) — top-left
+  - Rose-pink `#f490b0` (650px, opacity 0.78) — top-right
+  - Warm gold `#f5c080` (600px, opacity 0.74) — bottom-left
+  - Coral-rose `#f0a0b0` (550px, opacity 0.68) — bottom-right
+  - Peach `#f5d0a0` (450px, opacity 0.58) — center
+- **Animation:** CSS keyframes `drift1`–`drift5` with staggered durations (14s, 18s, 15s, 20s, 16s) and `ease-in-out infinite alternate`
+- **Subtle mode:** Multiplies all orb opacities by 0.65 for subdued section backgrounds
+- **Bottom fade:** `linear-gradient(to bottom, transparent 0%, #f3efe8 100%)` at 60% height (fixed mode)
+- **Scroll fade (hero mode):** Overlay fades to `rgba(243, 239, 232, 1)` (page bg) as user scrolls
 - **Nav:** Transparent (`background: "transparent"`, no backdrop filter) so mesh shows through
 
 ### Landing page rhythm
-Light theme with mesh hero — (Nav → Hero [mesh bg] → PlatformBar → Stats → HowWeMeasure → ReportShowcase → Features → HowItWorks → Pricing → FAQ → CTAFooter [mesh bg])
+Warm beige theme with mesh hero — (Nav → Hero [mesh bg] → PlatformBar → Stats → HowWeMeasure → ReportShowcase → Features → HowItWorks → Pricing → FAQ → CTAFooter [mesh bg])
 - Vertical bounding lines via `.grid-bg` pseudo-elements (repeating-radial-gradient dotted pattern)
 - Section dividers via `.section-divider-dotted` (horizontal dotted pattern)
 - CTAFooter combines CTA + Footer with bottom mesh gradient
+- Hero h1 uses `fontWeight: 400` (medium), subtitle uses `fontWeight: 450`
 
 ### Dashboard UI design language
-Clean light dashboard (Linear/Notion-inspired):
-- **Dashboard shell:** Header/KPI zone is transparent (mesh gradient shows through from parent page), fades via 60px gradient into `#f7f7f8` content zone
+Clean light dashboard (Linear/Notion-inspired) on warm beige page:
+- **Dashboard shell:** Header/KPI zone is transparent (mesh gradient shows through from parent page), fades via 60px gradient into `#f3efe8` content zone
 - **Card depth:** `box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)` with hover `translateY(-2px)` + `0 8px 24px rgba(0,0,0,0.06)`
 - **KPI cards:** White bg, `1px solid #e5e5e5`, optional 3px left accent bar
-- **Score rings:** SVG donut with `#f0f0f0` track, `#171717` fill, ref-guarded CSS transition (animates once on mount, stable on re-renders)
+- **Score rings:** SVG donut with `#f0f0f0` track, `#171717` fill, rAF-deferred CSS transition (animates once on mount, stable on re-renders)
 - **Tab nav:** Bottom dotted border via `repeating-radial-gradient`, active tab has 2px solid underline
 - **Motion easing:** `cubic-bezier(0.16, 1, 0.3, 1)` for enters, `type: "spring", bounce: 0.15` for Framer Motion
 - **Provider-colored sub-tabs:** DashboardNav supports per-tab `color` for active underline tinting

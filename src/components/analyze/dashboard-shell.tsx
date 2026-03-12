@@ -147,16 +147,16 @@ export function DashboardShell({
       <div
         style={{
           height: 60,
-          background: "linear-gradient(to bottom, transparent 0%, #f7f7f8 100%)",
+          background: "linear-gradient(to bottom, transparent 0%, #f3efe8 100%)",
           position: "relative",
           zIndex: 1,
         }}
       />
 
-      {/* Gray content zone */}
+      {/* Beige content zone */}
       <div
         style={{
-          background: "#f7f7f8",
+          background: "#f3efe8",
           position: "relative",
           zIndex: 1,
         }}

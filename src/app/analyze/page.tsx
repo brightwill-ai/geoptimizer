@@ -273,7 +273,7 @@ function AnalyzePageInner() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f7f7f8" }}>
+    <div style={{ minHeight: "100vh", background: "#f3efe8" }}>
       <MeshGradient mode="fixed" height={520} />
 
       <Nav />

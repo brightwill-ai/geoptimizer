@@ -6,53 +6,56 @@ This skill guides creation of distinctive, production-grade frontend interfaces 
 
 ### Typography
 - **Primary Font:** Instrument Sans (`--font-sans`) — Used for all UI text, body, buttons
-- **Display Font:** Inter (`--font-display`) — Thin weights (200, 300) for hero headlines and large display text
+- **Display Font:** Inter (`--font-display`) — Medium weight (400) for hero headlines and large display text
 - **Accent Font:** Instrument Serif (`--font-serif`) — Available but rarely used
-- Font weights: 400 (regular), 500 (medium), 600 (semibold), 700 (bold)
+- Font weights: 400 (regular), 450 (subtitle), 500 (medium), 600 (semibold), 700 (bold)
 - Never use generic system fonts (Roboto, Arial, etc.)
 
-### Color Palette (All-Dark Theme)
+### Color Palette (Warm Beige Theme — Anthropic-inspired)
 
 ```
 Surfaces:
-  --bg-dark: #0c0d10        (Page background — all pages)
-  --bg-dark-2: #14151a       (Cards, elevated containers)
-  --bg-dark-3: #1a1b21       (Inputs, further elevated)
-  --border-dark: #22232a     (Borders everywhere)
+  --bg-page: #f3efe8         (Page background — warm beige, all pages)
+  --bg-card: #ffffff          (Cards, white)
+  --bg-elevated: #f7f7f8      (Elevated containers, inputs)
+  --bg-hover: #f0f0f0         (Hover states, tracks)
+
+Borders:
+  --border-default: #e5e5e5
+  --border-subtle: #ececec
 
 Text:
-  --text-primary: #ffffff
-  --text-secondary: rgba(255,255,255,0.6)
-  --text-muted: rgba(255,255,255,0.4)
-  --text-faint: rgba(255,255,255,0.3)
-
-Subtle fills:
-  rgba(255,255,255,0.03)    (hover states)
-  rgba(255,255,255,0.06)    (badges, pills, number circles)
-  rgba(255,255,255,0.08)    (bar tracks, ring tracks)
+  --text-primary: #171717
+  --text-secondary: #6e6e80
+  --text-muted: #8e8ea0
 
 LLM accents:
-  --chatgpt-green: #10a37f
-  --claude-purple: #c084fc
-  --gemini-blue: #4285f4
+  --accent-chatgpt: #10a37f
+  --accent-claude: #c084fc
+  --accent-gemini: #4285f4
 
 Status:
-  --success: #16a34a
-  --warning: #d97706
-  --error: #dc2626
+  --status-green: #16a34a
+  --status-amber: #d97706
+  --status-red: #dc2626
 
-Status backgrounds (semi-transparent for dark theme):
-  rgba(22,163,74,0.15)     (green bg)
-  rgba(217,119,6,0.15)     (amber bg)
-  rgba(220,38,38,0.15)     (red bg)
+Status tinted backgrounds:
+  --tint-green: #f0fdf4
+  --tint-amber: #fffbeb
+  --tint-red: #fef2f2
+
+Mesh gradient:
+  Base: #fdf8f5 (warm blush, orb container background)
+  Orbs: #f0a070 (amber-orange), #f490b0 (rose-pink), #f5c080 (warm gold),
+        #f0a0b0 (coral-rose), #f5d0a0 (peach)
 ```
 
 ### Typography Scale
 - Eyebrow: 0.72-0.78rem - uppercase, letter-spacing 0.08em, font-weight 600
 - Body: 0.85-0.875rem - standard text
-- Body Large: 1rem - hero descriptions
+- Body Large: 1rem - hero descriptions (fontWeight 450)
 - Headings: clamp() responsive sizing
-  - H1: clamp(2rem, 5vw, 3rem) on analyze pages; clamp(2.8rem, 4.5vw, 4rem) on landing
+  - H1: clamp(2rem, 5vw, 3rem) on analyze pages; clamp(2.8rem, 4.5vw, 4rem) on landing (fontWeight 400)
   - H2: clamp(2rem, 3.5vw, 2.8rem)
 
 ### Animation Guidelines
@@ -65,6 +68,7 @@ Status backgrounds (semi-transparent for dark theme):
   - Entry: fade + slide up from 20px (0.5s ease)
   - Reveal animations: `.reveal`, `.reveal-scale`, `.reveal-left`, `.reveal-right`, `.reveal-blur`
   - IntersectionObserver via `useReveal()` hook triggers `.visible` class
+  - Mesh orb drifts: `drift1`–`drift5` (14s–20s, ease-in-out infinite alternate)
 - **Hover states:** opacity 0.85 + translateY(-1px), 0.15s ease
 - Always respect `prefers-reduced-motion`
 
@@ -72,56 +76,58 @@ Status backgrounds (semi-transparent for dark theme):
 
 **Navigation:**
 - Fixed nav at top, 60px height
-- Dark background (rgba(12,13,16,0.88)) with white text
-- Backdrop blur, centered nav links (rgba(255,255,255,0.5) → white on hover)
-- White CTA button on right, border-radius 8px
+- Transparent background, no backdrop filter (mesh shows through)
+- Dark text (#171717), nav links (#6e6e80 → #171717 on hover)
+- Dark CTA button (#171717 bg, white text), border-radius 8px
 
 **Buttons:**
-- Primary: white bg (#ffffff), dark text (#0c0d10), border-radius 8px
-- Outline: transparent with rgba(255,255,255,0.2) border, white text
-- Disabled: rgba(255,255,255,0.2) background, muted text, cursor not-allowed
+- Primary: dark bg (#171717), white text, border-radius 8px
+- Outline: transparent with #e5e5e5 border, dark text, hover → #f7f7f8 bg
+- Disabled: muted background, muted text, cursor not-allowed
 - Keep 999px radius ONLY for small badge/pill elements
 
 **Cards:**
-- Background: #14151a, border: 1px solid #22232a, border-radius 12px
-- No box-shadow by default on dark theme
+- Background: #ffffff, border: 1px solid #e5e5e5, border-radius 12px
+- Box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)
+- Hover: translateY(-2px) + 0 8px 24px rgba(0,0,0,0.06)
 
 **Forms:**
-- Input bg: #1a1b21
-- Border: #22232a, focus: rgba(255,255,255,0.3)
+- Input bg: #f7f7f8
+- Border: #e5e5e5, focus: #171717
 - border-radius: 8px
-- Text: #ffffff, placeholder: rgba(255,255,255,0.25)
+- Text: #171717, placeholder: #8e8ea0
 - padding: 0.875rem 1.25rem
 
 **Score Ring (analysis):**
-- SVG donut chart, stroke #ffffff on rgba(255,255,255,0.08) track
-- Animate with CSS `score-fill` keyframe
+- SVG donut chart, stroke #171717 on #f0f0f0 track
+- Animates once on mount via rAF-deferred state update, stable on re-renders
 
 **Badges / Pills:**
 - border-radius: 999px
 - padding: 6px 14px
 - Colored dot (8px circle) + label text
-- Status colors use semi-transparent backgrounds on dark theme
+- Status colors use tinted backgrounds (#f0fdf4, #fffbeb, #fef2f2)
 
 ## Layout Patterns
 
 ### Hero Section (landing)
 ```css
-background: #0c0d10; min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
-gap: 3rem; padding: 8rem 2.5rem 5rem; max-width: 1140px; margin: 0 auto;
+background: #fdf8f5; min-height: 90vh; display: grid; grid-template-columns: 1fr 1fr;
+gap: 80px; padding: 10rem 60px 5rem; max-width: 1280px; margin: 0 auto;
 ```
+Overlaid with MeshGradient (hero mode) + scroll-fade to #f3efe8.
 
 ### Full-page step (analyze)
 ```css
 min-height: calc(100vh - 60px); display: flex; align-items: center;
 justify-content: center; padding: 2rem;
-background: #0c0d10;
+background: #f3efe8;
 ```
 
 ### Content Sections
 ```css
-max-width: 1140px; margin: 0 auto; padding: 6rem 2.5rem;
-background: #0c0d10;
+max-width: 1280px; margin: 0 auto; padding: 6rem 2.5rem;
+background: #f3efe8;
 ```
 
 ### Responsive: 860px breakpoint
@@ -146,7 +152,7 @@ Both reports use `DashboardShell` → sticky KPI row + animated tab nav + cross-
 
 **Dashboard wrapper components:**
 - `DashboardShell`: full-width (maxWidth 1400px), sticky section (KPI + nav at top: 60px), cross-fade tab transitions (AnimatePresence + blur)
-- `DashboardCard`: glassmorphism card (rgba(20,21,26,0.7), backdrop-blur, hover lift), lock overlay support
+- `DashboardCard`: white card (#ffffff, 1px #e5e5e5 border, hover lift), lock overlay support
 - `DashboardNav`: animated sliding pill tabs (motion.div layoutId spring), pill-style active state
 - `KPIRow`: auto-fit grid (minmax 180px) stat cards with accent-colored top borders + mini ScoreRings
 - `InsightCards`: 3-column severity grid (strengths/opportunities/gaps) with colored icons
@@ -180,8 +186,8 @@ Always use these exact colors for LLM badges/indicators:
 ## Never Use
 
 - Generic system fonts (Roboto, Arial)
-- Warm beige (#f0eeea) or white backgrounds anywhere
-- Light theme colors (#fafafa, #ffffff for backgrounds, #dddbd7 borders)
+- Pure white (#ffffff) as page background — use #f3efe8 warm beige
+- Dark theme colors (#0c0d10, #14151a) — theme is warm beige light
 - Bouncy/playful animations
 - Bright accent colors outside the defined palette
 - Tailwind class approximations for exact hex values — use inline styles
@@ -206,7 +212,7 @@ Always use these exact colors for LLM badges/indicators:
 ## File Organization
 
 - `src/app/` — Next.js App Router pages
-- `src/components/ui/` — Base primitives (Button, Input, Card)
+- `src/components/ui/` — Base primitives (Button, Input, Card, MeshGradient)
 - `src/components/[feature]/` — Feature-specific components
 - `src/lib/` — Utilities, DB client, types
 - `src/lib/agents/` — LLM pipeline (clients, prompts, runner, parser, aggregator)
@@ -215,10 +221,10 @@ Always export from index files for cleaner imports.
 
 ## Landing Page Structure
 
-All sections are DARK (#0c0d10 background):
+Warm beige (#f3efe8) background with blush mesh gradient hero:
 
-1. **Nav** — fixed, blur backdrop, white text, "Get free audit" CTA
-2. **Hero** — 2-column: text left + HeroReportMockup right (product-first)
+1. **Nav** — fixed, transparent, dark text, "Get free audit" CTA
+2. **Hero** — 2-column: text left (fontWeight 400 h1) + HeroReportMockup right, MeshGradient behind
 3. **PlatformBar** — static row: "Analyzes responses from" + ChatGPT/Claude/Gemini dots
 4. **Stats** — 3 animated counters with vertical dividers (100M+, 40+, 3)
 5. **HowWeMeasure** — 2-column: methodology text left, example query table + probability ring right

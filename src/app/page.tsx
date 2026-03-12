@@ -570,7 +570,7 @@ function Hero() {
           height: "35%",
           zIndex: 1,
           pointerEvents: "none",
-          background: "linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.5) 40%, #ffffff 100%)",
+          background: "linear-gradient(to bottom, transparent 0%, rgba(243,239,232,0.5) 40%, #f3efe8 100%)",
         }}
       />
     </section>
@@ -593,7 +593,7 @@ function Stats() {
   return (
     <div
       ref={ref}
-      style={{ background: "#f7f7f8" }}
+      style={{ background: "#f3efe8" }}
     >
       <div
         style={{
@@ -659,7 +659,7 @@ function ReportShowcase() {
     <div
       ref={ref}
       style={{
-        background: "#f7f7f8",
+        background: "#f3efe8",
         padding: "8rem 2.5rem",
       }}
     >
@@ -965,11 +965,11 @@ function ReportShowcase() {
 function LineChartBg() {
   return (
     <svg width="100%" height="100%" viewBox="0 0 400 200" preserveAspectRatio="none" style={{ position: "absolute", inset: 0, opacity: 0.35 }}>
-      <polyline points="0,150 40,135 80,140 120,95 160,105 200,68 240,82 280,55 320,70 360,48 400,60" fill="none" stroke="#171717" strokeWidth="1.5" />
-      <polyline points="0,160 40,148 80,125 120,135 160,115 200,122 240,98 280,108 320,88 360,95 400,82" fill="none" stroke="#f59e0b" strokeWidth="1.5" />
-      <polyline points="0,172 40,168 80,158 120,162 160,145 200,150 240,138 280,142 320,128 360,132 400,118" fill="none" stroke="#06b6d4" strokeWidth="1.5" />
-      <polyline points="0,180 40,176 80,172 120,168 160,162 200,165 240,155 280,158 320,148 360,152 400,140" fill="none" stroke="#ef4444" strokeWidth="1.5" />
-      <polyline points="0,188 40,186 80,183 120,180 160,177 200,178 240,172 280,174 320,168 360,170 400,162" fill="none" stroke="#a855f7" strokeWidth="1.5" />
+      <polyline points="0,150 40,135 80,140 120,95 160,105 200,68 240,82 280,55 320,70 360,48 400,60" fill="none" stroke="#f0a070" strokeWidth="1.5" />
+      <polyline points="0,160 40,148 80,125 120,135 160,115 200,122 240,98 280,108 320,88 360,95 400,82" fill="none" stroke="#f490b0" strokeWidth="1.5" />
+      <polyline points="0,172 40,168 80,158 120,162 160,145 200,150 240,138 280,142 320,128 360,132 400,118" fill="none" stroke="#f5c080" strokeWidth="1.5" />
+      <polyline points="0,180 40,176 80,172 120,168 160,162 200,165 240,155 280,158 320,148 360,152 400,140" fill="none" stroke="#f0a0b0" strokeWidth="1.5" />
+      <polyline points="0,188 40,186 80,183 120,180 160,177 200,178 240,172 280,174 320,168 360,170 400,162" fill="none" stroke="#f5d0a0" strokeWidth="1.5" />
     </svg>
   );
 }
@@ -983,10 +983,10 @@ function Features() {
     <div
       id="features"
       ref={ref}
-      style={{ position: "relative", overflow: "hidden", background: "#ffffff" }}
+      style={{ position: "relative", overflow: "hidden", background: "#f3efe8" }}
     >
       <MeshGradient mode="hero" scrollFade={false} subtle />
-      {/* Bottom fade to white */}
+      {/* Bottom fade to page bg */}
       <div
         style={{
           position: "absolute",
@@ -996,7 +996,7 @@ function Features() {
           height: "40%",
           zIndex: 1,
           pointerEvents: "none",
-          background: "linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.6) 50%, #ffffff 100%)",
+          background: "linear-gradient(to bottom, transparent 0%, rgba(243,239,232,0.6) 50%, #f3efe8 100%)",
         }}
       />
       <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "7rem 2.5rem", position: "relative", zIndex: 2 }}>
@@ -1107,8 +1107,8 @@ function Features() {
             ].map((src) => (
               <div key={src.name} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
                 <span style={{ fontSize: "0.72rem", color: "#6e6e80", width: 130, flexShrink: 0 }}>{src.name}</span>
-                <div style={{ flex: 1, height: 5, background: "#e5e5e5", borderRadius: 3, overflow: "hidden" }}>
-                  <div style={{ width: `${src.score}%`, height: "100%", background: `rgba(23,23,23,${src.score > 70 ? 0.7 : src.score > 50 ? 0.4 : 0.2})`, borderRadius: 3 }} />
+                <div style={{ flex: 1, height: 5, background: "#f0ebe4", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${src.score}%`, height: "100%", background: `rgba(240,160,112,${src.score > 70 ? 0.85 : src.score > 50 ? 0.6 : 0.35})`, borderRadius: 3 }} />
                 </div>
                 <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "#6e6e80", width: 28, textAlign: "right" }}>{src.score}</span>
               </div>
@@ -1133,8 +1133,8 @@ function Features() {
                 <span style={{ fontSize: "0.72rem", color: c.highlight ? "#171717" : "#8e8ea0", fontWeight: c.highlight ? 600 : 400, width: 100, flexShrink: 0 }}>
                   {c.name}
                 </span>
-                <div style={{ flex: 1, height: 6, background: "#e5e5e5", borderRadius: 3, overflow: "hidden" }}>
-                  <div style={{ width: `${c.pct}%`, height: "100%", background: c.highlight ? "#171717" : "rgba(23,23,23,0.15)", borderRadius: 3 }} />
+                <div style={{ flex: 1, height: 6, background: "#f0ebe4", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${c.pct}%`, height: "100%", background: c.highlight ? "#f0a070" : "rgba(240,160,112,0.25)", borderRadius: 3 }} />
                 </div>
                 <span style={{ fontSize: "0.72rem", fontWeight: 500, color: c.highlight ? "#171717" : "#8e8ea0", width: 32, textAlign: "right" }}>
                   {c.pct}%
@@ -2040,7 +2040,7 @@ function Pricing() {
     <div
       id="pricing"
       ref={ref}
-      style={{ background: "#ffffff" }}
+      style={{ background: "#f3efe8" }}
     >
       <div
         style={{
@@ -2351,7 +2351,7 @@ function CTAFooter() {
           height: "40%",
           zIndex: 1,
           pointerEvents: "none",
-          background: "linear-gradient(to bottom, #ffffff 0%, rgba(255,255,255,0.6) 50%, transparent 100%)",
+          background: "linear-gradient(to bottom, #f3efe8 0%, rgba(243,239,232,0.6) 50%, transparent 100%)",
         }}
       />
 
@@ -2447,7 +2447,7 @@ function CTAFooter() {
 // ── Main Page ──
 export default function Home() {
   return (
-    <div className="grid-bg" style={{ background: "#ffffff" }}>
+    <div className="grid-bg" style={{ background: "#f3efe8" }}>
       <Nav />
       <Hero />
       <div className="section-divider-dotted" />
