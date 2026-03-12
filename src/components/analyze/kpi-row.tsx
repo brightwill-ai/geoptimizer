@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
+import { useAnalyzeTheme } from "@/contexts/analyze-theme";
 import { ScoreRing } from "./score-ring";
 
 export interface KPIItem {
@@ -19,6 +20,16 @@ interface KPIRowProps {
 }
 
 export function KPIRow({ items }: KPIRowProps) {
+  const theme = useAnalyzeTheme();
+  const isLight = theme === "light";
+  const defaultBg = isLight ? "#ffffff" : "rgba(20, 21, 26, 0.8)";
+  const borderColor = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+  const boxShadow = isLight ? "0 2px 16px rgba(0,0,0,0.06)" : "0 2px 16px rgba(0,0,0,0.25)";
+  const labelColor = isLight ? "#71717a" : "rgba(255,255,255,0.4)";
+  const valueColor = isLight ? "#18181b" : "#ffffff";
+  const sublabelColor = isLight ? "#71717a" : "rgba(255,255,255,0.35)";
+  const detailColor = isLight ? "#52525b" : "rgba(255,255,255,0.58)";
+
   return (
     <div
       style={{
@@ -32,19 +43,20 @@ export function KPIRow({ items }: KPIRowProps) {
           key={item.label}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, delay: i * 0.05, ease: "easeOut" }}
+          transition={{ duration: 0.35, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            background: "rgba(20, 21, 26, 0.8)",
-            border: "1px solid rgba(255,255,255,0.06)",
+            background: item.accentColor
+              ? `linear-gradient(135deg, ${item.accentColor}08, transparent 60%)`
+              : defaultBg,
+            border: `1px solid ${borderColor}`,
             borderRadius: 12,
             padding: "1.25rem 1.5rem",
             position: "relative",
             overflow: "hidden",
+            boxShadow,
             ...(item.accentColor
               ? {
-                  borderTopWidth: 2,
-                  borderTopStyle: "solid" as const,
-                  borderTopColor: item.accentColor,
+                  borderLeft: `3px solid ${item.accentColor}`,
                 }
               : {}),
           }}
@@ -58,7 +70,7 @@ export function KPIRow({ items }: KPIRowProps) {
                 right: 0,
                 width: 100,
                 height: 100,
-                background: `radial-gradient(circle at top right, ${item.accentColor}0a, transparent 70%)`,
+                background: `radial-gradient(circle at top right, ${item.accentColor}15, transparent 70%)`,
                 pointerEvents: "none",
               }}
             />
@@ -90,7 +102,7 @@ export function KPIRow({ items }: KPIRowProps) {
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "rgba(255,255,255,0.4)",
+                    color: labelColor,
                     lineHeight: 1,
                   }}
                 >
@@ -101,9 +113,9 @@ export function KPIRow({ items }: KPIRowProps) {
               {/* Value */}
               <div
                 style={{
-                  fontSize: "1.75rem",
-                  fontWeight: 600,
-                  color: "#ffffff",
+                  fontSize: "1.5rem",
+                  fontWeight: 700,
+                  color: valueColor,
                   lineHeight: 1.1,
                   fontVariantNumeric: "tabular-nums",
                 }}
@@ -116,7 +128,7 @@ export function KPIRow({ items }: KPIRowProps) {
                 <div
                   style={{
                     fontSize: "0.72rem",
-                    color: "rgba(255,255,255,0.35)",
+                    color: sublabelColor,
                     marginTop: 4,
                     lineHeight: 1.3,
                   }}
@@ -128,7 +140,7 @@ export function KPIRow({ items }: KPIRowProps) {
                 <div
                   style={{
                     fontSize: "0.74rem",
-                    color: "rgba(255,255,255,0.58)",
+                    color: detailColor,
                     marginTop: 8,
                     lineHeight: 1.3,
                     fontVariantNumeric: "tabular-nums",

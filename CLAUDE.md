@@ -1,6 +1,6 @@
 # BrightWill
 
-GEO (Generative Engine Optimization) analysis platform for local businesses. Measures **recommendation probability** — how likely each AI engine is to recommend a business when relevant queries are asked. Two tiers: free (ChatGPT only, 5 queries, instant) and comprehensive (all 3 engines, 40+ queries, email-gated).
+GEO (Generative Engine Optimization) analysis platform for local businesses. Measures **recommendation probability** — how likely each AI engine is to recommend a business when relevant queries are asked. Three tiers: free (ChatGPT only, 5 queries, instant), Full Audit ($99, all 3 engines, 40+ queries), and Audit + Strategy ($199, full audit plus execution roadmap, monthly re-audits, strategy call).
 
 ## Quick Start
 
@@ -14,12 +14,14 @@ npm run dev
 ## Tech Stack
 
 - **Framework:** Next.js 16 (App Router) + TypeScript
-- **Styling:** Tailwind CSS v4 + inline styles (dark-first, cool-neutral palette)
+- **Styling:** Tailwind CSS v4 + inline styles (landing + analyze flow: light theme; public report `/report/[token]`: dark). Analyze theme via `AnalyzeThemeProvider` and `useAnalyzeTheme()` in `contexts/analyze-theme.tsx`.
 - **Database:** SQLite (`prisma/dev.db`) via Prisma ORM
 - **LLM SDKs:** OpenAI (`openai`), Anthropic (`@anthropic-ai/sdk`), Google (`@google/genai`)
 - **Animations:** Framer Motion + CSS keyframes
 - **Email:** Resend SDK (`resend`) — sends report-ready notification after comprehensive analysis
-- **Auth:** None (email gate for full reports)
+- **Payments:** Stripe Checkout ($99 one-time) — `stripe` SDK, dev bypass via NODE_ENV
+- **PDF:** Client-side export via `html2canvas` + `jspdf`
+- **Auth:** None (Stripe payment gate for full reports)
 - **Deployment:** Docker on Alibaba Cloud VPC, GitHub Actions CI/CD
 
 ## Project Structure
@@ -35,23 +37,28 @@ src/
 │   │   ├── signups/route.ts              # POST /api/signups
 │   │   ├── location/route.ts             # GET /api/location (IP geolocation)
 │   │   ├── analysis/route.ts             # POST /api/analysis (create + fire-and-forget)
+│   │   ├── checkout/route.ts              # POST /api/checkout (Stripe Checkout Session)
+│   │   ├── webhooks/stripe/route.ts      # POST /api/webhooks/stripe (Stripe webhook handler)
+│   │   ├── health/route.ts               # GET /api/health (DB health check)
 │   │   ├── analysis/[id]/
 │   │   │   ├── route.ts                  # GET /api/analysis/[id] (poll status + query progress + actionPlan)
-│   │   │   ├── claim/route.ts            # POST /api/analysis/[id]/claim (email gate)
+│   │   │   ├── claim/route.ts            # POST /api/analysis/[id]/claim (payment verification + comprehensive audit)
 │   │   │   └── action-plan/
 │   │   │       ├── route.ts              # GET (live plan) + POST (regenerate)
 │   │   │       └── [itemId]/route.ts     # PATCH (toggle completion, notes)
 │   │   └── report/[token]/route.ts       # GET /api/report/[token] (public report data)
 │   ├── globals.css
 │   └── layout.tsx
+├── contexts/
+│   └── analyze-theme.tsx                 # AnalyzeThemeProvider + useAnalyzeTheme() for light/dark analyze UI
 ├── components/
-│   ├── ui/                               # Base primitives (button, input, card, textarea)
+│   ├── ui/                               # Base primitives (button, input, card, textarea, section-divider, scroll-audit)
 │   └── analyze/                          # Analysis feature components
 │       ├── search-step.tsx               # Business name + location (Nominatim autocomplete) + category form
 │       ├── loading-step.tsx              # Provider badges + query progress (tier-aware)
-│       ├── partial-report.tsx            # Dashboard layout: 2 tabs (Overview + Evidence), locked teasers
-│       ├── email-gate.tsx                # Email collection modal → returns comprehensiveAnalysisId
-│       ├── full-report.tsx               # Dashboard layout: 5 tabs (Overview, Deep Dive, Sources, Evidence, Action Plan)
+│       ├── partial-report.tsx            # Competitor-first dashboard: 2 tabs (Overview + Evidence), "what customers see" card, $99 CTAs
+│       ├── email-gate.tsx                # Payment gate modal → Stripe Checkout redirect (dev bypass in development)
+│       ├── full-report.tsx               # Dashboard layout: 5 tabs (Overview, Providers, Sources, Evidence, Action Plan) + PDF download
 │       ├── dashboard-shell.tsx           # Dashboard outer container: sticky KPI + nav, cross-fade tab content
 │       ├── dashboard-card.tsx            # Glassmorphism card wrapper with lock overlay support
 │       ├── dashboard-nav.tsx             # Animated sliding pill tab bar (layoutId spring animation)
@@ -76,6 +83,7 @@ src/
     ├── prisma.ts                         # Prisma singleton
     ├── utils.ts                          # cn(), formatDate(), slugify()
     ├── email.ts                          # Resend client + sendReportReadyEmail() (dark-themed HTML template)
+    ├── pdf.ts                            # Client-side PDF generation (html2canvas + jspdf)
     ├── mock-data.ts                      # Types + mock data generator (source of truth for LLMProvider)
     └── agents/                           # LLM analysis pipeline
         ├── clients.ts                    # SDK singletons + MODEL_CONFIG
@@ -108,7 +116,7 @@ Frontend polls GET /api/analysis/[id] every 2s (includes queryProgress) ─┘
 
 ### End-to-end data flow (Comprehensive tier)
 ```
-Email gate → POST /api/analysis/[id]/claim → new Analysis + 3 LLMJobs
+Payment gate → POST /api/checkout → Stripe Checkout → redirect back → POST /api/analysis/[id]/claim (verifies payment) → new Analysis + 3 LLMJobs
                                                           ↓
                                           runComprehensiveAudit() fire-and-forget
                                                           ↓
@@ -160,9 +168,9 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 7. **Frontend polling** (`analyze/page.tsx`): Polls every 2s. Response includes `queryProgress: { completed, total, currentQueryText }`. `total` comes from `Analysis.queryCount` (set before the query loop starts). Loading step is tier-aware: free shows ChatGPT badge only, comprehensive shows all 3 provider badges with individual status.
 
-8. **Partial report** (`partial-report.tsx`): Dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: 2-column CSS grid with RecommendationHero, QueryTypeBreakdown, CompetitorTable, sentiment card, SourceInfluenceMap. Locked DashboardCards for Claude/Gemini with blur overlay. Sticky CTA bar at bottom.
+8. **Partial report** (`partial-report.tsx`): Competitor-first dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: hero card with competitor callout ("ChatGPT recommends [competitor] over you"), "What your customers see" card (verbatim AI response showing competitor winning), snapshot blockers/wins, query patterns, competitive context, source/sentiment readout, and unlock CTA card with $99 price. Sticky CTA bar at bottom with competitor-aware messaging. Score ring glow and gradient hero background.
 
-9. **Email gate** (`email-gate.tsx`): Collects email → `POST /api/analysis/[id]/claim` → returns `comprehensiveAnalysisId` → parent starts polling comprehensive analysis with loading step.
+9. **Payment gate** (`email-gate.tsx`): Collects email → `POST /api/checkout` → Stripe Checkout Session → redirects to Stripe hosted page. On success, Stripe redirects back to `/analyze?session_id={id}&analysis_id={id}`. Page detects URL params → `POST /api/analysis/[id]/claim` with `stripeSessionId` → claim route verifies payment with Stripe API → creates comprehensive analysis. Dev bypass: skips Stripe in `NODE_ENV=development`, redirects directly. Webhook (`/api/webhooks/stripe`) serves as backup reconciliation.
 
 10. **Full report** (`full-report.tsx`): Dashboard layout with sticky KPI row (avg + per-provider probabilities with mini rings) + 5 tabs. Overview: ProviderComparisonVisual + InsightCards + SourceInfluenceMap + Methodology + LLMComparisonTable. Deep Dive: provider sub-tabs → 2-column grid with hero, metrics, query breakdown, competitors, topics, accuracy, sources, sentiment, evidence. Sources: cross-platform + per-provider maps. Evidence: provider sub-tabs → QueryEvidence. Action Plan: ActionPlan or ActionItems.
 
@@ -188,9 +196,10 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 Categories: restaurant, gym, salon, hvac, dental, legal, realtor, saas, ecommerce, agency. Custom categories use raw string.
 
-### Two tiers
-- **Free** (15-25s): ChatGPT only, 5 queries from query bank. Shows recommendation probability + query evidence. Cache: 24h.
-- **Comprehensive** (5-15min): 3 providers, 33+ queries each. Full methodology, source influence, verification. Generates shareToken. Cache: 72h.
+### Three tiers
+- **Free Snapshot** (15-25s): ChatGPT only, 5 queries from query bank. Shows recommendation probability + query evidence. Competitor-first messaging to drive upgrades. Cache: 24h.
+- **Full Audit — $99** (5-15min): 3 providers, 33+ queries each. Full methodology, source influence, verification, 80-step action plan, PDF export. Gated by Stripe Checkout (dev bypass in development). Generates shareToken. Cache: 72h.
+- **Audit + Strategy — $199**: Everything in Full Audit plus dedicated execution roadmap, monthly re-audit, 3 competitor monitoring dashboards, custom GEO strategy call (30 min), priority email support. Marketing-only for now (CTA links to /analyze, backend not yet implemented).
 
 ## Data Model
 
@@ -203,6 +212,7 @@ model Analysis {
   id, userId?, businessName, location, category, tier, status,
   queryCount Int, recommendationProbability Float?, methodology String?,
   shareToken String? @unique,
+  paid Boolean @default(false), stripeSessionId String?, paidAt DateTime?,
   actionPlanJson String?, actionPlanStatus String @default("pending"),
   resultJson?, errorMessage?, startedAt, completedAt?, expiresAt, createdAt,
   llmJobs[], queryExecutions[], sourceInfluences[], actionPlanItems[]
@@ -284,17 +294,25 @@ interface ActionPlanItemData = { id, title, description, reasoning,
 - **Accent:** Instrument Serif — available but rarely used (landing page uses Instrument Sans only)
 - Loaded via Google Fonts in layout.tsx
 
-### Colors (All-Dark Theme)
-```
-Surfaces:    #0c0d10 (page bg), #14151a (cards), #1a1b21 (elevated/inputs), #22232a (borders)
-Text:        #ffffff (primary), rgba(255,255,255,0.6) (secondary), rgba(255,255,255,0.4) (muted)
-Status:      #16a34a (green), #d97706 (amber), #dc2626 (red)
-LLM accents: #10a37f (ChatGPT), #c084fc (Claude), #4285f4 (Gemini)
-```
+### Colors
+- **Analyze flow (/analyze):** Light theme — page and cards use #ffffff / #fafafa; text #18181b, #71717a, #52525b. Wrapped in `AnalyzeThemeProvider theme="light"`. Dashboard shell, nav, cards, KPI row, partial/full report, ScoreRing, RecommendationHero, InsightCards, QueryEvidence, SourceInfluenceMap, EmailGate, and globals (`[data-theme="light"]`) all respect `useAnalyzeTheme()`.
+- **Public report (/report/[token]):** Dark theme (no provider) — #0c0d10 (page bg), #14151a (cards); text #ffffff, rgba(255,255,255,0.6). Same components use context default "dark".
+- **Status / accents:** #16a34a, #d97706, #dc2626. LLM: #10a37f (ChatGPT), #c084fc (Claude), #4285f4 (Gemini).
+- **Landing page:** Light theme — #ffffff (page bg), #fafafa (cards); text #18181b (primary), #71717a (secondary), #a1a1aa (muted). Same status and LLM accent hex values for consistency.
 
-### Landing page rhythm
-All dark — every section uses #0c0d10 bg with #14151a cards
-(Nav → Hero → PlatformBar → Stats → HowWeMeasure → ReportShowcase → Features → HowItWorks → Pricing → CTA → Footer)
+### Landing page rhythm (light theme)
+Marketing landing uses light background and dark text. Section order: **Nav** (pill-style, scroll-aware: light bg + blur) → **Hero** (headline + CTA + “Scroll to see it in action”) → **ScrollAudit** (scroll-driven demo: 5 phases — enter business, typing, querying, results, competitor ranking; sticky viewport, light dashboard card) → **PlatformBar** → **Stats** → **HowItWorks** (FeatureSteps with `theme="light"`) → **Features** → **ReportShowcase** → **Pricing** → **FAQ** → **CTA** → **Footer**. Section dividers use `theme="light"` (dashed rgba(0,0,0,0.12)). `SectionDivider` and `ProbabilityRing` accept optional `theme: "dark" | "light"`.
+
+### Dashboard UI design language
+Dashboard components match the landing page's premium feel:
+- **Card depth:** `box-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)` with hover elevation (`translateY(-1px)`, `0 8px 40px`)
+- **Corner glows:** `radial-gradient(circle at top right, ${accentColor}15, transparent 70%)`
+- **Score ring glows:** `filter: drop-shadow(0 0 20px ${color}40)` on all score rings
+- **KPI cards:** 3px left accent bar + gradient color wash background
+- **Ambient glow:** Radial gradient behind sticky KPI row
+- **Motion easing:** `cubic-bezier(0.16, 1, 0.3, 1)` for enters, `type: "spring", damping: 25, stiffness: 300` for Framer Motion
+- **Provider-colored sub-tabs:** DashboardNav supports per-tab `color` for active pill tinting
+- **Hero gradients:** `linear-gradient(135deg, ${color}08, transparent 60%)` on hero cards
 
 ### Styling approach
 - Inline styles with exact hex values (NOT Tailwind class approximations)
@@ -311,7 +329,10 @@ All dark — every section uses #0c0d10 bg with #14151a cards
 | GET | `/api/location` | IP-based geolocation via ip-api.com |
 | POST | `/api/analysis` | Create analysis + start audit (free or comprehensive) |
 | GET | `/api/analysis/[id]` | Poll status + query progress + results |
-| POST | `/api/analysis/[id]/claim` | Email gate → kick off comprehensive audit |
+| POST | `/api/analysis/[id]/claim` | Verify Stripe payment → kick off comprehensive audit |
+| POST | `/api/checkout` | Create Stripe Checkout Session (dev bypass in development) |
+| POST | `/api/webhooks/stripe` | Stripe webhook handler (backup payment reconciliation) |
+| GET | `/api/health` | DB health check (for UptimeRobot monitoring) |
 | GET | `/api/report/[token]` | Public report by share token (no auth) |
 | GET | `/api/analysis/[id]/action-plan` | Live action plan with completion states |
 | POST | `/api/analysis/[id]/action-plan` | Regenerate action plan |
@@ -328,6 +349,10 @@ GOOGLE_AI_API_KEY=AI...              # Required for Gemini
 RESEND_API_KEY=re_...                # Required for report emails (Resend)
 APP_URL=http://localhost:3000        # Base URL for report links in emails
 RESEND_FROM_EMAIL=                   # Optional: custom from address (default: onboarding@resend.dev)
+STRIPE_SECRET_KEY=sk_test_...        # Stripe secret key (test for dev, live for prod)
+STRIPE_PUBLISHABLE_KEY=pk_test_...   # Stripe publishable key
+STRIPE_WEBHOOK_SECRET=whsec_...      # Stripe webhook signing secret
+STRIPE_PRICE_ID=price_...            # Stripe Price ID for $99 comprehensive audit
 ```
 
 ## Key Commands

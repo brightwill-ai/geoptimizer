@@ -2,85 +2,17 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import Link from "next/link";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { type GEOAnalysis, type ActionPlan as ActionPlanType } from "@/lib/mock-data";
+import { AnalyzeThemeProvider } from "@/contexts/analyze-theme";
 import { SearchStep } from "@/components/analyze/search-step";
 import { LoadingStep } from "@/components/analyze/loading-step";
 import { PartialReport } from "@/components/analyze/partial-report";
 import { EmailGate } from "@/components/analyze/email-gate";
 import { FullReport } from "@/components/analyze/full-report";
+import { LandingNav } from "@/components/ui/landing-nav";
 
 type Step = "search" | "loading" | "partial" | "email-gate" | "full";
-
-function Nav() {
-  return (
-    <nav
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 100,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "0 2.5rem",
-        height: "60px",
-        background: "rgba(12,13,16,0.88)",
-        backdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-      }}
-    >
-      <Link
-        href="/"
-        style={{
-          fontFamily: "var(--font-sans)",
-          fontWeight: 500,
-          fontSize: "1.05rem",
-          letterSpacing: "-0.02em",
-          color: "#ffffff",
-          textDecoration: "none",
-        }}
-      >
-        BrightWill
-      </Link>
-
-      <ul
-        className="nav-links"
-        style={{
-          display: "flex",
-          gap: "2rem",
-          listStyle: "none",
-          position: "absolute",
-          left: "50%",
-          transform: "translateX(-50%)",
-        }}
-      >
-        <li>
-          <Link href="/#features" className="nav-link">
-            Features
-          </Link>
-        </li>
-        <li>
-          <Link href="/#how" className="nav-link">
-            How it works
-          </Link>
-        </li>
-        <li>
-          <Link href="/#pricing" className="nav-link">
-            Pricing
-          </Link>
-        </li>
-      </ul>
-
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-        <Link href="/signup" className="btn-pill">
-          Join waitlist
-        </Link>
-      </div>
-    </nav>
-  );
-}
 
 export default function AnalyzePage() {
   const [step, setStep] = useState<Step>("search");
@@ -199,70 +131,102 @@ export default function AnalyzePage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0c0d10" }}>
-      <Nav />
-      <div style={{ paddingTop: 60 }}>
-        {error && step === "search" && (
-          <div
-            style={{
-              maxWidth: 560,
-              margin: "1rem auto",
-              padding: "0.75rem 1rem",
-              borderRadius: 8,
-              background: "rgba(220,38,38,0.15)",
-              color: "#dc2626",
-              fontSize: "0.8rem",
-              textAlign: "center",
-            }}
-          >
-            {error}
-          </div>
-        )}
+    <AnalyzeThemeProvider theme="light">
+      <div data-theme="light" style={{ minHeight: "100vh", background: "#ffffff" }}>
+        <LandingNav cta={{ label: "Join waitlist", href: "/signup" }} />
+        <div style={{ paddingTop: 72 }}>
+          {error && step === "search" && (
+            <div
+              style={{
+                maxWidth: 560,
+                margin: "1rem auto",
+                padding: "0.75rem 1rem",
+                borderRadius: 8,
+                background: "rgba(220,38,38,0.08)",
+                border: "1px solid rgba(220,38,38,0.2)",
+                color: "#dc2626",
+                fontSize: "0.8rem",
+                textAlign: "center",
+              }}
+            >
+              {error}
+            </div>
+          )}
 
-        <AnimatePresence mode="wait">
-          {step === "search" && (
-            <SearchStep key="search" onSubmit={handleSearch} />
-          )}
-          {step === "loading" && (
-            <LoadingStep
-              key="loading"
-              businessName={businessName}
-              onComplete={handleLoadingComplete}
-              jobStatuses={jobStatuses}
-              queryProgress={queryProgress}
-              tier={tier}
-            />
-          )}
-          {step === "partial" && analysis && (
-            <PartialReport
-              key="partial"
-              analysis={analysis}
-              onUnlock={() => setStep("email-gate")}
-            />
-          )}
-          {step === "full" && analysis && (
-            <FullReport
-              key="full"
-              analysis={analysis}
-              analysisId={analysisId ?? undefined}
-              actionPlan={actionPlan}
-              actionPlanStatus={actionPlanStatus}
-            />
-          )}
-        </AnimatePresence>
+          <AnimatePresence mode="wait">
+            {step === "search" && (
+              <motion.div
+                key="search"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <SearchStep onSubmit={handleSearch} />
+              </motion.div>
+            )}
+            {step === "loading" && (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <LoadingStep
+                  businessName={businessName}
+                  onComplete={handleLoadingComplete}
+                  jobStatuses={jobStatuses}
+                  queryProgress={queryProgress}
+                  tier={tier}
+                />
+              </motion.div>
+            )}
+            {step === "partial" && analysis && (
+              <motion.div
+                key="partial"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <PartialReport
+                  analysis={analysis}
+                  onUnlock={() => setStep("email-gate")}
+                />
+              </motion.div>
+            )}
+            {step === "full" && analysis && (
+              <motion.div
+                key="full"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              >
+                <FullReport
+                  analysis={analysis}
+                  analysisId={analysisId ?? undefined}
+                  actionPlan={actionPlan}
+                  actionPlanStatus={actionPlanStatus}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {/* Email gate rendered as overlay */}
-        <AnimatePresence>
-          {step === "email-gate" && analysisId && (
-            <EmailGate
-              key="email-gate"
-              analysisId={analysisId}
-              onSubmit={handleEmailSubmit}
-              onClose={() => setStep("partial")}
-            />
-          )}
-        </AnimatePresence>
+          {/* Email gate rendered as overlay */}
+          <AnimatePresence>
+            {step === "email-gate" && analysisId && (
+              <EmailGate
+                key="email-gate"
+                analysisId={analysisId}
+                onSubmit={handleEmailSubmit}
+                onClose={() => setStep("partial")}
+              />
+            )}
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
+    </AnalyzeThemeProvider>
   );
 }

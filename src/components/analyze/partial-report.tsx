@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { GEOAnalysis } from "@/lib/mock-data";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
+import { useAnalyzeTheme } from "@/contexts/analyze-theme";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 import { ScoreRing } from "./score-ring";
 import { QueryEvidence } from "./query-evidence";
@@ -22,13 +23,13 @@ interface PartialReportProps {
 
 type PartialTab = "overview" | "evidence";
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, theme = "dark" }: { children: React.ReactNode; theme?: "light" | "dark" }) {
   return (
     <div
       style={{
         fontSize: "0.72rem",
         fontWeight: 600,
-        color: "rgba(255,255,255,0.38)",
+        color: theme === "light" ? "#71717a" : "rgba(255,255,255,0.38)",
         textTransform: "uppercase",
         letterSpacing: "0.1em",
         marginBottom: 12,
@@ -43,10 +44,12 @@ function FindingBlock({
   title,
   detail,
   tone,
+  theme = "dark",
 }: {
   title: string;
   detail: string;
   tone: "positive" | "warning" | "negative" | "neutral";
+  theme?: "light" | "dark";
 }) {
   const accent =
     tone === "positive"
@@ -55,7 +58,9 @@ function FindingBlock({
         ? "#d97706"
         : tone === "negative"
           ? "#dc2626"
-          : "rgba(255,255,255,0.35)";
+          : theme === "light"
+            ? "#71717a"
+            : "rgba(255,255,255,0.35)";
 
   return (
     <div
@@ -66,10 +71,10 @@ function FindingBlock({
         background: `${accent}10`,
       }}
     >
-      <div style={{ fontSize: "0.86rem", color: "#ffffff", fontWeight: 600, marginBottom: 4 }}>
+      <div style={{ fontSize: "0.86rem", color: theme === "light" ? "#18181b" : "#ffffff", fontWeight: 600, marginBottom: 4 }}>
         {title}
       </div>
-      <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.58)", lineHeight: 1.45 }}>
+      <div style={{ fontSize: "0.78rem", color: theme === "light" ? "#52525b" : "rgba(255,255,255,0.58)", lineHeight: 1.45 }}>
         {detail}
       </div>
     </div>
@@ -77,6 +82,8 @@ function FindingBlock({
 }
 
 export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
+  const theme = useAnalyzeTheme();
+  const themeStr = theme === "light" ? "light" : "dark";
   const chatgpt = analysis.reports.chatgpt;
   const snapshot = getReportSnapshot(chatgpt);
   const [activeTab, setActiveTab] = useState<PartialTab>("overview");
@@ -251,7 +258,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             </DashboardCard>
 
             <div>
-              <SectionLabel>Snapshot</SectionLabel>
+              <SectionLabel theme={themeStr}>Snapshot</SectionLabel>
               <div className="dashboard-grid">
                 <DashboardCard title="Top blockers" accentColor="#d97706">
                   <div style={{ display: "grid", gap: 10 }}>
@@ -261,6 +268,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                         title={blocker.title}
                         detail={blocker.detail}
                         tone={blocker.tone}
+                        theme={themeStr}
                       />
                     ))}
                   </div>
@@ -274,6 +282,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                         title={win.title}
                         detail={win.detail}
                         tone={win.tone}
+                        theme={themeStr}
                       />
                     ))}
                   </div>
@@ -282,7 +291,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             </div>
 
             <div>
-              <SectionLabel>Why This Happened</SectionLabel>
+              <SectionLabel theme={themeStr}>Why This Happened</SectionLabel>
               <div className="dashboard-grid">
                 <DashboardCard title="Query pattern" subtitle="Where ChatGPT sees the business">
                   <div style={{ display: "grid", gap: 14 }}>

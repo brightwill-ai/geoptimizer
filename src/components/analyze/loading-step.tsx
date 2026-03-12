@@ -85,13 +85,9 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
     }
   }, [allDone, onComplete]);
 
-  const fillGradient = isComprehensive
+  const fillGradientLight = isComprehensive
     ? "linear-gradient(90deg, #10a37f, #4285f4)"
-    : "linear-gradient(90deg, rgba(255,255,255,0.5), #ffffff)";
-
-  const glowColor = isComprehensive
-    ? "0 0 16px rgba(16,163,127,0.25)"
-    : "0 0 12px rgba(255,255,255,0.1)";
+    : "linear-gradient(90deg, #10a37f, #22c55e)";
 
   return (
     <motion.div
@@ -99,12 +95,12 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       style={{
-        minHeight: "calc(100vh - 60px)",
+        minHeight: "calc(100vh - 72px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        background: "#0c0d10",
+        background: "#ffffff",
       }}
     >
       <div
@@ -116,13 +112,15 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
           gap: "1.75rem",
           padding: "2.25rem",
           borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.06)",
-          background: "#14151a",
+          border: "1px solid rgba(0,0,0,0.06)",
+          background: "#fafafa",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.06)",
+          position: "relative",
         }}
       >
         {/* Business name */}
         <div>
-          <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.45)", margin: 0, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          <p style={{ fontSize: "0.72rem", color: "#71717a", margin: 0, letterSpacing: "0.08em", textTransform: "uppercase" }}>
             {isComprehensive ? "Running comprehensive analysis" : "Analyzing"}
           </p>
           <h2
@@ -130,7 +128,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
               fontFamily: "var(--font-sans)",
               fontSize: "clamp(1.4rem, 3vw, 2rem)",
               fontWeight: 500,
-              color: "#ffffff",
+              color: "#18181b",
               margin: "0.5rem 0 0",
               letterSpacing: "-0.03em",
             }}
@@ -138,7 +136,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
             {businessName}
           </h2>
           {isComprehensive && (
-            <p style={{ fontSize: "0.76rem", color: "rgba(255,255,255,0.38)", margin: "8px 0 0", lineHeight: 1.5 }}>
+            <p style={{ fontSize: "0.76rem", color: "#71717a", margin: "8px 0 0", lineHeight: 1.5 }}>
               40+ queries across 3 AI platforms — this may take a few minutes
             </p>
           )}
@@ -156,16 +154,17 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
                 key={p.id}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.06 + index * 0.04, duration: 0.25 }}
+                transition={{ delay: 0.08 + index * 0.05, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 8,
                   padding: "8px 16px",
                   borderRadius: 999,
-                  background: done ? "#14151a" : running ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)",
-                  border: `1px solid ${done ? "rgba(255,255,255,0.08)" : running ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.04)"}`,
+                  background: done ? "#ffffff" : running ? "rgba(0,0,0,0.03)" : "rgba(0,0,0,0.02)",
+                  border: `1px solid ${done ? "rgba(0,0,0,0.08)" : running ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.04)"}`,
                   transition: "all 0.3s ease",
+                  boxShadow: running ? `0 0 12px ${p.color}30` : "none",
                 }}
               >
                 <ProviderLogo
@@ -180,7 +179,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
                   style={{
                     fontSize: "0.8rem",
                     fontWeight: 500,
-                    color: done || running ? "#ffffff" : "rgba(255,255,255,0.4)",
+                    color: done || running ? "#18181b" : "#71717a",
                     transition: "color 0.3s",
                   }}
                 >
@@ -209,7 +208,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
               style={{
                 fontSize: "0.82rem",
                 fontWeight: 500,
-                color: "rgba(255,255,255,0.85)",
+                color: "#18181b",
               }}
             >
               {isComprehensive
@@ -220,7 +219,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
               style={{
                 fontSize: "0.75rem",
                 fontWeight: 500,
-                color: "rgba(255,255,255,0.35)",
+                color: "#71717a",
                 fontFamily: "var(--font-mono, monospace)",
                 letterSpacing: "0.02em",
               }}
@@ -235,7 +234,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
               width: "100%",
               height: 8,
               borderRadius: 999,
-              background: "rgba(255,255,255,0.06)",
+              background: "rgba(0,0,0,0.06)",
               overflow: "hidden",
               position: "relative",
             }}
@@ -244,12 +243,12 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
               style={{
                 height: "100%",
                 borderRadius: 999,
-                background: fillGradient,
-                transition: "width 0.5s cubic-bezier(0.4, 0, 0.2, 1)",
+                background: fillGradientLight,
+                transition: "width 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
                 width: `${Math.max(progress, 3)}%`,
                 position: "relative",
                 overflow: "hidden",
-                boxShadow: progress > 5 ? glowColor : "none",
+                boxShadow: progress > 5 ? (isComprehensive ? "0 0 16px rgba(16,163,127,0.25)" : "0 0 12px rgba(16,163,127,0.2)") : "none",
               }}
             >
               {/* Shimmer overlay */}
@@ -260,7 +259,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
+                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)",
                   animation: "progress-shine 1.8s ease-in-out infinite",
                 }}
               />
@@ -272,8 +271,8 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
         <div
           style={{
             borderRadius: 10,
-            border: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(0,0,0,0.06)",
+            background: "rgba(0,0,0,0.02)",
             padding: "1rem 1.25rem",
             minHeight: 80,
           }}
@@ -281,7 +280,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
           <p
             style={{
               fontSize: "0.66rem",
-              color: "rgba(255,255,255,0.5)",
+              color: "#71717a",
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               margin: 0,
@@ -292,7 +291,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
           <p
             style={{
               fontSize: "0.82rem",
-              color: "rgba(255,255,255,0.68)",
+              color: "#18181b",
               margin: "0.65rem 0 0",
               fontStyle: "italic",
               lineHeight: 1.5,

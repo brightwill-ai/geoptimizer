@@ -1,11 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { AnalyzeTheme } from "@/contexts/analyze-theme";
 
 interface DashboardNavTab {
   id: string;
   label: string;
   count?: number;
+  color?: string;
 }
 
 interface DashboardNavProps {
@@ -13,6 +15,7 @@ interface DashboardNavProps {
   activeTab: string;
   onTabChange: (id: string) => void;
   layoutId?: string;
+  theme?: AnalyzeTheme;
 }
 
 export function DashboardNav({
@@ -20,16 +23,25 @@ export function DashboardNav({
   activeTab,
   onTabChange,
   layoutId = "dashboard-tab",
+  theme = "dark",
 }: DashboardNavProps) {
+  const isLight = theme === "light";
+  const bg = isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.03)";
+  const border = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+  const activeColor = isLight ? "#18181b" : "#ffffff";
+  const inactiveColor = isLight ? "#71717a" : "rgba(255,255,255,0.4)";
+  const inactiveHover = isLight ? "#52525b" : "rgba(255,255,255,0.6)";
+  const pillBg = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.08)";
+
   return (
     <div
       style={{
         display: "flex",
         gap: 4,
         padding: 4,
-        background: "rgba(255,255,255,0.03)",
+        background: bg,
         borderRadius: 10,
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: `1px solid ${border}`,
         overflowX: "auto",
         WebkitOverflowScrolling: "touch",
         scrollbarWidth: "none",
@@ -53,7 +65,7 @@ export function DashboardNav({
               fontFamily: "var(--font-sans)",
               fontSize: "0.82rem",
               fontWeight: isActive ? 600 : 500,
-              color: isActive ? "#ffffff" : "rgba(255,255,255,0.4)",
+              color: isActive ? activeColor : inactiveColor,
               transition: "color 0.2s ease",
               whiteSpace: "nowrap",
               display: "flex",
@@ -62,11 +74,11 @@ export function DashboardNav({
             }}
             onMouseOver={(e) => {
               if (!isActive)
-                e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+                e.currentTarget.style.color = inactiveHover;
             }}
             onMouseOut={(e) => {
               if (!isActive)
-                e.currentTarget.style.color = "rgba(255,255,255,0.4)";
+                e.currentTarget.style.color = inactiveColor;
             }}
           >
             {/* Animated sliding pill background */}
@@ -76,14 +88,14 @@ export function DashboardNav({
                 style={{
                   position: "absolute",
                   inset: 0,
-                  background: "rgba(255,255,255,0.08)",
+                  background: tab.color ? `${tab.color}20` : pillBg,
                   borderRadius: 8,
                   zIndex: -1,
                 }}
                 transition={{
                   type: "spring",
-                  bounce: 0.15,
-                  duration: 0.4,
+                  stiffness: 300,
+                  damping: 28,
                 }}
               />
             )}

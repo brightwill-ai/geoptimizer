@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useAnalyzeTheme } from "@/contexts/analyze-theme";
 
 interface InsightItem {
   text: string;
@@ -83,7 +84,13 @@ function InsightColumn({
   severity: SeverityKey;
   delay: number;
 }) {
+  const theme = useAnalyzeTheme();
+  const isLight = theme === "light";
   const config = SEVERITY_CONFIG[severity];
+  const colBg = isLight ? "#fafafa" : "rgba(20, 21, 26, 0.7)";
+  const colBorder = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
+  const headerBorder = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.04)";
+  const labelColor = isLight ? "#52525b" : "rgba(255,255,255,0.5)";
 
   return (
     <motion.div
@@ -91,12 +98,12 @@ function InsightColumn({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay, ease: "easeOut" }}
       style={{
-        background: "rgba(20, 21, 26, 0.7)",
+        background: colBg,
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: `1px solid ${colBorder}`,
         borderRadius: 12,
-        borderTopWidth: 2,
+        borderTopWidth: 3,
         borderTopColor: config.color,
         overflow: "hidden",
       }}
@@ -108,7 +115,7 @@ function InsightColumn({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          borderBottom: `1px solid ${headerBorder}`,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -126,7 +133,7 @@ function InsightColumn({
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: "0.05em",
-              color: "rgba(255,255,255,0.5)",
+              color: labelColor,
             }}
           >
             {config.label}
@@ -165,16 +172,18 @@ function InsightColumn({
               padding: "0.75rem 1.25rem",
               borderBottom:
                 i < items.length - 1
-                  ? "1px solid rgba(255,255,255,0.04)"
+                  ? isLight ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.04)"
                   : "none",
               transition: "background 0.15s ease",
               cursor: "default",
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+              e.currentTarget.style.background = isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.02)";
+              e.currentTarget.style.borderRadius = "6px";
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.borderRadius = "0px";
             }}
           >
             <div style={{ flexShrink: 0, marginTop: 1 }}>{config.icon}</div>
@@ -182,7 +191,7 @@ function InsightColumn({
               <div
                 style={{
                   fontSize: "0.82rem",
-                  color: "#ffffff",
+                  color: isLight ? "#18181b" : "#ffffff",
                   lineHeight: 1.4,
                 }}
               >
@@ -192,7 +201,7 @@ function InsightColumn({
                 <div
                   style={{
                     fontSize: "0.72rem",
-                    color: "rgba(255,255,255,0.35)",
+                    color: isLight ? "#71717a" : "rgba(255,255,255,0.35)",
                     marginTop: 3,
                     lineHeight: 1.3,
                   }}
@@ -209,7 +218,7 @@ function InsightColumn({
               padding: "1.5rem 1.25rem",
               textAlign: "center",
               fontSize: "0.78rem",
-              color: "rgba(255,255,255,0.25)",
+              color: isLight ? "#a1a1aa" : "rgba(255,255,255,0.25)",
             }}
           >
             No {config.label.toLowerCase()} identified

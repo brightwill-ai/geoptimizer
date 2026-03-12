@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useAnalyzeTheme } from "@/contexts/analyze-theme";
 import type { SourceInfluenceEntry, SourceCitation, LLMProvider } from "@/lib/mock-data";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
 import { ProviderLogo } from "@/components/ui/provider-logo";
@@ -34,6 +35,20 @@ const sourceTypeColors: Record<string, string> = {
 };
 
 export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: SourceInfluenceMapProps) {
+  const theme = useAnalyzeTheme();
+  const isLight = theme === "light";
+  const bg = isLight ? "#fafafa" : "#14151a";
+  const border = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.06)";
+  const labelColor = isLight ? "#71717a" : "rgba(255,255,255,0.4)";
+  const mutedColor = isLight ? "#a1a1aa" : "rgba(255,255,255,0.3)";
+  const textColor = isLight ? "#18181b" : "#ffffff";
+  const hoverBg = isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.02)";
+  const barTrack = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.06)";
+  const otherColor = isLight ? "#71717a" : "rgba(255,255,255,0.4)";
+  const dividerBorder = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+  const legendMuted = isLight ? "#71717a" : "rgba(255,255,255,0.4)";
+  const barFallback = isLight ? "#18181b" : "#ffffff";
+
   // Normalize to a common shape
   const items = sourceInfluences
     ? sourceInfluences.map((si) => ({
@@ -62,16 +77,16 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
-        background: "#14151a",
+        background: bg,
         borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: `1px solid ${border}`,
         padding: "1.5rem",
         ...(blurred ? { filter: "blur(6px)", userSelect: "none" as const, pointerEvents: "none" as const } : {}),
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Source Influence</div>
-        <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.3)" }}>
+        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: labelColor }}>Source Influence</div>
+        <span style={{ fontSize: "0.7rem", color: mutedColor }}>
           {items.length} sources identified
         </span>
       </div>
@@ -82,20 +97,36 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
           const influenceColor =
             item.influence === "high" ? "#16a34a"
             : item.influence === "medium" ? "#d97706"
-            : "rgba(255,255,255,0.4)";
+            : otherColor;
 
           return (
-            <div key={item.name} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              key={item.name}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "4px 0",
+                borderRadius: 6,
+                transition: "background 0.15s ease",
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = hoverBg;
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
+            >
               {/* Source name + type */}
               <div style={{ width: 140, flexShrink: 0 }}>
-                <div style={{ fontSize: "0.8rem", color: "#ffffff", fontWeight: 500, lineHeight: 1.2 }}>
+                <div style={{ fontSize: "0.8rem", color: textColor, fontWeight: 500, lineHeight: 1.2 }}>
                   {item.url ? (
                     <a
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        color: "#ffffff",
+                        color: textColor,
                         textDecoration: "none",
                         display: "inline-flex",
                         alignItems: "center",
@@ -103,7 +134,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
                         transition: "color 0.15s",
                       }}
                       onMouseOver={(e) => (e.currentTarget.style.color = sourceTypeColors[item.type] ?? "#4285f4")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "#ffffff")}
+                      onMouseOut={(e) => (e.currentTarget.style.color = textColor)}
                     >
                       {item.name}
                       <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.5, flexShrink: 0 }}>
@@ -121,24 +152,25 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
                       width: 5,
                       height: 5,
                       borderRadius: "50%",
-                      background: sourceTypeColors[item.type] ?? "rgba(255,255,255,0.3)",
+                      background: sourceTypeColors[item.type] ?? (isLight ? "#71717a" : "rgba(255,255,255,0.3)"),
                     }}
                   />
-                  <span style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>
+                  <span style={{ fontSize: "0.65rem", color: legendMuted }}>
                     {sourceTypeLabels[item.type] ?? item.type}
                   </span>
                 </div>
               </div>
 
               {/* Bar */}
-              <div style={{ flex: 1, height: 8, borderRadius: 4, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: barTrack, overflow: "hidden" }}>
                 <div
                   style={{
                     height: "100%",
                     width: `${pct}%`,
                     borderRadius: 4,
-                    background: `linear-gradient(90deg, ${sourceTypeColors[item.type] ?? "#ffffff"}88, ${sourceTypeColors[item.type] ?? "#ffffff"})`,
+                    background: `linear-gradient(90deg, ${sourceTypeColors[item.type] ?? barFallback}88, ${sourceTypeColors[item.type] ?? barFallback})`,
                     transition: "width 0.8s ease-out",
+                    filter: `drop-shadow(0 0 6px ${(sourceTypeColors[item.type] ?? barFallback)}40)`,
                   }}
                 />
               </div>
@@ -185,11 +217,11 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
 
       {/* Legend for provider dots */}
       {sourceInfluences && sourceInfluences.length > 0 && (
-        <div style={{ display: "flex", gap: 16, marginTop: 16, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ display: "flex", gap: 16, marginTop: 16, paddingTop: 12, borderTop: `1px solid ${dividerBorder}` }}>
           {LLM_PROVIDERS.map((p) => (
             <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <ProviderLogo provider={p.id} size={12} />
-              <span style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>{p.name}</span>
+              <span style={{ fontSize: "0.65rem", color: legendMuted }}>{p.name}</span>
             </div>
           ))}
         </div>

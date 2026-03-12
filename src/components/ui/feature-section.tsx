@@ -15,6 +15,7 @@ interface FeatureStepsProps {
   className?: string
   title?: string
   label?: string
+  theme?: "dark" | "light"
 }
 
 export function FeatureSteps({
@@ -22,7 +23,9 @@ export function FeatureSteps({
   className,
   title = "How to get Started",
   label,
+  theme = "dark",
 }: FeatureStepsProps) {
+  const isLight = theme === "light"
   const titleRef = useRef<HTMLDivElement>(null)
   const cardsRef = useRef<HTMLDivElement>(null)
   const [titleProgress, setTitleProgress] = useState(0)
@@ -78,17 +81,20 @@ export function FeatureSteps({
 
   return (
     <div className={className}>
-      {/* Sticky section title — pins below nav */}
+      {/* Sticky section title — pins to top, white/dark fills to viewport top */}
       <div
         ref={titleRef}
         style={{
           position: "sticky",
-          top: 60,
+          top: 0,
           zIndex: 20,
-          background: "#09090b",
+          background: isLight ? "#ffffff" : "#09090b",
           textAlign: "center",
-          padding: "1.5rem 2.5rem 1.25rem",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          paddingTop: "5rem",
+          paddingBottom: "1.25rem",
+          paddingLeft: "2.5rem",
+          paddingRight: "2.5rem",
+          borderBottom: isLight ? "1px solid rgba(0,0,0,0.08)" : "1px solid rgba(255,255,255,0.06)",
         }}
       >
         {label && (
@@ -98,7 +104,7 @@ export function FeatureSteps({
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: "0.1em",
-              color: "rgba(255,255,255,0.35)",
+              color: isLight ? "#71717a" : "rgba(255,255,255,0.35)",
               marginBottom: "0.75rem",
               opacity: Math.min(1, titleProgress * 3),
               transform: `translateY(${(1 - Math.min(1, titleProgress * 3)) * 10}px)`,
@@ -114,7 +120,7 @@ export function FeatureSteps({
             fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
             letterSpacing: "-0.04em",
             lineHeight: 1.1,
-            color: "#ffffff",
+            color: isLight ? "#18181b" : "#ffffff",
           }}
         >
           <WordFadeIn
@@ -150,22 +156,31 @@ export function FeatureSteps({
                 "opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1)",
             }}
           >
-            <div className="step-card" style={{ display: "flex", flexDirection: "column", flex: 1 }}>
+            <div
+              className="step-card"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                flex: 1,
+                background: isLight ? "#fafafa" : undefined,
+                border: isLight ? "1px solid rgba(0,0,0,0.06)" : undefined,
+              }}
+            >
               {/* Number badge */}
               <div
                 style={{
                   width: 48,
                   height: 48,
                   borderRadius: "50%",
-                  border: "1.5px solid rgba(255,255,255,0.1)",
-                  background: "rgba(255,255,255,0.03)",
+                  border: isLight ? "1.5px solid rgba(0,0,0,0.1)" : "1.5px solid rgba(255,255,255,0.1)",
+                  background: isLight ? "rgba(0,0,0,0.02)" : "rgba(255,255,255,0.03)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontFamily: "var(--font-mono, monospace)",
                   fontSize: "1rem",
                   fontWeight: 500,
-                  color: "#ffffff",
+                  color: isLight ? "#18181b" : "#ffffff",
                   marginBottom: "1.25rem",
                 }}
               >
@@ -183,7 +198,7 @@ export function FeatureSteps({
                   fontWeight: 500,
                   letterSpacing: "-0.02em",
                   lineHeight: 1.2,
-                  color: "#ffffff",
+                  color: isLight ? "#18181b" : "#ffffff",
                   marginBottom: "0.5rem",
                 }}
               >
@@ -194,7 +209,7 @@ export function FeatureSteps({
               <p
                 style={{
                   fontSize: "0.88rem",
-                  color: "rgba(255,255,255,0.45)",
+                  color: isLight ? "#71717a" : "rgba(255,255,255,0.45)",
                   lineHeight: 1.6,
                 }}
               >

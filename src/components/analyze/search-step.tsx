@@ -257,9 +257,9 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
     fontSize: "0.88rem",
     fontFamily: "var(--font-sans)",
     borderRadius: 10,
-    border: "1px solid rgba(255,255,255,0.06)",
-    background: "#1a1b21",
-    color: "#ffffff",
+    border: "1px solid rgba(0,0,0,0.08)",
+    background: "#ffffff",
+    color: "#18181b",
     outline: "none",
     boxSizing: "border-box",
     transition: "border-color 0.15s, background 0.15s",
@@ -271,12 +271,12 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       style={{
-        minHeight: "calc(100vh - 60px)",
+        minHeight: "calc(100vh - 72px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem 1.5rem",
-        background: "#0c0d10",
+        background: "#ffffff",
       }}
     >
       <div
@@ -292,11 +292,11 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08, duration: 0.45 }}
+          transition={{ delay: 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           style={{
             borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.06)",
-            background: "#14151a",
+            border: "1px solid rgba(0,0,0,0.06)",
+            background: "#fafafa",
             padding: "1.75rem",
             display: "flex",
             flexDirection: "column",
@@ -306,7 +306,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
         >
           {/* Header */}
           <div>
-            <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Instant AI Audit</div>
+            <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "#71717a" }}>Instant AI Audit</div>
 
             <h1
               style={{
@@ -315,12 +315,12 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 fontSize: "clamp(1.7rem, 2.8vw, 2.4rem)",
                 fontWeight: 300,
                 lineHeight: 1.08,
-                color: "#ffffff",
+                color: "#18181b",
                 letterSpacing: "-0.04em",
               }}
             >
               Your competitors are showing up in AI.{" "}
-              <span style={{ color: "rgba(255,255,255,0.45)" }}>Are you?</span>
+              <span style={{ color: "#71717a" }}>Are you?</span>
             </h1>
           </div>
 
@@ -334,23 +334,23 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.3 }}
-                  style={{ borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", background: "#1a1b21", overflow: "hidden" }}
+                  style={{ borderRadius: 10, border: "1px solid rgba(0,0,0,0.06)", background: "#ffffff", overflow: "hidden" }}
                 >
                   {/* ChatGPT header */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.55rem 0.85rem", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0.55rem 0.85rem", borderBottom: "1px solid rgba(0,0,0,0.06)", background: "rgba(0,0,0,0.02)" }}>
                     <ProviderLogo provider="chatgpt" size={14} />
-                    <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "rgba(255,255,255,0.5)" }}>ChatGPT</span>
+                    <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "#71717a" }}>ChatGPT</span>
                   </div>
 
                   <div style={{ padding: "0.75rem 0.85rem" }}>
                     {/* User query */}
                     <div style={{ display: "flex", gap: 8, alignItems: "flex-start", marginBottom: "0.75rem" }}>
-                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(0,0,0,0.06)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
                         </svg>
                       </div>
-                      <div aria-live="polite" style={{ borderRadius: 8, background: "rgba(255,255,255,0.05)", padding: "0.5rem 0.7rem", fontSize: "0.8rem", color: "rgba(255,255,255,0.85)", lineHeight: 1.4, minHeight: 20 }}>
+                      <div aria-live="polite" style={{ borderRadius: 8, background: "rgba(0,0,0,0.03)", padding: "0.5rem 0.7rem", fontSize: "0.8rem", color: "#18181b", lineHeight: 1.4, minHeight: 20 }}>
                         <span>{typedPrompt}</span>
                         <span className="bw-typing-caret" aria-hidden>|</span>
                       </div>
@@ -362,18 +362,18 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                         <ProviderLogo provider="chatgpt" size={12} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.55)", marginBottom: "0.5rem", lineHeight: 1.4 }}>
+                        <p style={{ fontSize: "0.78rem", color: "#52525b", marginBottom: "0.5rem", lineHeight: 1.4 }}>
                           {currentScenario.response}
                         </p>
                         {currentScenario.competitors.map((c, i) => (
-                          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.38rem 0", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                            <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.8)" }}>{i + 1}. {c.name}</span>
+                          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.38rem 0", borderBottom: "1px solid rgba(0,0,0,0.04)" }}>
+                            <span style={{ fontSize: "0.78rem", color: "#18181b" }}>{i + 1}. {c.name}</span>
                             <span style={{ fontSize: "0.62rem", fontWeight: 500, color: "#16a34a", background: "rgba(22,163,74,0.12)", padding: "2px 8px", borderRadius: 999 }}>Recommended</span>
                           </div>
                         ))}
                         {/* Your business — not mentioned */}
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.5rem 0 0.2rem", marginTop: "0.25rem", borderTop: "1px dashed rgba(255,255,255,0.08)" }}>
-                          <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)", fontStyle: "italic" }}>Your business?</span>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.5rem 0 0.2rem", marginTop: "0.25rem", borderTop: "1px dashed rgba(0,0,0,0.08)" }}>
+                          <span style={{ fontSize: "0.78rem", color: "#71717a", fontStyle: "italic" }}>Your business?</span>
                           <span className="bw-not-mentioned-pulse" style={{ fontSize: "0.62rem", fontWeight: 500, color: "#dc2626", background: "rgba(220,38,38,0.12)", padding: "2px 8px", borderRadius: 999 }}>Not mentioned</span>
                         </div>
                       </div>
@@ -387,14 +387,14 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
                   transition={{ duration: 0.3 }}
-                  style={{ borderRadius: 10, border: "1px solid rgba(255,255,255,0.06)", background: "#1a1b21", overflow: "hidden" }}
+                  style={{ borderRadius: 10, border: "1px solid rgba(0,0,0,0.06)", background: "#ffffff", overflow: "hidden" }}
                 >
                   {/* Search bar */}
-                  <div style={{ padding: "0.6rem 0.85rem", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", gap: 8 }}>
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div style={{ padding: "0.6rem 0.85rem", borderBottom: "1px solid rgba(0,0,0,0.06)", background: "rgba(0,0,0,0.02)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#71717a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
                     </svg>
-                    <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.7)", flex: 1, minHeight: 18 }}>
+                    <div style={{ fontSize: "0.78rem", color: "#18181b", flex: 1, minHeight: 18 }}>
                       <span>{typedPrompt}</span>
                       <span className="bw-typing-caret" aria-hidden>|</span>
                     </div>
@@ -408,23 +408,23 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                       </svg>
                       <span style={{ fontSize: "0.72rem", fontWeight: 600, color: "#4285f4", letterSpacing: "0.02em" }}>AI Overview</span>
                     </div>
-                    <p style={{ fontSize: "0.76rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.5, marginBottom: "0.6rem" }}>
+                    <p style={{ fontSize: "0.76rem", color: "#52525b", lineHeight: 1.5, marginBottom: "0.6rem" }}>
                       {currentScenario.response}
                     </p>
                     {currentScenario.competitors.map((c, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "0.4rem 0", borderBottom: i < currentScenario.competitors.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-                        <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.25)", marginTop: 2, flexShrink: 0 }}>{i + 1}.</span>
+                      <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "0.4rem 0", borderBottom: i < currentScenario.competitors.length - 1 ? "1px solid rgba(0,0,0,0.04)" : "none" }}>
+                        <span style={{ fontSize: "0.7rem", color: "#a1a1aa", marginTop: 2, flexShrink: 0 }}>{i + 1}.</span>
                         <div>
-                          <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.85)", fontWeight: 500 }}>{c.name}</span>
-                          <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.35)", marginLeft: 6 }}>— {c.desc}</span>
+                          <span style={{ fontSize: "0.78rem", color: "#18181b", fontWeight: 500 }}>{c.name}</span>
+                          <span style={{ fontSize: "0.72rem", color: "#71717a", marginLeft: 6 }}>— {c.desc}</span>
                         </div>
                       </div>
                     ))}
                     {/* Sources */}
-                    <div style={{ marginTop: "0.55rem", paddingTop: "0.5rem", borderTop: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: "0.64rem", color: "rgba(255,255,255,0.3)" }}>Sources:</span>
+                    <div style={{ marginTop: "0.55rem", paddingTop: "0.5rem", borderTop: "1px solid rgba(0,0,0,0.06)", display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.64rem", color: "#71717a" }}>Sources:</span>
                       {["Yelp", "TripAdvisor", "Google Maps"].map((src) => (
-                        <span key={src} style={{ fontSize: "0.62rem", color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.04)", padding: "1px 6px", borderRadius: 4 }}>{src}</span>
+                        <span key={src} style={{ fontSize: "0.62rem", color: "#71717a", background: "rgba(0,0,0,0.04)", padding: "1px 6px", borderRadius: 4 }}>{src}</span>
                       ))}
                     </div>
                   </div>
@@ -434,7 +434,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.7 }}>
                       <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                     </svg>
-                    <p className="bw-not-mentioned-pulse" style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>
+                    <p className="bw-not-mentioned-pulse" style={{ fontSize: "0.72rem", color: "#52525b", lineHeight: 1.4 }}>
                       Your business <span style={{ color: "#dc2626", fontWeight: 500 }}>isn&apos;t showing up</span> in AI results.
                     </p>
                   </div>
@@ -448,12 +448,12 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             style={{
               marginTop: "0.7rem",
               fontSize: "0.74rem",
-              color: "rgba(255,255,255,0.35)",
+              color: "#71717a",
               lineHeight: 1.5,
             }}
           >
             73% of consumers now use AI to find local businesses.{" "}
-            <span style={{ color: "rgba(255,255,255,0.55)" }}>Are you visible?</span>
+            <span style={{ color: "#52525b" }}>Are you visible?</span>
           </p>
         </motion.div>
 
@@ -464,17 +464,18 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
           onSubmit={handleSubmit}
           style={{
             borderRadius: 12,
-            border: "1px solid rgba(255,255,255,0.06)",
-            background: "#14151a",
+            border: "1px solid rgba(0,0,0,0.06)",
+            background: "#fafafa",
             padding: "1.75rem",
             display: "flex",
             flexDirection: "column",
             gap: "0.75rem",
+            boxShadow: "0 24px 80px rgba(0,0,0,0.08)",
           }}
         >
-          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>Business Details</div>
+          <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "#71717a" }}>Business Details</div>
 
-          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
+          <label style={{ fontSize: "0.72rem", color: "#52525b" }}>
             Business Name
           </label>
           <input
@@ -484,16 +485,18 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             placeholder="e.g. Hana Sushi, Peak Fitness, BrightSmile Dental"
             style={inputStyle}
             onFocus={(e) => {
-              e.target.style.borderColor = "rgba(255,255,255,0.3)";
-              e.target.style.background = "rgba(255,255,255,0.05)";
+              e.target.style.borderColor = "rgba(0,0,0,0.2)";
+              e.target.style.background = "#ffffff";
+              e.target.style.boxShadow = "0 0 0 3px rgba(0,0,0,0.06)";
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = "rgba(255,255,255,0.06)";
-              e.target.style.background = "#1a1b21";
+              e.target.style.borderColor = "rgba(0,0,0,0.08)";
+              e.target.style.background = "#ffffff";
+              e.target.style.boxShadow = "none";
             }}
           />
 
-          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)" }}>
+          <label style={{ fontSize: "0.72rem", color: "#52525b" }}>
             Category
           </label>
           <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -506,18 +509,20 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 width: showCustom ? "auto" : "100%",
                 cursor: "pointer",
                 appearance: "none",
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='rgba(255,255,255,0.4)' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`,
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%2371717a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`,
                 backgroundRepeat: "no-repeat",
                 backgroundPosition: "right 1rem center",
                 paddingRight: "2.5rem",
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = "rgba(255,255,255,0.3)";
-                e.target.style.backgroundColor = "rgba(255,255,255,0.05)";
+                e.target.style.borderColor = "rgba(0,0,0,0.2)";
+                e.target.style.backgroundColor = "#ffffff";
+                e.target.style.boxShadow = "0 0 0 3px rgba(0,0,0,0.06)";
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = "rgba(255,255,255,0.06)";
-                e.target.style.backgroundColor = "#1a1b21";
+                e.target.style.borderColor = "rgba(0,0,0,0.08)";
+                e.target.style.backgroundColor = "#ffffff";
+                e.target.style.boxShadow = "none";
               }}
             >
               {BUSINESS_CATEGORIES.map((cat) => (
@@ -537,18 +542,20 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 autoFocus
                 style={{ ...inputStyle, flex: 1 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = "rgba(255,255,255,0.3)";
-                  e.target.style.background = "rgba(255,255,255,0.05)";
+                  e.target.style.borderColor = "rgba(0,0,0,0.2)";
+                  e.target.style.background = "#ffffff";
+                  e.target.style.boxShadow = "0 0 0 3px rgba(0,0,0,0.06)";
                 }}
                 onBlur={(e) => {
-                  e.target.style.borderColor = "rgba(255,255,255,0.06)";
-                  e.target.style.background = "#1a1b21";
+                  e.target.style.borderColor = "rgba(0,0,0,0.08)";
+                  e.target.style.background = "#ffffff";
+                  e.target.style.boxShadow = "none";
                 }}
               />
             )}
           </div>
 
-          <label style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", gap: 6 }}>
+          <label style={{ fontSize: "0.72rem", color: "#52525b", display: "flex", alignItems: "center", gap: 6 }}>
             Location
             {autoDetected && !userTyping && (
               <span
@@ -574,7 +581,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 height="14"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="rgba(255,255,255,0.3)"
+                stroke="#71717a"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -585,7 +592,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   transform: "translateY(-50%)",
                   pointerEvents: "none",
                   transition: "stroke 0.15s",
-                  ...(locationFocused ? { stroke: "rgba(255,255,255,0.5)" } : {}),
+                  ...(locationFocused ? { stroke: "#52525b" } : {}),
                 }}
               >
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -606,8 +613,8 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                 style={{
                   ...inputStyle,
                   paddingLeft: "2.5rem",
-                  borderColor: locationFocused ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.06)",
-                  background: locationFocused ? "rgba(255,255,255,0.05)" : "#1a1b21",
+                  borderColor: locationFocused ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.08)",
+                  background: locationFocused ? "#ffffff" : "#ffffff",
                 }}
                 onFocus={() => setLocationFocused(true)}
                 onBlur={() => {
@@ -630,8 +637,8 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                     transform: "translateY(-50%)",
                     width: 14,
                     height: 14,
-                    border: "2px solid rgba(255,255,255,0.1)",
-                    borderTopColor: "rgba(255,255,255,0.4)",
+                    border: "2px solid rgba(0,0,0,0.08)",
+                    borderTopColor: "rgba(0,0,0,0.25)",
                     borderRadius: "50%",
                     animation: "loc-spin 0.6s linear infinite",
                   }}
@@ -652,10 +659,10 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                   right: 0,
                   zIndex: 50,
                   borderRadius: 10,
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  background: "#1a1b21",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  background: "#ffffff",
                   overflow: "hidden",
-                  boxShadow: "0 12px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04)",
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04)",
                   backdropFilter: "blur(12px)",
                 }}
                 role="listbox"
@@ -666,7 +673,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                     style={{
                       padding: "0.75rem 1rem",
                       fontSize: "0.8rem",
-                      color: "rgba(255,255,255,0.35)",
+                      color: "#71717a",
                       display: "flex",
                       alignItems: "center",
                       gap: 8,
@@ -676,8 +683,8 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                       style={{
                         width: 12,
                         height: 12,
-                        border: "2px solid rgba(255,255,255,0.1)",
-                        borderTopColor: "rgba(255,255,255,0.3)",
+                        border: "2px solid rgba(0,0,0,0.08)",
+                        borderTopColor: "rgba(0,0,0,0.2)",
                         borderRadius: "50%",
                         animation: "loc-spin 0.6s linear infinite",
                       }}
@@ -706,10 +713,10 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                       padding: "0.65rem 1rem",
                       fontSize: "0.84rem",
                       fontFamily: "var(--font-sans)",
-                      color: "#ffffff",
-                      background: highlightedIdx === i ? "rgba(255,255,255,0.06)" : "transparent",
+                      color: "#18181b",
+                      background: highlightedIdx === i ? "rgba(0,0,0,0.04)" : "transparent",
                       border: "none",
-                      borderBottom: i < suggestions.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                      borderBottom: i < suggestions.length - 1 ? "1px solid rgba(0,0,0,0.04)" : "none",
                       cursor: "pointer",
                       transition: "background 0.1s",
                     }}
@@ -719,7 +726,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                       height="12"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke={highlightedIdx === i ? "rgba(255,255,255,0.5)" : "rgba(255,255,255,0.2)"}
+                      stroke={highlightedIdx === i ? "#52525b" : "#a1a1aa"}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -734,7 +741,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
                         style={{
                           display: "block",
                           fontSize: "0.68rem",
-                          color: "rgba(255,255,255,0.3)",
+                          color: "#71717a",
                           marginTop: 1,
                           whiteSpace: "nowrap",
                           overflow: "hidden",
@@ -762,8 +769,8 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               fontFamily: "var(--font-sans)",
               borderRadius: 10,
               border: "none",
-              background: isValid ? "#ffffff" : "rgba(255,255,255,0.2)",
-              color: isValid ? "#0c0d10" : "rgba(255,255,255,0.4)",
+              background: isValid ? "#18181b" : "rgba(0,0,0,0.12)",
+              color: isValid ? "#ffffff" : "#a1a1aa",
               cursor: isValid ? "pointer" : "not-allowed",
               transition: "all 0.2s",
             }}
@@ -771,7 +778,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             Check my visibility
           </button>
 
-          <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.32)", marginTop: "0.25rem" }}>
+          <p style={{ fontSize: "0.72rem", color: "#71717a", marginTop: "0.25rem" }}>
             Free — results in 30 seconds. No signup required.
           </p>
         </motion.form>

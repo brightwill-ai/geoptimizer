@@ -293,7 +293,7 @@ export default function SignupPage() {
           BrightWill
         </span>
         <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>
-          © 2025 BrightWill. Generative Engine Optimization for local businesses.
+          © 2026 BrightWill. Generative Engine Optimization for local businesses.
         </p>
         <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.4)" }}>hello@brightwill.ai</p>
       </footer>

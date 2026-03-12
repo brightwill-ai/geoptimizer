@@ -1,5 +1,7 @@
 "use client";
 
+import { useAnalyzeTheme } from "@/contexts/analyze-theme";
+
 interface ScoreRingProps {
   score: number; // 0-100
   size?: number;
@@ -17,6 +19,13 @@ export function ScoreRing({
   sublabel,
   animated = true,
 }: ScoreRingProps) {
+  const theme = useAnalyzeTheme();
+  const isLight = theme === "light";
+  const trackStroke = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
+  const fillStroke = isLight ? "#18181b" : "#ffffff";
+  const textColor = isLight ? "#18181b" : "#ffffff";
+  const sublabelColor = isLight ? "#71717a" : "rgba(255,255,255,0.5)";
+
   const clampedScore = Math.max(0, Math.min(100, score));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -32,7 +41,7 @@ export function ScoreRing({
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.08)"
+            stroke={trackStroke}
             strokeWidth={strokeWidth}
             pathLength={100}
           />
@@ -42,7 +51,7 @@ export function ScoreRing({
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="#ffffff"
+            stroke={fillStroke}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             pathLength={100}
@@ -65,17 +74,17 @@ export function ScoreRing({
             fontFamily: "var(--font-sans, var(--font-sans))",
             fontSize: size * 0.28,
             fontWeight: 500,
-            color: "#ffffff",
+            color: textColor,
           }}
         >
           {clampedScore}
         </div>
       </div>
       {label && (
-        <span style={{ fontSize: "0.875rem", fontWeight: 500, color: "#ffffff" }}>{label}</span>
+        <span style={{ fontSize: "0.875rem", fontWeight: 500, color: textColor }}>{label}</span>
       )}
       {sublabel && (
-        <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>{sublabel}</span>
+        <span style={{ fontSize: "0.75rem", color: sublabelColor }}>{sublabel}</span>
       )}
       <style jsx>{`
         @keyframes score-fill {

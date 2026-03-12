@@ -3,9 +3,10 @@
 interface SectionDividerProps {
   spacing?: number;
   style?: React.CSSProperties;
+  theme?: "dark" | "light";
 }
 
-export function SectionDivider({ spacing = 2.5, style }: SectionDividerProps) {
+export function SectionDivider({ spacing = 2.5, style, theme = "dark" }: SectionDividerProps) {
   return (
     <div
       style={{
@@ -14,7 +15,10 @@ export function SectionDivider({ spacing = 2.5, style }: SectionDividerProps) {
         marginRight: "auto",
         marginTop: `${spacing}rem`,
         marginBottom: `${spacing}rem`,
-        borderTop: "1px dashed rgba(255,255,255,.15)",
+        borderTop:
+          theme === "light"
+            ? "1px dashed rgba(0,0,0,0.12)"
+            : "1px dashed rgba(255,255,255,.15)",
         ...style,
       }}
     />

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-
+import { useAnalyzeTheme } from "@/contexts/analyze-theme";
 
 interface RecommendationHeroProps {
   probability: number; // 0-1
@@ -18,6 +18,8 @@ export function RecommendationHero({
   businessName,
   providerName = "ChatGPT",
 }: RecommendationHeroProps) {
+  const theme = useAnalyzeTheme();
+  const isLight = theme === "light";
   const pct = Math.round(probability * 100);
   const size = 160;
   const strokeWidth = 14;
@@ -28,6 +30,13 @@ export function RecommendationHero({
   const color = pct >= 60 ? "#16a34a" : pct >= 30 ? "#d97706" : "#dc2626";
   const bgColor = pct >= 60 ? "rgba(22,163,74,0.15)" : pct >= 30 ? "rgba(217,119,6,0.15)" : "rgba(220,38,38,0.15)";
   const label = pct >= 60 ? "Strong" : pct >= 30 ? "Moderate" : "Low";
+  const cardBg = isLight ? "#fafafa" : "#14151a";
+  const cardBorder = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.06)";
+  const eyebrowColor = isLight ? "#71717a" : "rgba(255,255,255,0.4)";
+  const trackStroke = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
+  const centerColor = isLight ? "#18181b" : "#ffffff";
+  const descColor = isLight ? "#52525b" : "rgba(255,255,255,0.6)";
+  const strongColor = isLight ? "#18181b" : "#ffffff";
 
   return (
     <motion.div
@@ -35,9 +44,9 @@ export function RecommendationHero({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
       style={{
-        background: "#14151a",
+        background: cardBg,
         borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: `1px solid ${cardBorder}`,
         padding: "2.5rem",
         display: "flex",
         flexDirection: "column",
@@ -47,17 +56,17 @@ export function RecommendationHero({
       }}
     >
       {/* Eyebrow */}
-      <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Recommendation Probability</div>
+      <div style={{ fontSize: "1.4rem", fontWeight: 500, letterSpacing: "-0.02em", color: eyebrowColor }}>Recommendation Probability</div>
 
       {/* Score ring */}
-      <div style={{ position: "relative", width: size, height: size }}>
+      <div style={{ position: "relative", width: size, height: size, filter: `drop-shadow(0 0 20px ${color}40)` }}>
         <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.08)"
+            stroke={trackStroke}
             strokeWidth={strokeWidth}
           />
           <circle
@@ -92,7 +101,7 @@ export function RecommendationHero({
               fontFamily: "var(--font-sans)",
               fontSize: "2.5rem",
               fontWeight: 500,
-              color: "#ffffff",
+              color: centerColor,
               lineHeight: 1,
             }}
           >
@@ -122,15 +131,15 @@ export function RecommendationHero({
       <p
         style={{
           fontSize: "0.9rem",
-          color: "rgba(255,255,255,0.6)",
+          color: descColor,
           lineHeight: 1.5,
           margin: 0,
           maxWidth: 360,
         }}
       >
         {providerName} recommended{" "}
-        <strong style={{ color: "#ffffff" }}>{businessName}</strong> in{" "}
-        <strong style={{ color: "#ffffff" }}>{mentionCount} of {totalQueries}</strong>{" "}
+        <strong style={{ color: strongColor }}>{businessName}</strong> in{" "}
+        <strong style={{ color: strongColor }}>{mentionCount} of {totalQueries}</strong>{" "}
         relevant queries.
       </p>
 

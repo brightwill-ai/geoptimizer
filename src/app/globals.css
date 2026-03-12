@@ -145,7 +145,7 @@ body {
   transform: translateY(-2px);
 }
 
-/* ── ANIMATIONS ── */
+/* ── ANIMATIONS (smooth easing) ── */
 @keyframes up {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
@@ -153,14 +153,14 @@ body {
 
 .animate-up {
   opacity: 0;
-  animation: up 0.5s ease forwards;
+  animation: up 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ── REVEAL ANIMATIONS ── */
 .reveal {
   opacity: 0;
   transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal.visible {
@@ -204,7 +204,7 @@ body {
 .reveal-blur {
   opacity: 0;
   filter: blur(8px);
-  transition: opacity 0.8s ease, filter 0.8s ease;
+  transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), filter 0.75s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal-blur.visible {
@@ -244,9 +244,17 @@ body {
 }
 
 /* ── SELECTION STYLES ── */
+/* Dark backgrounds (default body, report page) */
 ::selection {
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.2);
   color: #ffffff;
+}
+
+/* Light mode: landing page + analyze page — visible highlight */
+.landing-light ::selection,
+[data-theme="light"] ::selection {
+  background: #b4d5fe;
+  color: #18181b;
 }
 
 /* ── ANALYZE PAGE ── */
@@ -255,12 +263,31 @@ body {
 }
 
 @keyframes pulse-dot {
-  0%, 100% { opacity: 0.4; transform: scale(0.8); }
+  0%, 100% { opacity: 0.5; transform: scale(0.9); }
   50% { opacity: 1; transform: scale(1); }
 }
 
 @keyframes loc-spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .scroll-audit-results-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+@keyframes bounce-smooth {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(6px); }
 }
 
 @keyframes bw-caret-blink {
@@ -328,6 +355,16 @@ body {
   color: rgba(255,255,255,0.68);
 }
 
+[data-theme="light"] .analysis-meta-pill,
+[data-theme="light"] .analysis-provider-pill {
+  border-color: rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.04);
+  color: #52525b;
+}
+[data-theme="light"] .analysis-provider-pill {
+  color: #52525b;
+}
+
 .analysis-hero-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(260px, 0.75fr);
@@ -379,6 +416,20 @@ body {
   line-height: 1.45;
 }
 
+[data-theme="light"] .analysis-mini-panel {
+  border-color: rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.03);
+}
+[data-theme="light"] .analysis-mini-panel > span {
+  color: #71717a;
+}
+[data-theme="light"] .analysis-mini-panel > strong {
+  color: #18181b;
+}
+[data-theme="light"] .analysis-mini-panel > small {
+  color: #52525b;
+}
+
 .analysis-mini-stat {
   padding: 12px 14px;
   border-radius: 12px;
@@ -404,6 +455,17 @@ body {
   line-height: 1.25;
 }
 
+[data-theme="light"] .analysis-mini-stat {
+  border-color: rgba(0,0,0,0.08);
+  background: rgba(0,0,0,0.03);
+}
+[data-theme="light"] .analysis-mini-stat > span {
+  color: #71717a;
+}
+[data-theme="light"] .analysis-mini-stat > strong {
+  color: #18181b;
+}
+
 .analysis-upgrade-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -425,6 +487,18 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+[data-theme="light"] .analysis-sticky-cta {
+  background: rgba(255,255,255,0.95);
+  border-top: 1px solid rgba(0,0,0,0.08);
+}
+[data-theme="light"] .analysis-sticky-cta span {
+  color: #52525b;
+}
+[data-theme="light"] .analysis-sticky-cta button {
+  background: #18181b;
+  color: #ffffff;
 }
 
 /* Dashboard card hover */
@@ -704,6 +778,16 @@ body {
   z-index: 1;
 }
 
+/* Light mockups for landing "How it works" demo */
+.mockup-frame-light {
+  background: #fafafa;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+.mockup-frame-light::before {
+  background: rgba(0,0,0,0.03);
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+
 /* ── MOCKUP FADE OVERLAY ── */
 .mockup-fade {
   position: relative;
@@ -730,36 +814,7 @@ body {
   pointer-events: none;
 }
 
-/* ── OUTER EDGE LINES — 1code.dev-inspired dashed borders ── */
-.grid-bg .edge-lines {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 1140px;
-  transform: translateX(-50%);
-  border-left: 1px dashed rgba(255,255,255,0.15);
-  border-right: 1px dashed rgba(255,255,255,0.15);
-  pointer-events: none;
-  z-index: 2;
-}
-
-.grid-bg .edge-lines::before,
-.grid-bg .edge-lines::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  border-top: 1px dashed rgba(255,255,255,0.15);
-}
-
-.grid-bg .edge-lines::before {
-  top: 24px;
-}
-
-.grid-bg .edge-lines::after {
-  top: 106px;
-}
+/* Edge lines (dotted/dashed grid) removed — no longer used */
 
 /* ── CUSTOM SCROLLBAR ── */
 ::-webkit-scrollbar {

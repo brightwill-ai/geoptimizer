@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAnalyzeTheme } from "@/contexts/analyze-theme";
 import type { QueryResult, LLMProvider } from "@/lib/mock-data";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 import { formatQueryTypeLabel } from "@/lib/report-insights";
@@ -69,6 +70,8 @@ function cleanResponseText(text: string): string {
 }
 
 export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
+  const theme = useAnalyzeTheme();
+  const isLight = theme === "light";
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [mentionFilter, setMentionFilter] = useState<"all" | "mentioned" | "not_mentioned">("all");
@@ -90,10 +93,27 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
   const pageQueries = filteredQueries.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
   const selectChipStyle = (active: boolean) => ({
-    border: `1px solid ${active ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.08)"}`,
-    background: active ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
-    color: active ? "#ffffff" : "rgba(255,255,255,0.48)",
+    border: `1px solid ${isLight ? (active ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.1)") : (active ? "rgba(255,255,255,0.16)" : "rgba(255,255,255,0.08)")}`,
+    background: isLight ? (active ? "rgba(0,0,0,0.08)" : "rgba(0,0,0,0.04)") : (active ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)"),
+    color: isLight ? (active ? "#18181b" : "#52525b") : (active ? "#ffffff" : "rgba(255,255,255,0.48)"),
   });
+
+  const containerBg = isLight ? "#fafafa" : "#14151a";
+  const containerBorder = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.06)";
+  const headerColor = isLight ? "#71717a" : "rgba(255,255,255,0.4)";
+  const cardBg = isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.03)";
+  const cardBorder = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)";
+  const labelColor = isLight ? "#71717a" : "rgba(255,255,255,0.38)";
+  const titleColor = isLight ? "#18181b" : "#ffffff";
+  const bodyColor = isLight ? "#52525b" : "rgba(255,255,255,0.42)";
+  const metaColor = isLight ? "#a1a1aa" : "rgba(255,255,255,0.4)";
+  const dividerColor = isLight ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.04)";
+  const rowHover = isLight ? "rgba(0,0,0,0.03)" : "rgba(255,255,255,0.03)";
+  const responseBg = isLight ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.04)";
+  const paginationBorder = isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.08)";
+  const paginationBg = isLight ? "rgba(0,0,0,0.04)" : "rgba(255,255,255,0.04)";
+  const paginationColor = isLight ? "#52525b" : "rgba(255,255,255,0.5)";
+  const paginationDisabled = isLight ? "rgba(0,0,0,0.2)" : "rgba(255,255,255,0.15)";
 
   const handleMentionFilter = (value: "all" | "mentioned" | "not_mentioned") => {
     setMentionFilter(value);
@@ -110,9 +130,9 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
   return (
     <div
       style={{
-        background: "#14151a",
+        background: containerBg,
         borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: `1px solid ${containerBorder}`,
         overflow: "hidden",
       }}
     >
@@ -124,8 +144,8 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
           justifyContent: "space-between",
         }}
       >
-        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Query Evidence</div>
-        <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>
+        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: headerColor }}>Query Evidence</div>
+        <span style={{ fontSize: "0.72rem", color: headerColor }}>
           {mentionedCount} of {queries.length} mentioned {businessName}
         </span>
       </div>
@@ -149,14 +169,14 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
             style={{
               padding: "12px 14px",
               borderRadius: 10,
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
+              background: cardBg,
+              border: `1px solid ${cardBorder}`,
             }}
           >
-            <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: "0.68rem", color: labelColor, textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Mentioned
             </div>
-            <div style={{ marginTop: 8, fontSize: "1.3rem", fontWeight: 600, color: "#ffffff" }}>
+            <div style={{ marginTop: 8, fontSize: "1.3rem", fontWeight: 600, color: titleColor }}>
               {mentionedCount}/{queries.length}
             </div>
           </div>
@@ -164,14 +184,14 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
             style={{
               padding: "12px 14px",
               borderRadius: 10,
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
+              background: cardBg,
+              border: `1px solid ${cardBorder}`,
             }}
           >
-            <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: "0.68rem", color: labelColor, textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Primary recommendations
             </div>
-            <div style={{ marginTop: 8, fontSize: "1.3rem", fontWeight: 600, color: "#ffffff" }}>
+            <div style={{ marginTop: 8, fontSize: "1.3rem", fontWeight: 600, color: titleColor }}>
               {primaryCount}
             </div>
           </div>
@@ -179,14 +199,14 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
             style={{
               padding: "12px 14px",
               borderRadius: 10,
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
+              background: cardBg,
+              border: `1px solid ${cardBorder}`,
             }}
           >
-            <div style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.38)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <div style={{ fontSize: "0.68rem", color: labelColor, textTransform: "uppercase", letterSpacing: "0.06em" }}>
               Query types
             </div>
-            <div style={{ marginTop: 8, fontSize: "1.3rem", fontWeight: 600, color: "#ffffff" }}>
+            <div style={{ marginTop: 8, fontSize: "1.3rem", fontWeight: 600, color: titleColor }}>
               {queryTypeOptions.length}
             </div>
           </div>
@@ -229,15 +249,15 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.38)" }}>Query type</span>
+            <span style={{ fontSize: "0.72rem", color: labelColor }}>Query type</span>
             <select
               value={queryTypeFilter}
               onChange={(event) => handleQueryTypeFilter(event.target.value)}
               style={{
                 borderRadius: 999,
-                border: "1px solid rgba(255,255,255,0.08)",
-                background: "rgba(255,255,255,0.03)",
-                color: "#ffffff",
+                border: `1px solid ${paginationBorder}`,
+                background: cardBg,
+                color: titleColor,
                 padding: "7px 12px",
                 fontSize: "0.75rem",
               }}
@@ -259,9 +279,9 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
             style={{
               padding: "2rem 1.25rem",
               textAlign: "center",
-              color: "rgba(255,255,255,0.42)",
+              color: bodyColor,
               fontSize: "0.84rem",
-              borderTop: "1px solid rgba(255,255,255,0.04)",
+              borderTop: `1px solid ${dividerColor}`,
             }}
           >
             No query evidence matches the current filters.
@@ -289,7 +309,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                 ? "Mentioned"
                 : "Not mentioned";
 
-          const providerColor = PROVIDER_COLORS[q.provider] ?? "rgba(255,255,255,0.4)";
+          const providerColor = PROVIDER_COLORS[q.provider] ?? (isLight ? "#71717a" : "rgba(255,255,255,0.4)");
           const providerName = PROVIDER_NAMES[q.provider] ?? q.provider;
 
           return (
@@ -305,13 +325,13 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                   gap: 12,
                   background: "none",
                   border: "none",
-                  borderTop: "1px solid rgba(255,255,255,0.04)",
+                  borderTop: `1px solid ${dividerColor}`,
                   cursor: "pointer",
                   textAlign: "left",
                   transition: "background 0.1s",
                 }}
                 onMouseOver={(e) =>
-                  (e.currentTarget.style.background = "rgba(255,255,255,0.03)")
+                  (e.currentTarget.style.background = rowHover)
                 }
                 onMouseOut={(e) => (e.currentTarget.style.background = "none")}
               >
@@ -321,14 +341,14 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                     width: 24,
                     height: 24,
                     borderRadius: 6,
-                    background: "rgba(255,255,255,0.06)",
+                    background: responseBg,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "0.7rem",
                     fontWeight: 500,
                     fontFamily: "var(--font-mono, monospace)",
-                    color: "rgba(255,255,255,0.4)",
+                    color: metaColor,
                     flexShrink: 0,
                   }}
                 >
@@ -340,7 +360,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                   style={{
                     flex: 1,
                     fontSize: "0.8rem",
-                    color: "rgba(255,255,255,0.7)",
+                    color: titleColor,
                     fontWeight: 500,
                     lineHeight: 1.3,
                     overflow: "hidden",
@@ -371,7 +391,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                 <span
                   style={{
                     fontSize: "0.7rem",
-                    color: "rgba(255,255,255,0.3)",
+                    color: metaColor,
                     transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
                     transition: "transform 0.2s",
                     flexShrink: 0,
@@ -409,17 +429,17 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                         <div
                           style={{
                             maxWidth: "85%",
-                            background: "#1a1b21",
+                            background: isLight ? "#e4e4e7" : "#22232a",
                             borderRadius: "12px 12px 4px 12px",
                             padding: "0.75rem 1rem",
-                            border: "1px solid rgba(255,255,255,0.06)",
+                            border: `1px solid ${cardBorder}`,
                           }}
                         >
                           <div
                             style={{
                               fontSize: "0.65rem",
                               fontWeight: 500,
-                              color: "rgba(255,255,255,0.35)",
+                              color: labelColor,
                               marginBottom: 6,
                               textTransform: "uppercase",
                               letterSpacing: "0.04em",
@@ -430,7 +450,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                           <div
                             style={{
                               fontSize: "0.82rem",
-                              color: "#ffffff",
+                              color: titleColor,
                               lineHeight: 1.45,
                               fontWeight: 500,
                             }}
@@ -462,6 +482,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                             justifyContent: "center",
                             flexShrink: 0,
                             marginTop: 2,
+                            boxShadow: `0 0 0 2px ${providerColor}30`,
                           }}
                         >
                           <ProviderLogo provider={q.provider} size={14} />
@@ -471,12 +492,13 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                         <div
                           style={{
                             maxWidth: "85%",
-                            background: "rgba(255,255,255,0.03)",
+                            background: cardBg,
                             borderRadius: "12px 12px 12px 4px",
                             padding: "0.75rem 1rem",
                             borderLeft: `3px solid ${providerColor}`,
                             display: "flex",
                             flexDirection: "column",
+                            boxShadow: isLight ? "0 2px 12px rgba(0,0,0,0.06)" : "0 2px 12px rgba(0,0,0,0.2)",
                           }}
                         >
                           <div
@@ -496,7 +518,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                             className="query-response-scroll"
                             style={{
                               fontSize: "0.8rem",
-                              color: "rgba(255,255,255,0.6)",
+                              color: bodyColor,
                               lineHeight: 1.6,
                               whiteSpace: "pre-line",
                               maxHeight: 160,
@@ -517,14 +539,14 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                           marginTop: 2,
                           paddingLeft: 38,
                           fontSize: "0.7rem",
-                          color: "rgba(255,255,255,0.3)",
+                          color: metaColor,
                         }}
                       >
                         <span
                           style={{
                             padding: "2px 8px",
                             borderRadius: 999,
-                            background: "rgba(255,255,255,0.04)",
+                            background: responseBg,
                           }}
                         >
                           {q.queryType.replace(/_/g, " ")}
@@ -534,7 +556,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                             style={{
                               padding: "2px 8px",
                               borderRadius: 999,
-                              background: "rgba(255,255,255,0.04)",
+                              background: responseBg,
                             }}
                           >
                             Position #{q.rankPosition}
@@ -550,13 +572,13 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                                   ? "rgba(22,163,74,0.1)"
                                   : q.sentiment === "negative"
                                     ? "rgba(220,38,38,0.1)"
-                                    : "rgba(255,255,255,0.04)",
+                                    : responseBg,
                               color:
                                 q.sentiment === "positive"
                                   ? "#16a34a"
                                   : q.sentiment === "negative"
                                     ? "#dc2626"
-                                    : "rgba(255,255,255,0.3)",
+                                    : metaColor,
                             }}
                           >
                             {q.sentiment}
@@ -581,7 +603,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
             justifyContent: "center",
             gap: 4,
             padding: "0.75rem 1.25rem 1rem",
-            borderTop: "1px solid rgba(255,255,255,0.04)",
+            borderTop: `1px solid ${dividerColor}`,
           }}
         >
           {/* Previous */}
@@ -592,9 +614,9 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
               width: 32,
               height: 32,
               borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.08)",
-              background: currentPage === 1 ? "transparent" : "rgba(255,255,255,0.04)",
-              color: currentPage === 1 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.5)",
+              border: `1px solid ${paginationBorder}`,
+              background: currentPage === 1 ? "transparent" : paginationBg,
+              color: currentPage === 1 ? paginationDisabled : paginationColor,
               cursor: currentPage === 1 ? "default" : "pointer",
               display: "flex",
               alignItems: "center",
@@ -602,8 +624,8 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
               fontSize: "0.75rem",
               transition: "background 0.15s, color 0.15s",
             }}
-            onMouseOver={(e) => { if (currentPage > 1) e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = currentPage === 1 ? "transparent" : "rgba(255,255,255,0.04)"; }}
+            onMouseOver={(e) => { if (currentPage > 1) e.currentTarget.style.background = responseBg; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = currentPage === 1 ? "transparent" : paginationBg; }}
           >
             &#8249;
           </button>
@@ -629,7 +651,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                     alignItems: "center",
                     justifyContent: "center",
                     fontSize: "0.7rem",
-                    color: "rgba(255,255,255,0.25)",
+                    color: metaColor,
                   }}
                 >
                   &middot;&middot;&middot;
@@ -648,9 +670,9 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                   width: 32,
                   height: 32,
                   borderRadius: 8,
-                  border: isActive ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.08)",
-                  background: isActive ? "rgba(255,255,255,0.1)" : "transparent",
-                  color: isActive ? "#ffffff" : "rgba(255,255,255,0.45)",
+                  border: isActive ? (isLight ? "1px solid rgba(0,0,0,0.2)" : "1px solid rgba(255,255,255,0.2)") : `1px solid ${paginationBorder}`,
+                  background: isActive ? (isLight ? "rgba(0,0,0,0.08)" : "rgba(255,255,255,0.1)") : "transparent",
+                  color: isActive ? titleColor : paginationColor,
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -660,7 +682,7 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                   fontFamily: "var(--font-mono, monospace)",
                   transition: "all 0.15s",
                 }}
-                onMouseOver={(e) => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+                onMouseOver={(e) => { if (!isActive) e.currentTarget.style.background = rowHover; }}
                 onMouseOut={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
               >
                 {page}
@@ -676,9 +698,9 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
               width: 32,
               height: 32,
               borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.08)",
-              background: currentPage === totalPages ? "transparent" : "rgba(255,255,255,0.04)",
-              color: currentPage === totalPages ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.5)",
+              border: `1px solid ${paginationBorder}`,
+              background: currentPage === totalPages ? "transparent" : paginationBg,
+              color: currentPage === totalPages ? paginationDisabled : paginationColor,
               cursor: currentPage === totalPages ? "default" : "pointer",
               display: "flex",
               alignItems: "center",
@@ -686,8 +708,8 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
               fontSize: "0.75rem",
               transition: "background 0.15s, color 0.15s",
             }}
-            onMouseOver={(e) => { if (currentPage < totalPages) e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = currentPage === totalPages ? "transparent" : "rgba(255,255,255,0.04)"; }}
+            onMouseOver={(e) => { if (currentPage < totalPages) e.currentTarget.style.background = responseBg; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = currentPage === totalPages ? "transparent" : paginationBg; }}
           >
             &#8250;
           </button>
