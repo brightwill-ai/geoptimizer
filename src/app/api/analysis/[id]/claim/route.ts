@@ -3,11 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { runComprehensiveAudit } from "@/lib/agents/runner";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2026-02-25.clover",
-});
+import { getStripe } from "@/lib/stripe";
 
 const ClaimInput = z.object({
   email: z.string().email(),
@@ -36,7 +32,7 @@ export async function POST(
     // In production, require Stripe payment verification
     if (process.env.NODE_ENV !== "development" && stripeSessionId) {
       try {
-        const session = await stripe.checkout.sessions.retrieve(
+        const session = await getStripe().checkout.sessions.retrieve(
           stripeSessionId
         );
         if (session.payment_status !== "paid") {

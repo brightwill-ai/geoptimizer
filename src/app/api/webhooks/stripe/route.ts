@@ -2,11 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { runComprehensiveAudit } from "@/lib/agents/runner";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
-import Stripe from "stripe";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2026-02-25.clover",
-});
+import type Stripe from "stripe";
+import { getStripe } from "@/lib/stripe";
 
 export async function POST(request: Request) {
   try {
@@ -22,7 +19,7 @@ export async function POST(request: Request) {
 
     let event: Stripe.Event;
     try {
-      event = stripe.webhooks.constructEvent(
+      event = getStripe().webhooks.constructEvent(
         body,
         signature,
         process.env.STRIPE_WEBHOOK_SECRET
