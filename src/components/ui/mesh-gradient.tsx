@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState, useCallback } from "react";
+import { useRef, useEffect, useCallback } from "react";
 
 interface MeshGradientProps {
   /** "hero" = scroll-fade to white, "fixed" = static with bottom fade to #f7f7f8, "inline" = contained block */
@@ -16,8 +16,6 @@ interface MeshGradientProps {
 export function MeshGradient({ mode = "hero", height = 520, scrollFade = true, subtle = false }: MeshGradientProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
-  const [, setTick] = useState(0);
-
   const handleScroll = useCallback(() => {
     if (!wrapperRef.current || !overlayRef.current) return;
     const heroHeight = wrapperRef.current.offsetHeight;
@@ -28,8 +26,6 @@ export function MeshGradient({ mode = "hero", height = 520, scrollFade = true, s
   useEffect(() => {
     if (mode !== "hero" || !scrollFade) return;
     window.addEventListener("scroll", handleScroll, { passive: true });
-    // Force initial render
-    setTick(1);
     requestAnimationFrame(handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, [mode, scrollFade, handleScroll]);

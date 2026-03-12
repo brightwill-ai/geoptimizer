@@ -25,14 +25,16 @@ export function ScoreRing({
   const hasAnimated = useRef(false);
   const [currentOffset, setCurrentOffset] = useState(animated ? 100 : dashOffset);
 
+  // Animate on first mount; sync on subsequent updates
   useEffect(() => {
     if (animated && !hasAnimated.current) {
       hasAnimated.current = true;
       const timer = setTimeout(() => setCurrentOffset(dashOffset), 50);
       return () => clearTimeout(timer);
-    } else {
-      setCurrentOffset(dashOffset);
     }
+    // For non-animated or post-animation updates, sync via microtask
+    const id = requestAnimationFrame(() => setCurrentOffset(dashOffset));
+    return () => cancelAnimationFrame(id);
   }, [animated, dashOffset]);
 
   return (
