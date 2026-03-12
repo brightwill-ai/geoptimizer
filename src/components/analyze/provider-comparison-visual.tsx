@@ -34,38 +34,26 @@ export function ProviderComparisonVisual({ analysis }: ProviderComparisonVisualP
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: i * 0.08, ease: "easeOut" }}
             style={{
-              background: "rgba(20, 21, 26, 0.7)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "#ffffff",
+              border: "1px solid #e5e5e5",
               borderRadius: 12,
-              borderTopWidth: 2,
+              borderTopWidth: 3,
               borderTopColor: p.color,
               padding: "1.25rem",
               position: "relative",
               overflow: "hidden",
-              transition: "border-color 0.2s ease",
+              transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.borderColor = `${p.color}40`;
+              e.currentTarget.style.borderColor = `${p.color}60`;
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.06)";
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+              e.currentTarget.style.borderColor = "#e5e5e5";
+              e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04)";
             }}
           >
-            {/* Corner glow */}
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                width: 100,
-                height: 100,
-                background: `radial-gradient(circle at top right, ${p.color}15, transparent 70%)`,
-                pointerEvents: "none",
-              }}
-            />
-
             {/* Provider header */}
             <div
               style={{
@@ -78,29 +66,27 @@ export function ProviderComparisonVisual({ analysis }: ProviderComparisonVisualP
               }}
             >
               <ProviderLogo provider={p.id} size={18} />
-              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#ffffff" }}>
+              <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "#171717" }}>
                 {p.name}
               </span>
             </div>
 
             {/* Ring */}
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16, position: "relative", zIndex: 1 }}>
-              <div style={{ filter: `drop-shadow(0 0 12px ${p.color}30)` }}>
-                <ScoreRing
-                  score={prob}
-                  size={72}
-                  strokeWidth={6}
-                  animated
-                />
-              </div>
+              <ScoreRing
+                score={prob}
+                size={72}
+                strokeWidth={6}
+                animated
+              />
             </div>
 
             {/* Probability label */}
             <div style={{ textAlign: "center", marginBottom: 20, position: "relative", zIndex: 1 }}>
-              <div style={{ fontSize: "1.25rem", fontWeight: 600, color: "#ffffff", fontVariantNumeric: "tabular-nums" }}>
+              <div style={{ fontSize: "1.25rem", fontWeight: 600, color: "#171717", fontVariantNumeric: "tabular-nums" }}>
                 {prob}%
               </div>
-              <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.35)" }}>
+              <div style={{ fontSize: "0.7rem", color: "#8e8ea0" }}>
                 recommendation probability
               </div>
             </div>
@@ -150,13 +136,13 @@ function StatRow({ label, value }: { label: string; value: React.ReactNode }) {
         alignItems: "center",
         justifyContent: "space-between",
         padding: "8px 0",
-        borderBottom: "1px solid rgba(255,255,255,0.04)",
+        borderBottom: "1px solid #ececec",
       }}
     >
-      <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)" }}>
+      <span style={{ fontSize: "0.75rem", color: "#8e8ea0" }}>
         {label}
       </span>
-      <span style={{ fontSize: "0.8rem", fontWeight: 500, color: "#ffffff" }}>
+      <span style={{ fontSize: "0.8rem", fontWeight: 500, color: "#171717" }}>
         {value}
       </span>
     </div>

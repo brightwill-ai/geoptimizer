@@ -18,24 +18,29 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
           display: "grid",
           gridTemplateColumns: "32px 1fr 1fr 80px",
           gap: 8,
-          padding: "8px 0",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          padding: "8px 12px",
+          borderBottom: "1px solid #e5e5e5",
+          background: "#f7f7f8",
+          borderRadius: "8px 8px 0 0",
         }}
       >
-        <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>#</span>
-        <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Business</span>
-        <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Mentions</span>
-        <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Count</span>
+        <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "#8e8ea0", textTransform: "uppercase", letterSpacing: "0.05em" }}>#</span>
+        <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "#8e8ea0", textTransform: "uppercase", letterSpacing: "0.05em" }}>Business</span>
+        <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "#8e8ea0", textTransform: "uppercase", letterSpacing: "0.05em" }}>Mentions</span>
+        <span style={{ fontSize: "0.7rem", fontWeight: 500, color: "#8e8ea0", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "right" }}>Count</span>
       </div>
       {/* Rows */}
       {sortedCompetitors.map((c, idx) => {
         const pct = (c.mentionCount / maxMentions) * 100;
         const isTopRow = idx === 0;
+        const isEvenRow = idx % 2 === 1;
         const defaultBg = c.isSubject
-          ? "rgba(255,255,255,0.03)"
+          ? "#f7f7f8"
           : isTopRow
             ? "rgba(217,119,6,0.04)"
-            : "transparent";
+            : isEvenRow
+              ? "#fafafa"
+              : "#ffffff";
         return (
           <div
             key={`${c.rank}-${c.name}`}
@@ -43,27 +48,24 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
               display: "grid",
               gridTemplateColumns: "32px 1fr 1fr 80px",
               gap: 8,
-              padding: "10px 0",
-              borderBottom: "1px solid rgba(255,255,255,0.04)",
+              padding: "10px 12px",
+              borderBottom: "1px solid #ececec",
               background: defaultBg,
               borderRadius: c.isSubject ? 8 : isTopRow ? 6 : 0,
-              paddingLeft: c.isSubject ? 8 : isTopRow ? 8 : 0,
-              marginLeft: c.isSubject ? -8 : isTopRow ? -8 : 0,
-              paddingRight: c.isSubject ? 8 : isTopRow ? 8 : 0,
               transition: "background 0.15s ease",
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+              e.currentTarget.style.background = "#f7f7f8";
             }}
             onMouseOut={(e) => {
               e.currentTarget.style.background = defaultBg;
             }}
           >
-            <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>{c.rank}</span>
+            <span style={{ fontSize: "0.8rem", color: "#8e8ea0", fontWeight: 500 }}>{c.rank}</span>
             <span
               style={{
                 fontSize: "0.8rem",
-                color: "#ffffff",
+                color: "#171717",
                 fontWeight: c.isSubject ? 700 : 400,
                 display: "flex",
                 alignItems: "center",
@@ -77,8 +79,8 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
                     fontSize: "0.6rem",
                     padding: "1px 6px",
                     borderRadius: 999,
-                    background: "#ffffff",
-                    color: "#0c0d10",
+                    background: "#171717",
+                    color: "#ffffff",
                     fontWeight: 500,
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
@@ -93,7 +95,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
                 style={{
                   height: 6,
                   borderRadius: 3,
-                  background: "rgba(255,255,255,0.06)",
+                  background: "#f0f0f0",
                   flex: 1,
                   overflow: "hidden",
                 }}
@@ -103,7 +105,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
                     height: "100%",
                     width: `${pct}%`,
                     borderRadius: 3,
-                    background: c.isSubject ? "#ffffff" : "rgba(255,255,255,0.3)",
+                    background: c.isSubject ? "#171717" : "#8e8ea0",
                     transition: "width 0.6s ease-out",
                   }}
                 />
@@ -113,7 +115,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
               style={{
                 fontSize: "0.8rem",
                 fontWeight: 500,
-                color: "#ffffff",
+                color: "#171717",
                 textAlign: "right",
               }}
             >

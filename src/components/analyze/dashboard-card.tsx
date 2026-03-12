@@ -41,45 +41,31 @@ export function DashboardCard({
       transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
       className="dash-card"
       onMouseOver={(e) => {
-        e.currentTarget.style.boxShadow = "0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1)";
-        e.currentTarget.style.transform = "translateY(-1px)";
+        e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04)";
+        e.currentTarget.style.borderColor = "#d5d5d5";
+        e.currentTarget.style.transform = "translateY(-2px)";
       }}
       onMouseOut={(e) => {
-        e.currentTarget.style.boxShadow = "0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)";
+        e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)";
+        e.currentTarget.style.borderColor = "#e5e5e5";
         e.currentTarget.style.transform = "translateY(0)";
       }}
       style={{
-        background: "rgba(20, 21, 26, 0.7)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)",
+        background: "#ffffff",
+        border: "1px solid #e5e5e5",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
         borderRadius: 12,
         padding: noPadding ? 0 : "1.25rem",
         position: "relative",
         overflow: "hidden",
-        transition: "box-shadow 0.25s ease, transform 0.25s ease",
+        transition: "box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease",
         ...(span === 2 ? { gridColumn: "1 / -1" } : {}),
         ...(accentColor
-          ? { borderTopWidth: 2, borderTopColor: accentColor }
+          ? { borderTopWidth: 3, borderTopColor: accentColor }
           : {}),
         ...style,
       }}
     >
-      {/* Subtle corner glow */}
-      {accentColor && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            width: 160,
-            height: 160,
-            background: `radial-gradient(circle at top right, ${accentColor}15, transparent 70%)`,
-            pointerEvents: "none",
-          }}
-        />
-      )}
-
       {/* Title bar */}
       {(title || titleRight) && (
         <div
@@ -101,7 +87,7 @@ export function DashboardCard({
                   fontWeight: 600,
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
-                  color: "rgba(255,255,255,0.4)",
+                  color: "#8e8ea0",
                   margin: 0,
                   lineHeight: 1.3,
                 }}
@@ -112,7 +98,7 @@ export function DashboardCard({
                 <p
                   style={{
                     fontSize: "0.7rem",
-                    color: "rgba(255,255,255,0.3)",
+                    color: "#8e8ea0",
                     margin: "2px 0 0",
                   }}
                 >
@@ -152,7 +138,9 @@ export function DashboardCard({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(12,13,16,0.3)",
+            background: "rgba(255,255,255,0.8)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
             borderRadius: 12,
             zIndex: 10,
           }}
@@ -165,19 +153,21 @@ export function DashboardCard({
               gap: 8,
               padding: "8px 20px",
               borderRadius: 999,
-              background: "#14151a",
-              border: "1px solid rgba(255,255,255,0.08)",
-              boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
+              background: "#ffffff",
+              border: "1px solid #e5e5e5",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
               cursor: "pointer",
               fontFamily: "var(--font-sans)",
               transition: "all 0.2s ease",
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+              e.currentTarget.style.borderColor = "#d5d5d5";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
               e.currentTarget.style.transform = "scale(1.03)";
             }}
             onMouseOut={(e) => {
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+              e.currentTarget.style.borderColor = "#e5e5e5";
+              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)";
               e.currentTarget.style.transform = "scale(1)";
             }}
           >
@@ -186,7 +176,7 @@ export function DashboardCard({
               style={{
                 fontSize: "0.78rem",
                 fontWeight: 500,
-                color: "#ffffff",
+                color: "#171717",
               }}
             >
               {lockLabel || "Unlock"}

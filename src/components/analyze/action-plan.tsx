@@ -93,14 +93,14 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
           style={{
             width: 40,
             height: 40,
-            border: "3px solid rgba(255,255,255,0.1)",
-            borderTopColor: "rgba(255,255,255,0.5)",
+            border: "3px solid #e5e5e5",
+            borderTopColor: "#6e6e80",
             borderRadius: "50%",
             animation: "spin 0.8s linear infinite",
             margin: "0 auto 16px",
           }}
         />
-        <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.5)" }}>
+        <p style={{ fontSize: "0.85rem", color: "#6e6e80" }}>
           Generating your personalized action plan...
         </p>
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
@@ -113,14 +113,14 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
     return (
       <div
         style={{
-          background: "#14151a",
+          background: "#ffffff",
           borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid #e5e5e5",
           padding: "32px",
           textAlign: "center",
         }}
       >
-        <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.6)", margin: "0 0 16px" }}>
+        <p style={{ fontSize: "0.9rem", color: "#6e6e80", margin: "0 0 16px" }}>
           {status === "failed"
             ? "Action plan generation failed. Click below to retry."
             : "Generate a comprehensive GEO optimization action plan based on your analysis."}
@@ -131,8 +131,8 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
           style={{
             padding: "10px 24px",
             borderRadius: 8,
-            background: "#ffffff",
-            color: "#0c0d10",
+            background: "#171717",
+            color: "#ffffff",
             border: "none",
             fontSize: "0.84rem",
             fontWeight: 600,
@@ -165,7 +165,7 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
             fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.05em",
-            color: "rgba(255,255,255,0.4)",
+            color: "#8e8ea0",
             margin: "0 0 12px 0",
           }}
         >
@@ -176,9 +176,9 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
       {/* CTA */}
       <div
         style={{
-          background: "linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))",
+          background: "#f7f7f8",
           borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: "1px solid #e5e5e5",
           padding: "28px 24px",
           textAlign: "center",
           marginBottom: 16,
@@ -188,7 +188,7 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
           style={{
             fontSize: "1rem",
             fontWeight: 600,
-            color: "#ffffff",
+            color: "#171717",
             margin: "0 0 8px",
           }}
         >
@@ -197,7 +197,7 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
         <p
           style={{
             fontSize: "0.82rem",
-            color: "rgba(255,255,255,0.5)",
+            color: "#6e6e80",
             margin: "0 0 16px",
             lineHeight: 1.45,
           }}
@@ -210,8 +210,8 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
             display: "inline-block",
             padding: "10px 28px",
             borderRadius: 8,
-            background: "#ffffff",
-            color: "#0c0d10",
+            background: "#171717",
+            color: "#ffffff",
             fontSize: "0.84rem",
             fontWeight: 600,
             textDecoration: "none",
@@ -224,9 +224,9 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
       {/* Progress dashboard */}
       <div
         style={{
-          background: "#14151a",
+          background: "#ffffff",
           borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid #e5e5e5",
           padding: "24px",
           marginBottom: 16,
         }}
@@ -240,14 +240,14 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
           }}
         >
           {/* Completion ring */}
-          <div style={{ position: "relative", width: 72, height: 72, filter: "drop-shadow(0 0 16px rgba(22,163,74,0.3))" }}>
+          <div style={{ position: "relative", width: 72, height: 72 }}>
             <svg width={72} height={72} viewBox="0 0 72 72">
               <circle
                 cx={36}
                 cy={36}
                 r={30}
                 fill="none"
-                stroke="rgba(255,255,255,0.06)"
+                stroke="#e5e5e5"
                 strokeWidth={5}
               />
               <circle
@@ -255,7 +255,7 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
                 cy={36}
                 r={30}
                 fill="none"
-                stroke={completionPct === 100 ? "#16a34a" : "#ffffff"}
+                stroke={completionPct === 100 ? "#16a34a" : "#171717"}
                 strokeWidth={5}
                 strokeLinecap="round"
                 strokeDasharray={`${(completionPct / 100) * 188.5} 188.5`}
@@ -272,7 +272,7 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
                 justifyContent: "center",
                 fontSize: "0.95rem",
                 fontWeight: 700,
-                color: "#ffffff",
+                color: "#171717",
               }}
             >
               {completionPct}%
@@ -283,32 +283,32 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 8 }}>
               <div>
-                <p style={{ fontSize: "1.3rem", fontWeight: 700, color: "#ffffff", margin: 0 }}>
+                <p style={{ fontSize: "1.3rem", fontWeight: 700, color: "#171717", margin: 0 }}>
                   {plan.completedItems}/{plan.totalItems}
                 </p>
-                <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                <p style={{ fontSize: "0.72rem", color: "#8e8ea0", margin: 0 }}>
                   Items Completed
                 </p>
               </div>
               <div>
-                <p style={{ fontSize: "1.3rem", fontWeight: 700, color: "#ffffff", margin: 0 }}>
+                <p style={{ fontSize: "1.3rem", fontWeight: 700, color: "#171717", margin: 0 }}>
                   {plan.categories.length}
                 </p>
-                <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                <p style={{ fontSize: "0.72rem", color: "#8e8ea0", margin: 0 }}>
                   Categories
                 </p>
               </div>
               <div>
-                <p style={{ fontSize: "1.3rem", fontWeight: 700, color: "#ffffff", margin: 0 }}>
+                <p style={{ fontSize: "1.3rem", fontWeight: 700, color: "#171717", margin: 0 }}>
                   {plan.estimatedTotalEffort}
                 </p>
-                <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)", margin: 0 }}>
+                <p style={{ fontSize: "0.72rem", color: "#8e8ea0", margin: 0 }}>
                   Est. Total Effort
                 </p>
               </div>
             </div>
 
-            <p style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.45)", margin: 0, lineHeight: 1.4 }}>
+            <p style={{ fontSize: "0.78rem", color: "#8e8ea0", margin: 0, lineHeight: 1.4 }}>
               Personalized action plan based on your GEO analysis findings across all AI engines.
             </p>
           </div>
@@ -332,10 +332,10 @@ export function ActionPlan({ analysisId, initialActionPlan, actionPlanStatus }: 
               padding: "5px 14px",
               borderRadius: 999,
               border: filter === f
-                ? "1px solid rgba(255,255,255,0.2)"
-                : "1px solid rgba(255,255,255,0.06)",
-              background: filter === f ? "rgba(255,255,255,0.08)" : "transparent",
-              color: filter === f ? "#ffffff" : "rgba(255,255,255,0.4)",
+                ? "1px solid #d0d0d0"
+                : "1px solid #e5e5e5",
+              background: filter === f ? "#f0f0f0" : "transparent",
+              color: filter === f ? "#171717" : "#8e8ea0",
               fontSize: "0.75rem",
               fontWeight: 500,
               cursor: "pointer",

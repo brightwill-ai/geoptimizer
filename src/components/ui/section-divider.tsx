@@ -14,7 +14,11 @@ export function SectionDivider({ spacing = 2.5, style }: SectionDividerProps) {
         marginRight: "auto",
         marginTop: `${spacing}rem`,
         marginBottom: `${spacing}rem`,
-        borderTop: "1px dashed rgba(255,255,255,.15)",
+        height: 2,
+        backgroundImage:
+          "repeating-radial-gradient(circle, rgba(0,0,0,0.12) 0 1px, transparent 1px 6px)",
+        backgroundSize: "6px 100%",
+        backgroundPosition: "center",
         ...style,
       }}
     />

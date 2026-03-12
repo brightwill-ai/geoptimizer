@@ -32,48 +32,48 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
   }[] = [
     {
       label: "Recommendation Probability",
-      getValue: (id) => { const r = safeGet(id); return r ? `${Math.round(r.recommendations.recommendationProbability * 100)}%` : "—"; },
-      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.recommendations.recommendationProbability * 100, 100) : "rgba(255,255,255,0.4)"; },
+      getValue: (id) => { const r = safeGet(id); return r ? `${Math.round(r.recommendations.recommendationProbability * 100)}%` : "\u2014"; },
+      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.recommendations.recommendationProbability * 100, 100) : "#8e8ea0"; },
     },
     {
       label: "GEO Score",
-      getValue: (id) => { const r = safeGet(id); return r ? `${r.overallScore}/100` : "—"; },
-      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.overallScore, 100) : "rgba(255,255,255,0.4)"; },
+      getValue: (id) => { const r = safeGet(id); return r ? `${r.overallScore}/100` : "\u2014"; },
+      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.overallScore, 100) : "#8e8ea0"; },
     },
     {
       label: "Queries Mentioned In",
-      getValue: (id) => { const r = safeGet(id); return r ? `${r.recommendations.mentionCount} of ${r.recommendations.totalQueries}` : "—"; },
-      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.recommendations.mentionCount, r.recommendations.totalQueries) : "rgba(255,255,255,0.4)"; },
+      getValue: (id) => { const r = safeGet(id); return r ? `${r.recommendations.mentionCount} of ${r.recommendations.totalQueries}` : "\u2014"; },
+      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.recommendations.mentionCount, r.recommendations.totalQueries) : "#8e8ea0"; },
     },
     {
       label: "Sentiment",
-      getValue: (id) => { const r = safeGet(id); return r ? `${r.sentiment.positive}%` : "—"; },
-      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.sentiment.positive, 100) : "rgba(255,255,255,0.4)"; },
+      getValue: (id) => { const r = safeGet(id); return r ? `${r.sentiment.positive}%` : "\u2014"; },
+      getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.sentiment.positive, 100) : "#8e8ea0"; },
     },
     {
       label: "Ranking",
-      getValue: (id) => { const r = safeGet(id); return r ? `#${r.ranking.position} of ${r.ranking.totalCompetitors}` : "—"; },
-      getColor: (id) => { const r = safeGet(id); return r ? rankColor(r.ranking.position) : "rgba(255,255,255,0.4)"; },
+      getValue: (id) => { const r = safeGet(id); return r ? `#${r.ranking.position} of ${r.ranking.totalCompetitors}` : "\u2014"; },
+      getColor: (id) => { const r = safeGet(id); return r ? rankColor(r.ranking.position) : "#8e8ea0"; },
     },
     {
       label: "Accuracy",
       getValue: (id) => {
         const r = safeGet(id);
-        if (!r || r.accuracy.length === 0) return "—";
+        if (!r || r.accuracy.length === 0) return "\u2014";
         const correct = r.accuracy.filter((a) => a.status === "correct").length;
         return `${Math.round((correct / r.accuracy.length) * 100)}%`;
       },
       getColor: (id) => {
         const r = safeGet(id);
-        if (!r || r.accuracy.length === 0) return "rgba(255,255,255,0.4)";
+        if (!r || r.accuracy.length === 0) return "#8e8ea0";
         const correct = r.accuracy.filter((a) => a.status === "correct").length;
         return scoreColor(correct, r.accuracy.length);
       },
     },
     {
       label: "Sources Cited",
-      getValue: (id) => { const r = safeGet(id); return r?.sources?.length ? `${r.sources.length}` : "—"; },
-      getColor: (id) => { const r = safeGet(id); return r?.sources?.length ? scoreColor(r.sources.length, 8) : "rgba(255,255,255,0.4)"; },
+      getValue: (id) => { const r = safeGet(id); return r?.sources?.length ? `${r.sources.length}` : "\u2014"; },
+      getColor: (id) => { const r = safeGet(id); return r?.sources?.length ? scoreColor(r.sources.length, 8) : "#8e8ea0"; },
     },
   ];
 
@@ -86,6 +86,9 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
           width: "100%",
           borderCollapse: "collapse",
           fontSize: "0.8rem",
+          border: "1px solid #e5e5e5",
+          borderRadius: 8,
+          overflow: "hidden",
         }}
       >
         <thead>
@@ -94,12 +97,13 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
               style={{
                 textAlign: "left",
                 padding: "10px 12px",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
+                borderBottom: "1px solid #e5e5e5",
                 fontSize: "0.7rem",
                 fontWeight: 500,
-                color: "rgba(255,255,255,0.4)",
+                color: "#8e8ea0",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
+                background: "#f7f7f8",
               }}
             >
               Metric
@@ -110,10 +114,11 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
                 style={{
                   textAlign: "center",
                   padding: "10px 12px",
-                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                  borderBottom: "1px solid #e5e5e5",
                   fontWeight: 500,
-                  color: "#ffffff",
+                  color: "#171717",
                   fontSize: "0.8rem",
+                  background: "#f7f7f8",
                 }}
               >
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -133,13 +138,13 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
           </tr>
         </thead>
         <tbody>
-          {metrics.map((m) => (
-            <tr key={m.label}>
+          {metrics.map((m, idx) => (
+            <tr key={m.label} style={{ background: idx % 2 === 1 ? "#f7f7f8" : "#ffffff" }}>
               <td
                 style={{
                   padding: "10px 12px",
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
-                  color: "rgba(255,255,255,0.7)",
+                  borderBottom: "1px solid #ececec",
+                  color: "#6e6e80",
                   fontWeight: 500,
                 }}
               >
@@ -151,7 +156,7 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
                   style={{
                     textAlign: "center",
                     padding: "10px 12px",
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    borderBottom: "1px solid #ececec",
                     fontWeight: 500,
                     color: m.getColor(p.id),
                   }}

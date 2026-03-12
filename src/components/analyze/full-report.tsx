@@ -33,7 +33,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       style={{
         fontSize: "0.72rem",
         fontWeight: 600,
-        color: "rgba(255,255,255,0.38)",
+        color: "#8e8ea0",
         textTransform: "uppercase",
         letterSpacing: "0.1em",
         marginBottom: 12,
@@ -62,20 +62,20 @@ function InsightCard({
         ? "#d97706"
         : tone === "negative"
           ? "#dc2626"
-          : "rgba(255,255,255,0.3)";
+          : "#8e8ea0";
 
   return (
     <div
       style={{
         padding: "16px",
         borderRadius: 14,
-        border: `1px solid ${accent}24`,
+        border: `1px solid #e5e5e5`,
         borderTop: `2px solid ${accent}`,
-        background: "rgba(255,255,255,0.03)",
+        background: "#f7f7f8",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
-        <div style={{ fontSize: "0.98rem", color: "#ffffff", fontWeight: 600, lineHeight: 1.35 }}>{title}</div>
+        <div style={{ fontSize: "0.98rem", color: "#171717", fontWeight: 600, lineHeight: 1.35 }}>{title}</div>
         {badge && (
           <span
             style={{
@@ -92,7 +92,7 @@ function InsightCard({
           </span>
         )}
       </div>
-      <div style={{ fontSize: "0.82rem", color: "rgba(255,255,255,0.58)", lineHeight: 1.5 }}>
+      <div style={{ fontSize: "0.82rem", color: "#6e6e80", lineHeight: 1.5 }}>
         {detail}
       </div>
     </div>
@@ -233,9 +233,9 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
             gap: 6,
             padding: "6px 14px",
             borderRadius: 8,
-            background: "rgba(255,255,255,0.06)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            color: pdfLoading ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.7)",
+            background: "#f7f7f8",
+            border: "1px solid #e5e5e5",
+            color: pdfLoading ? "#8e8ea0" : "#6e6e80",
             fontSize: "0.78rem",
             fontWeight: 500,
             fontFamily: "var(--font-sans)",
@@ -244,13 +244,13 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
           }}
           onMouseOver={(e) => {
             if (!pdfLoading) {
-              e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-              e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+              e.currentTarget.style.background = "#e5e5e5";
+              e.currentTarget.style.borderColor = "#d0d0d0";
             }
           }}
           onMouseOut={(e) => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.06)";
-            e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+            e.currentTarget.style.background = "#f7f7f8";
+            e.currentTarget.style.borderColor = "#e5e5e5";
           }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -278,7 +278,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
       <div>
       {dashTab === "overview" && (
         <div style={{ display: "flex", flexDirection: "column", gap: "2.5rem" }}>
-          <DashboardCard span={2} accentColor={analysisSnapshot.visibility.color} style={{ background: `linear-gradient(135deg, ${analysisSnapshot.visibility.color}08, transparent 60%)` }}>
+          <DashboardCard span={2} accentColor={analysisSnapshot.visibility.color}>
             <div className="analysis-hero-grid">
               <div>
                 <div
@@ -302,7 +302,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                     margin: 0,
                     fontSize: "clamp(1.65rem, 3vw, 2.5rem)",
                     lineHeight: 1.04,
-                    color: "#ffffff",
+                    color: "#171717",
                     letterSpacing: "-0.04em",
                     maxWidth: 880,
                   }}
@@ -314,7 +314,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                     margin: "14px 0 0",
                     maxWidth: 760,
                     fontSize: "0.95rem",
-                    color: "rgba(255,255,255,0.62)",
+                    color: "#6e6e80",
                     lineHeight: 1.6,
                   }}
                 >
@@ -329,12 +329,12 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                       style={{
                         padding: "12px 14px",
                         borderRadius: 12,
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.06)",
+                        background: "#f7f7f8",
+                        border: "1px solid #e5e5e5",
                       }}
                     >
-                      <div style={{ color: "#ffffff", fontWeight: 600, marginBottom: 4 }}>{win.title}</div>
-                      <div style={{ color: "rgba(255,255,255,0.58)", fontSize: "0.8rem", lineHeight: 1.45 }}>
+                      <div style={{ color: "#171717", fontWeight: 600, marginBottom: 4 }}>{win.title}</div>
+                      <div style={{ color: "#6e6e80", fontSize: "0.8rem", lineHeight: 1.45 }}>
                         {win.detail}
                       </div>
                     </div>
@@ -343,7 +343,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
               </div>
 
               <div className="analysis-hero-score">
-                <div style={{ filter: `drop-shadow(0 0 20px ${analysisSnapshot.visibility.color}40)` }}>
+                <div>
                   <ScoreRing score={Math.round(analysisSnapshot.averageProbability * 100)} size={136} strokeWidth={10} />
                 </div>
                 <div style={{ display: "grid", gap: 10, width: "100%" }}>
@@ -397,15 +397,14 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                   title={provider.name}
                   icon={<ProviderLogo provider={provider.id} size={14} />}
                   accentColor={provider.color}
-                  style={{ background: `linear-gradient(180deg, ${provider.color}0a, transparent 60px)` }}
                 >
                   <div style={{ display: "grid", gap: 14 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                       <div>
-                        <div style={{ fontSize: "1.55rem", fontWeight: 700, color: "#ffffff", lineHeight: 1 }}>
+                        <div style={{ fontSize: "1.55rem", fontWeight: 700, color: "#171717", lineHeight: 1 }}>
                           {Math.round(provider.probability * 100)}%
                         </div>
-                        <div style={{ marginTop: 6, fontSize: "0.76rem", color: "rgba(255,255,255,0.42)" }}>
+                        <div style={{ marginTop: 6, fontSize: "0.76rem", color: "#8e8ea0" }}>
                           recommendation probability
                         </div>
                       </div>
@@ -548,7 +547,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                 <small>{analysis.methodology.queryTypes.join(", ")}</small>
               </div>
             </div>
-            <p style={{ marginTop: 14, color: "rgba(255,255,255,0.46)", fontSize: "0.78rem", lineHeight: 1.55 }}>
+            <p style={{ marginTop: 14, color: "#8e8ea0", fontSize: "0.78rem", lineHeight: 1.55 }}>
               {analysis.methodology.disclaimer}
             </p>
           </DashboardCard>
@@ -566,7 +565,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
             />
           </div>
 
-          <DashboardCard accentColor={activeReport.provider.color} style={{ background: `radial-gradient(circle at 70% 30%, ${activeReport.provider.color}08, transparent 70%)` }}>
+          <DashboardCard accentColor={activeReport.provider.color}>
             <div className="analysis-hero-grid">
               <div>
                 <div
@@ -591,7 +590,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                     fontSize: "clamp(1.45rem, 2.8vw, 2.1rem)",
                     lineHeight: 1.08,
                     letterSpacing: "-0.04em",
-                    color: "#ffffff",
+                    color: "#171717",
                   }}
                 >
                   {activeReport.provider.name} is {activeSnapshot.visibility.label.toLowerCase()} on this business.
@@ -599,7 +598,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                 <p
                   style={{
                     margin: "14px 0 0",
-                    color: "rgba(255,255,255,0.62)",
+                    color: "#6e6e80",
                     fontSize: "0.92rem",
                     lineHeight: 1.6,
                     maxWidth: 720,
@@ -612,7 +611,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
               </div>
 
               <div className="analysis-hero-score">
-                <div style={{ filter: `drop-shadow(0 0 20px ${activeReport.provider.color}40)` }}>
+                <div>
                   <ScoreRing score={Math.round(activeReport.recommendations.recommendationProbability * 100)} size={126} strokeWidth={9} />
                 </div>
                 <div style={{ display: "grid", gap: 10, width: "100%" }}>
@@ -690,9 +689,9 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                     style={{
                       padding: "14px 16px",
                       borderRadius: 12,
-                      background: "rgba(255,255,255,0.03)",
-                      border: "1px solid rgba(255,255,255,0.06)",
-                      color: "rgba(255,255,255,0.62)",
+                      background: "#f7f7f8",
+                      border: "1px solid #e5e5e5",
+                      color: "#6e6e80",
                       fontStyle: "italic",
                     }}
                   >
@@ -771,7 +770,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
               style={{
                 textAlign: "center",
                 padding: "3rem",
-                color: "rgba(255,255,255,0.4)",
+                color: "#8e8ea0",
                 fontSize: "0.85rem",
               }}
             >

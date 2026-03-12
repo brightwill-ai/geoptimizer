@@ -5,10 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { ActionPlanItemData } from "@/lib/mock-data";
 
 const PRIORITY_CONFIG = {
-  critical: { color: "#dc2626", bg: "rgba(220,38,38,0.2)", label: "Critical" },
-  high: { color: "#d97706", bg: "rgba(217,119,6,0.2)", label: "High" },
-  medium: { color: "rgba(255,255,255,0.7)", bg: "rgba(255,255,255,0.08)", label: "Medium" },
-  low: { color: "#16a34a", bg: "rgba(22,163,74,0.2)", label: "Low" },
+  critical: { color: "#dc2626", bg: "#fef2f2", label: "Critical" },
+  high: { color: "#d97706", bg: "#fffbeb", label: "High" },
+  medium: { color: "#6e6e80", bg: "#f0f0f0", label: "Medium" },
+  low: { color: "#16a34a", bg: "#f0fdf4", label: "Low" },
 } as const;
 
 const EFFORT_CONFIG = {
@@ -59,7 +59,7 @@ export function ActionPlanItem({ item, analysisId, onToggle }: ActionPlanItemPro
         alignItems: "flex-start",
         padding: "12px 16px",
         borderRadius: 8,
-        background: item.completed ? "rgba(255,255,255,0.02)" : "transparent",
+        background: item.completed ? "#f7f7f8" : "transparent",
         transition: "background 0.2s",
       }}
     >
@@ -74,8 +74,8 @@ export function ActionPlanItem({ item, analysisId, onToggle }: ActionPlanItemPro
           borderRadius: 6,
           border: item.completed
             ? "2px solid #16a34a"
-            : "2px solid rgba(255,255,255,0.2)",
-          background: item.completed ? "rgba(22,163,74,0.2)" : "transparent",
+            : "2px solid #d0d0d0",
+          background: item.completed ? "rgba(22,163,74,0.1)" : "transparent",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
@@ -140,9 +140,9 @@ export function ActionPlanItem({ item, analysisId, onToggle }: ActionPlanItemPro
                 display: "inline-flex",
                 padding: "1px 8px",
                 borderRadius: 999,
-                background: "rgba(255,255,255,0.04)",
+                background: "#f0f0f0",
                 fontSize: "0.65rem",
-                color: "rgba(255,255,255,0.4)",
+                color: "#6e6e80",
               }}
             >
               {effort.icon} {effort.label}
@@ -153,7 +153,7 @@ export function ActionPlanItem({ item, analysisId, onToggle }: ActionPlanItemPro
             style={{
               fontSize: "0.84rem",
               fontWeight: 500,
-              color: item.completed ? "rgba(255,255,255,0.35)" : "#ffffff",
+              color: item.completed ? "#8e8ea0" : "#171717",
               lineHeight: 1.45,
               margin: 0,
               textDecoration: item.completed ? "line-through" : "none",
@@ -179,7 +179,7 @@ export function ActionPlanItem({ item, analysisId, onToggle }: ActionPlanItemPro
                 <p
                   style={{
                     fontSize: "0.8rem",
-                    color: "rgba(255,255,255,0.6)",
+                    color: "#6e6e80",
                     lineHeight: 1.55,
                     margin: "0 0 8px 0",
                   }}
@@ -191,7 +191,7 @@ export function ActionPlanItem({ item, analysisId, onToggle }: ActionPlanItemPro
                 <p
                   style={{
                     fontSize: "0.76rem",
-                    color: "rgba(255,255,255,0.4)",
+                    color: "#8e8ea0",
                     lineHeight: 1.5,
                     margin: "0 0 10px 0",
                     fontStyle: "italic",
@@ -204,10 +204,10 @@ export function ActionPlanItem({ item, analysisId, onToggle }: ActionPlanItemPro
                 {item.dataPoints.length > 0 && (
                   <div
                     style={{
-                      background: "rgba(255,255,255,0.03)",
+                      background: "#f7f7f8",
                       borderRadius: 8,
                       padding: "8px 12px",
-                      borderLeft: "3px solid rgba(255,255,255,0.1)",
+                      borderLeft: "3px solid #e5e5e5",
                     }}
                   >
                     {item.dataPoints.map((dp, i) => (
@@ -215,7 +215,7 @@ export function ActionPlanItem({ item, analysisId, onToggle }: ActionPlanItemPro
                         key={i}
                         style={{
                           fontSize: "0.74rem",
-                          color: "rgba(255,255,255,0.5)",
+                          color: "#6e6e80",
                           margin: i < item.dataPoints.length - 1 ? "0 0 4px 0" : 0,
                           lineHeight: 1.4,
                         }}

@@ -26,7 +26,7 @@ export function RecommendationHero({
   const offset = circumference - (probability) * circumference;
 
   const color = pct >= 60 ? "#16a34a" : pct >= 30 ? "#d97706" : "#dc2626";
-  const bgColor = pct >= 60 ? "rgba(22,163,74,0.15)" : pct >= 30 ? "rgba(217,119,6,0.15)" : "rgba(220,38,38,0.15)";
+  const bgColor = pct >= 60 ? "rgba(22,163,74,0.1)" : pct >= 30 ? "rgba(217,119,6,0.1)" : "rgba(220,38,38,0.1)";
   const label = pct >= 60 ? "Strong" : pct >= 30 ? "Moderate" : "Low";
 
   return (
@@ -35,29 +35,30 @@ export function RecommendationHero({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
       style={{
-        background: "#14151a",
+        background: "#ffffff",
         borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid #e5e5e5",
         padding: "2.5rem",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         gap: "1.25rem",
         textAlign: "center",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
       }}
     >
       {/* Eyebrow */}
-      <div style={{ fontSize: "1.4rem", fontWeight: 500, letterSpacing: "-0.02em", color: "rgba(255,255,255,0.4)" }}>Recommendation Probability</div>
+      <div style={{ fontSize: "1.4rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#8e8ea0" }}>Recommendation Probability</div>
 
       {/* Score ring */}
-      <div style={{ position: "relative", width: size, height: size, filter: `drop-shadow(0 0 20px ${color}40)` }}>
+      <div style={{ position: "relative", width: size, height: size }}>
         <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
             fill="none"
-            stroke="rgba(255,255,255,0.08)"
+            stroke="#f0f0f0"
             strokeWidth={strokeWidth}
           />
           <circle
@@ -92,7 +93,7 @@ export function RecommendationHero({
               fontFamily: "var(--font-sans)",
               fontSize: "2.5rem",
               fontWeight: 500,
-              color: "#ffffff",
+              color: "#171717",
               lineHeight: 1,
             }}
           >
@@ -122,15 +123,15 @@ export function RecommendationHero({
       <p
         style={{
           fontSize: "0.9rem",
-          color: "rgba(255,255,255,0.6)",
+          color: "#6e6e80",
           lineHeight: 1.5,
           margin: 0,
           maxWidth: 360,
         }}
       >
         {providerName} recommended{" "}
-        <strong style={{ color: "#ffffff" }}>{businessName}</strong> in{" "}
-        <strong style={{ color: "#ffffff" }}>{mentionCount} of {totalQueries}</strong>{" "}
+        <strong style={{ color: "#171717" }}>{businessName}</strong> in{" "}
+        <strong style={{ color: "#171717" }}>{mentionCount} of {totalQueries}</strong>{" "}
         relevant queries.
       </p>
 

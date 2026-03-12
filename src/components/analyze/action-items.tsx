@@ -18,9 +18,9 @@ interface ActionItem {
 }
 
 const PRIORITY_CONFIG = {
-  high: { color: "#dc2626", bg: "rgba(220,38,38,0.12)", label: "High" },
-  medium: { color: "#d97706", bg: "rgba(217,119,6,0.12)", label: "Medium" },
-  low: { color: "#16a34a", bg: "rgba(22,163,74,0.12)", label: "Low" },
+  high: { color: "#dc2626", bg: "#fef2f2", label: "High" },
+  medium: { color: "#d97706", bg: "#fffbeb", label: "Medium" },
+  low: { color: "#16a34a", bg: "#f0fdf4", label: "Low" },
 } as const;
 
 function generateRecommendations(
@@ -289,11 +289,11 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
     >
       {/* Section header */}
       <div style={{ marginBottom: "1.25rem" }}>
-        <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "rgba(255,255,255,0.4)", margin: "0 0 12px 0" }}>Action Items</h3>
+        <h3 style={{ fontSize: "0.8rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "#8e8ea0", margin: "0 0 12px 0" }}>Action Items</h3>
         <p
           style={{
             fontSize: "0.82rem",
-            color: "rgba(255,255,255,0.6)",
+            color: "#6e6e80",
             margin: 0,
             lineHeight: 1.5,
             fontFamily: "var(--font-sans)",
@@ -325,9 +325,9 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                 ease: "easeOut",
               }}
               style={{
-                background: "#14151a",
+                background: "#ffffff",
                 borderRadius: 12,
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid #e5e5e5",
                 padding: "1.25rem",
                 display: "flex",
                 gap: 16,
@@ -341,13 +341,13 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                   height: 32,
                   minWidth: 32,
                   borderRadius: 8,
-                  background: "rgba(255,255,255,0.04)",
+                  background: "#f7f7f8",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontSize: "0.82rem",
                   fontWeight: 500,
-                  color: "rgba(255,255,255,0.3)",
+                  color: "#8e8ea0",
                   fontFamily: "var(--font-mono, monospace)",
                 }}
               >
@@ -392,10 +392,10 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                       alignItems: "center",
                       padding: "2px 10px",
                       borderRadius: 999,
-                      background: "rgba(255,255,255,0.06)",
+                      background: "#f0f0f0",
                       fontSize: "0.68rem",
                       fontWeight: 500,
-                      color: "rgba(255,255,255,0.5)",
+                      color: "#6e6e80",
                       fontFamily: "var(--font-sans)",
                     }}
                   >
@@ -408,7 +408,7 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                   style={{
                     fontSize: "0.85rem",
                     fontWeight: 500,
-                    color: "#ffffff",
+                    color: "#171717",
                     lineHeight: 1.5,
                     margin: "0 0 6px 0",
                     fontFamily: "var(--font-sans)",
@@ -421,7 +421,7 @@ export function ActionItems({ analysis, businessName }: ActionItemsProps) {
                 <p
                   style={{
                     fontSize: "0.78rem",
-                    color: "rgba(255,255,255,0.4)",
+                    color: "#8e8ea0",
                     lineHeight: 1.45,
                     margin: 0,
                     fontFamily: "var(--font-sans)",

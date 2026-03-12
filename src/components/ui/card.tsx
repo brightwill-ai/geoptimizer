@@ -9,22 +9,22 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ style, variant = "default", children, ...props }, ref) => {
     const baseStyles = {
-      background: "#14151a",
+      background: "#ffffff",
       borderRadius: "12px",
-      border: "1px solid #22232a",
+      border: "1px solid #e5e5e5",
       transition: "all 0.3s ease-out",
     };
 
     const variantStyles = {
       default: {},
       elevated: {
-        boxShadow: "0 10px 40px rgba(0,0,0,0.3)",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
       },
       interactive: {
         cursor: "pointer",
       },
       subtle: {
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid #ececec",
       },
     };
 
@@ -68,7 +68,7 @@ const CardTitle = forwardRef<
       fontFamily: "var(--font-sans)",
       fontSize: "1.5rem",
       fontWeight: 500,
-      color: "#ffffff",
+      color: "#171717",
       lineHeight: 1.3,
       ...style,
     }}
@@ -84,7 +84,7 @@ const CardDescription = forwardRef<
   <p
     ref={ref}
     style={{
-      color: "rgba(255,255,255,0.4)",
+      color: "#8e8ea0",
       marginTop: "0.375rem",
       fontSize: "0.875rem",
       ...style,
@@ -110,7 +110,7 @@ const CardFooter = forwardRef<
     ref={ref}
     style={{
       padding: "1rem 1.5rem 1.5rem",
-      borderTop: "1px solid #22232a",
+      borderTop: "1px solid #e5e5e5",
       display: "flex",
       alignItems: "center",
       ...style,

@@ -6,9 +6,9 @@ interface SentimentBadgeProps {
 }
 
 const colors = {
-  positive: { bg: "rgba(22,163,74,0.15)", text: "#16a34a" },
-  neutral: { bg: "rgba(217,119,6,0.15)", text: "#d97706" },
-  negative: { bg: "rgba(220,38,38,0.15)", text: "#dc2626" },
+  positive: { bg: "rgba(22,163,74,0.1)", text: "#16a34a" },
+  neutral: { bg: "rgba(217,119,6,0.1)", text: "#d97706" },
+  negative: { bg: "rgba(220,38,38,0.1)", text: "#dc2626" },
 };
 
 const labels = {

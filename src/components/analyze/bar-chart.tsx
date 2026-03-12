@@ -33,7 +33,7 @@ export function BarChart({
             <span
               style={{
                 fontSize: "0.8rem",
-                color: "rgba(255,255,255,0.7)",
+                color: "#6e6e80",
                 width: 120,
                 flexShrink: 0,
                 textAlign: "right",
@@ -46,7 +46,7 @@ export function BarChart({
                 flex: 1,
                 height: barHeight,
                 borderRadius: barHeight / 2,
-                background: "rgba(255,255,255,0.06)",
+                background: "#f0f0f0",
                 overflow: "hidden",
               }}
             >
@@ -55,7 +55,8 @@ export function BarChart({
                   height: "100%",
                   width: `${pct}%`,
                   borderRadius: barHeight / 2,
-                  background: item.color ?? "#ffffff",
+                  background: item.color ?? "#171717",
+                  opacity: 0.8,
                   transition: "width 0.8s ease-out",
                 }}
               />
@@ -65,7 +66,7 @@ export function BarChart({
                 style={{
                   fontSize: "0.8rem",
                   fontWeight: 500,
-                  color: "#ffffff",
+                  color: "#171717",
                   width: 48,
                   flexShrink: 0,
                   textAlign: "right",

@@ -33,7 +33,7 @@ export function SectionLabel({ children, style }: SectionLabelProps) {
           fontWeight: 600,
           textTransform: "uppercase",
           letterSpacing: "0.1em",
-          color: "rgba(255,255,255,0.35)",
+          color: "#8e8ea0",
         }}
       >
         {children}

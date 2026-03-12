@@ -34,15 +34,14 @@ export function KPIRow({ items }: KPIRowProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: i * 0.05, ease: [0.16, 1, 0.3, 1] }}
           style={{
-            background: item.accentColor
-              ? `linear-gradient(135deg, ${item.accentColor}08, transparent 60%)`
-              : "rgba(20, 21, 26, 0.8)",
-            border: "1px solid rgba(255,255,255,0.06)",
+            background: "#ffffff",
+            border: "1px solid #e5e5e5",
             borderRadius: 12,
             padding: "1.25rem 1.5rem",
             position: "relative",
             overflow: "hidden",
-            boxShadow: "0 2px 16px rgba(0,0,0,0.25)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
+            transition: "box-shadow 0.25s ease, transform 0.25s ease",
             ...(item.accentColor
               ? {
                   borderLeft: `3px solid ${item.accentColor}`,
@@ -50,21 +49,6 @@ export function KPIRow({ items }: KPIRowProps) {
               : {}),
           }}
         >
-          {/* Corner glow */}
-          {item.accentColor && (
-            <div
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                width: 100,
-                height: 100,
-                background: `radial-gradient(circle at top right, ${item.accentColor}15, transparent 70%)`,
-                pointerEvents: "none",
-              }}
-            />
-          )}
-
           <div
             style={{
               display: "flex",
@@ -91,7 +75,7 @@ export function KPIRow({ items }: KPIRowProps) {
                     fontWeight: 600,
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
-                    color: "rgba(255,255,255,0.4)",
+                    color: "#6e6e80",
                     lineHeight: 1,
                   }}
                 >
@@ -102,9 +86,9 @@ export function KPIRow({ items }: KPIRowProps) {
               {/* Value */}
               <div
                 style={{
-                  fontSize: "1.5rem",
+                  fontSize: "1.75rem",
                   fontWeight: 700,
-                  color: "#ffffff",
+                  color: "#171717",
                   lineHeight: 1.1,
                   fontVariantNumeric: "tabular-nums",
                 }}
@@ -117,7 +101,7 @@ export function KPIRow({ items }: KPIRowProps) {
                 <div
                   style={{
                     fontSize: "0.72rem",
-                    color: "rgba(255,255,255,0.35)",
+                    color: "#8e8ea0",
                     marginTop: 4,
                     lineHeight: 1.3,
                   }}
@@ -129,7 +113,7 @@ export function KPIRow({ items }: KPIRowProps) {
                 <div
                   style={{
                     fontSize: "0.74rem",
-                    color: "rgba(255,255,255,0.58)",
+                    color: "#6e6e80",
                     marginTop: 8,
                     lineHeight: 1.3,
                     fontVariantNumeric: "tabular-nums",

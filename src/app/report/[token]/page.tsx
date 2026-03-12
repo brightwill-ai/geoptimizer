@@ -6,6 +6,7 @@ import Link from "next/link";
 import type { GEOAnalysis, ActionPlan as ActionPlanType } from "@/lib/mock-data";
 import { FullReport } from "@/components/analyze/full-report";
 import { LoadingStep } from "@/components/analyze/loading-step";
+import { MeshGradient } from "@/components/ui/mesh-gradient";
 
 export default function PublicReportPage() {
   const { token } = useParams<{ token: string }>();
@@ -74,7 +75,9 @@ export default function PublicReportPage() {
   }, []);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0c0d10" }}>
+    <div style={{ minHeight: "100vh", background: "#f7f7f8" }}>
+      <MeshGradient mode="fixed" height={520} />
+
       {/* Minimal nav */}
       <nav
         style={{
@@ -88,9 +91,9 @@ export default function PublicReportPage() {
           justifyContent: "space-between",
           padding: "0 2.5rem",
           height: "60px",
-          background: "rgba(12,13,16,0.88)",
-          backdropFilter: "blur(16px)",
-          borderBottom: "1px solid #22232a",
+          background: "transparent",
+          backdropFilter: "none",
+          borderBottom: "none",
         }}
       >
         <Link
@@ -100,7 +103,7 @@ export default function PublicReportPage() {
             fontWeight: 500,
             fontSize: "1.05rem",
             letterSpacing: "-0.02em",
-            color: "#ffffff",
+            color: "#171717",
             textDecoration: "none",
           }}
         >
@@ -115,8 +118,8 @@ export default function PublicReportPage() {
             fontFamily: "var(--font-sans)",
             borderRadius: 8,
             border: "none",
-            background: "#ffffff",
-            color: "#0c0d10",
+            background: "#171717",
+            color: "#ffffff",
             textDecoration: "none",
           }}
         >
@@ -124,7 +127,7 @@ export default function PublicReportPage() {
         </Link>
       </nav>
 
-      <div style={{ paddingTop: 60 }}>
+      <div style={{ paddingTop: 60, position: "relative", zIndex: 1 }}>
         {status === "loading" && (
           <LoadingStep
             businessName={businessName || "Your business"}
@@ -158,13 +161,13 @@ export default function PublicReportPage() {
                   fontFamily: "var(--font-sans)",
                   fontSize: "1.5rem",
                   fontWeight: 500,
-                  color: "#ffffff",
+                  color: "#171717",
                   margin: "0 0 0.5rem",
                 }}
               >
                 Report unavailable
               </h2>
-              <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.4)", margin: "0 0 1.5rem" }}>
+              <p style={{ fontSize: "0.9rem", color: "#8e8ea0", margin: "0 0 1.5rem" }}>
                 {errorMsg}
               </p>
               <Link
@@ -176,8 +179,8 @@ export default function PublicReportPage() {
                   fontFamily: "var(--font-sans)",
                   borderRadius: 8,
                   border: "none",
-                  background: "#ffffff",
-                  color: "#0c0d10",
+                  background: "#171717",
+                  color: "#ffffff",
                   textDecoration: "none",
                 }}
               >

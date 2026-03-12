@@ -56,9 +56,9 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
     fontSize: "0.85rem",
     fontFamily: "var(--font-sans)",
     borderRadius: 8,
-    border: "1px solid rgba(255,255,255,0.06)",
-    background: "#1a1b21",
-    color: "#ffffff",
+    border: "1px solid #e5e5e5",
+    background: "#f7f7f8",
+    color: "#171717",
     outline: "none",
     boxSizing: "border-box",
   };
@@ -75,7 +75,7 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "rgba(0, 0, 0, 0.6)",
+        background: "rgba(0, 0, 0, 0.4)",
         backdropFilter: "blur(4px)",
         padding: "1rem",
       }}
@@ -89,13 +89,13 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
         exit={{ opacity: 0, y: 20, scale: 0.97 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
         style={{
-          background: "#14151a",
-          borderRadius: 12,
-          border: "1px solid rgba(255,255,255,0.06)",
+          background: "#ffffff",
+          borderRadius: 16,
+          border: "1px solid #e5e5e5",
           padding: "3rem",
           maxWidth: 440,
           width: "100%",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.15)",
           position: "relative",
         }}
       >
@@ -116,22 +116,22 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
             alignItems: "center",
             justifyContent: "center",
             fontSize: "1.1rem",
-            color: "rgba(255,255,255,0.4)",
+            color: "#8e8ea0",
             transition: "color 0.15s",
           }}
-          onMouseOver={(e) => (e.currentTarget.style.color = "#ffffff")}
-          onMouseOut={(e) => (e.currentTarget.style.color = "rgba(255,255,255,0.4)")}
+          onMouseOver={(e) => (e.currentTarget.style.color = "#171717")}
+          onMouseOut={(e) => (e.currentTarget.style.color = "#8e8ea0")}
         >
           ✕
         </button>
 
-        <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>Full GEO Audit</div>
+        <div style={{ fontSize: "0.72rem", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "#8e8ea0", marginBottom: 12 }}>Full GEO Audit</div>
         <h2
           style={{
             fontFamily: "var(--font-sans)",
             fontSize: "1.5rem",
             fontWeight: 500,
-            color: "#ffffff",
+            color: "#171717",
             margin: "0 0 0.5rem 0",
             lineHeight: 1.2,
           }}
@@ -139,7 +139,7 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
           Unlock your complete GEO report
         </h2>
 
-        <p style={{ fontSize: "0.85rem", color: "rgba(255,255,255,0.5)", margin: "0 0 1.5rem 0", lineHeight: 1.5 }}>
+        <p style={{ fontSize: "0.85rem", color: "#6e6e80", margin: "0 0 1.5rem 0", lineHeight: 1.5 }}>
           40+ queries across all 3 AI platforms. We&apos;ll email you when your report is ready (typically 5-15 minutes).
         </p>
 
@@ -150,13 +150,13 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
           gap: 12,
           padding: "0.75rem 1rem",
           borderRadius: 8,
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.06)",
+          background: "#f7f7f8",
+          border: "1px solid #e5e5e5",
           marginBottom: "1.5rem",
         }}>
-          <span style={{ fontSize: "1.5rem", fontWeight: 700, color: "#ffffff" }}>$99</span>
-          <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.4)" }}>one-time</span>
-          <span style={{ marginLeft: "auto", fontSize: "0.7rem", color: "rgba(255,255,255,0.3)", background: "rgba(22,163,74,0.15)", padding: "3px 8px", borderRadius: 999, fontWeight: 500 }}>Best value</span>
+          <span style={{ fontSize: "1.5rem", fontWeight: 700, color: "#171717" }}>$99</span>
+          <span style={{ fontSize: "0.8rem", color: "#8e8ea0" }}>one-time</span>
+          <span style={{ marginLeft: "auto", fontSize: "0.7rem", color: "#16a34a", background: "rgba(22,163,74,0.1)", padding: "3px 8px", borderRadius: 999, fontWeight: 500 }}>Best value</span>
         </div>
 
         {/* Benefits */}
@@ -184,10 +184,10 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
                 alignItems: "flex-start",
                 gap: 10,
                 fontSize: "0.8rem",
-                color: "rgba(255,255,255,0.7)",
+                color: "#6e6e80",
               }}
             >
-              <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "0.7rem", color: "rgba(255,255,255,0.25)", fontWeight: 500, flexShrink: 0, marginTop: 2 }}>
+              <span style={{ fontFamily: "var(--font-mono, monospace)", fontSize: "0.7rem", color: "#10a37f", fontWeight: 500, flexShrink: 0, marginTop: 2 }}>
                 {String(i + 1).padStart(2, "0")}
               </span>
               {item}
@@ -211,8 +211,8 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
             onChange={(e) => setName(e.target.value)}
             placeholder="Your name (optional)"
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
-            onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.06)")}
+            onFocus={(e) => (e.target.style.borderColor = "#171717")}
+            onBlur={(e) => (e.target.style.borderColor = "#e5e5e5")}
           />
           <input
             type="email"
@@ -221,8 +221,8 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
             placeholder="your@email.com"
             required
             style={inputStyle}
-            onFocus={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.3)")}
-            onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.06)")}
+            onFocus={(e) => (e.target.style.borderColor = "#171717")}
+            onBlur={(e) => (e.target.style.borderColor = "#e5e5e5")}
           />
           <button
             type="submit"
@@ -235,8 +235,8 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
               fontFamily: "var(--font-sans)",
               borderRadius: 8,
               border: "none",
-              background: isValid && !loading ? "#ffffff" : "rgba(255,255,255,0.2)",
-              color: isValid && !loading ? "#0c0d10" : "rgba(255,255,255,0.4)",
+              background: isValid && !loading ? "#171717" : "#e5e5e5",
+              color: isValid && !loading ? "#ffffff" : "#8e8ea0",
               cursor: isValid && !loading ? "pointer" : "not-allowed",
               transition: "all 0.15s",
             }}
@@ -248,7 +248,7 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
         <p
           style={{
             fontSize: "0.7rem",
-            color: "rgba(255,255,255,0.3)",
+            color: "#8e8ea0",
             textAlign: "center",
             margin: "1rem 0 0 0",
           }}

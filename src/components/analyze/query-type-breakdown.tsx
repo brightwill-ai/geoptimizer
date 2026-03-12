@@ -72,16 +72,17 @@ export function QueryTypeBreakdown({ queryResults, blurred }: QueryTypeBreakdown
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
-        background: "#14151a",
+        background: "#ffffff",
         borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid #e5e5e5",
         padding: "1.5rem",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         ...(blurred ? { filter: "blur(6px)", userSelect: "none" as const, pointerEvents: "none" as const } : {}),
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Query Type Breakdown</div>
-        <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.3)" }}>
+        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8e8ea0" }}>Query Type Breakdown</div>
+        <span style={{ fontSize: "0.7rem", color: "#8e8ea0" }}>
           {queryResults.length} queries across {types.length} types
         </span>
       </div>
@@ -94,21 +95,21 @@ export function QueryTypeBreakdown({ queryResults, blurred }: QueryTypeBreakdown
           marginBottom: 20,
           padding: "12px 16px",
           borderRadius: 8,
-          background: "rgba(255,255,255,0.03)",
+          background: "#f7f7f8",
         }}
       >
         <div>
-          <div style={{ fontSize: "1.1rem", fontWeight: 500, color: "#ffffff" }}>
+          <div style={{ fontSize: "1.1rem", fontWeight: 500, color: "#171717" }}>
             {Math.round(avgMentionRate * 100)}%
           </div>
-          <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>Avg mention rate</div>
+          <div style={{ fontSize: "0.65rem", color: "#8e8ea0" }}>Avg mention rate</div>
         </div>
         {bestType && (
           <div>
             <div style={{ fontSize: "0.8rem", fontWeight: 500, color: "#16a34a" }}>
               {bestType.label}
             </div>
-            <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>
+            <div style={{ fontSize: "0.65rem", color: "#8e8ea0" }}>
               Strongest ({Math.round(bestType.mentionRate * 100)}%)
             </div>
           </div>
@@ -118,7 +119,7 @@ export function QueryTypeBreakdown({ queryResults, blurred }: QueryTypeBreakdown
             <div style={{ fontSize: "0.8rem", fontWeight: 500, color: "#dc2626" }}>
               {worstType.label}
             </div>
-            <div style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>
+            <div style={{ fontSize: "0.65rem", color: "#8e8ea0" }}>
               Weakest ({Math.round(worstType.mentionRate * 100)}%)
             </div>
           </div>
@@ -136,17 +137,17 @@ export function QueryTypeBreakdown({ queryResults, blurred }: QueryTypeBreakdown
             <div key={t.type}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
                 <div>
-                  <span style={{ fontSize: "0.8rem", fontWeight: 500, color: "#ffffff" }}>
+                  <span style={{ fontSize: "0.8rem", fontWeight: 500, color: "#171717" }}>
                     {t.label}
                   </span>
                   {t.description && (
-                    <span style={{ fontSize: "0.68rem", color: "rgba(255,255,255,0.3)", marginLeft: 8 }}>
+                    <span style={{ fontSize: "0.68rem", color: "#8e8ea0", marginLeft: 8 }}>
                       {t.description}
                     </span>
                   )}
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.4)" }}>
+                  <span style={{ fontSize: "0.72rem", color: "#8e8ea0" }}>
                     {t.mentioned}/{t.total}
                   </span>
                   <span style={{ fontSize: "0.8rem", fontWeight: 500, color, width: 36, textAlign: "right" }}>
@@ -155,7 +156,7 @@ export function QueryTypeBreakdown({ queryResults, blurred }: QueryTypeBreakdown
                 </div>
               </div>
               {/* Stacked bar: primary (bright) + passing (dimmer) */}
-              <div style={{ height: 6, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden", display: "flex" }}>
+              <div style={{ height: 6, borderRadius: 3, background: "#f0f0f0", overflow: "hidden", display: "flex" }}>
                 <div
                   style={{
                     height: "100%",
@@ -168,7 +169,7 @@ export function QueryTypeBreakdown({ queryResults, blurred }: QueryTypeBreakdown
                   style={{
                     height: "100%",
                     width: `${mentionPct - primaryPct}%`,
-                    background: `${color}66`,
+                    background: `${color}44`,
                     transition: "width 0.8s ease-out",
                   }}
                 />
@@ -179,13 +180,13 @@ export function QueryTypeBreakdown({ queryResults, blurred }: QueryTypeBreakdown
       </div>
 
       {/* Legend */}
-      <div style={{ display: "flex", gap: 16, marginTop: 14, fontSize: "0.65rem", color: "rgba(255,255,255,0.3)" }}>
+      <div style={{ display: "flex", gap: 16, marginTop: 14, fontSize: "0.65rem", color: "#8e8ea0" }}>
         <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <span style={{ width: 10, height: 4, borderRadius: 2, background: "#16a34a" }} />
           Primary recommendation
         </span>
         <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <span style={{ width: 10, height: 4, borderRadius: 2, background: "#16a34a66" }} />
+          <span style={{ width: 10, height: 4, borderRadius: 2, background: "#16a34a44" }} />
           Passing mention
         </span>
       </div>

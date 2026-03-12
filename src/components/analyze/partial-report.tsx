@@ -28,7 +28,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       style={{
         fontSize: "0.72rem",
         fontWeight: 600,
-        color: "rgba(255,255,255,0.38)",
+        color: "#8e8ea0",
         textTransform: "uppercase",
         letterSpacing: "0.1em",
         marginBottom: 12,
@@ -55,7 +55,16 @@ function FindingBlock({
         ? "#d97706"
         : tone === "negative"
           ? "#dc2626"
-          : "rgba(255,255,255,0.35)";
+          : "#8e8ea0";
+
+  const bg =
+    tone === "positive"
+      ? "#f0fdf4"
+      : tone === "warning"
+        ? "#fffbeb"
+        : tone === "negative"
+          ? "#fef2f2"
+          : "#f7f7f8";
 
   return (
     <div
@@ -63,13 +72,13 @@ function FindingBlock({
         padding: "12px 14px",
         borderRadius: 12,
         border: `1px solid ${accent}22`,
-        background: `${accent}10`,
+        background: bg,
       }}
     >
-      <div style={{ fontSize: "0.86rem", color: "#ffffff", fontWeight: 600, marginBottom: 4 }}>
+      <div style={{ fontSize: "0.86rem", color: "#171717", fontWeight: 600, marginBottom: 4 }}>
         {title}
       </div>
-      <div style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.58)", lineHeight: 1.45 }}>
+      <div style={{ fontSize: "0.78rem", color: "#6e6e80", lineHeight: 1.45 }}>
         {detail}
       </div>
     </div>
@@ -116,13 +125,13 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
   ];
 
   const stickyCta = (
-    <div className="analysis-sticky-cta">
+    <div className="analysis-sticky-cta" style={{ background: "#171717" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         {LLM_PROVIDERS.map((provider) => (
           <ProviderLogo key={provider.id} provider={provider.id} size={14} />
         ))}
       </div>
-      <span style={{ fontSize: "0.84rem", color: "rgba(255,255,255,0.62)" }}>
+      <span style={{ fontSize: "0.84rem", color: "rgba(255,255,255,0.7)" }}>
         {topCompetitor
           ? `${topCompetitor} is beating you on ChatGPT. Find out if they're winning everywhere.`
           : "See how ChatGPT, Claude, and Gemini compare across 40+ prompts."
@@ -138,7 +147,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           borderRadius: 10,
           border: "none",
           background: "#ffffff",
-          color: "#0c0d10",
+          color: "#171717",
           cursor: "pointer",
         }}
       >
@@ -187,7 +196,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
       >
         {activeTab === "overview" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
-            <DashboardCard span={2} accentColor={snapshot.visibility.color} style={{ background: `linear-gradient(135deg, ${snapshot.visibility.color}08, transparent 60%)` }}>
+            <DashboardCard span={2} accentColor={snapshot.visibility.color} style={{ background: "#ffffff", border: "1px solid #e5e5e5" }}>
               <div className="analysis-hero-grid">
                 <div>
                   <div
@@ -211,7 +220,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       margin: 0,
                       fontSize: "clamp(1.55rem, 3vw, 2.25rem)",
                       lineHeight: 1.06,
-                      color: "#ffffff",
+                      color: "#171717",
                       letterSpacing: "-0.04em",
                     }}
                   >
@@ -225,25 +234,25 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       margin: "14px 0 0",
                       maxWidth: 720,
                       fontSize: "0.95rem",
-                      color: "rgba(255,255,255,0.62)",
+                      color: "#6e6e80",
                       lineHeight: 1.6,
                     }}
                   >
                     {topCompetitor ? (
                       <>When someone asks for the best in your category near{" "}
-                        <strong style={{ color: "#ffffff" }}>
+                        <strong style={{ color: "#171717" }}>
                           {analysis.businessName.split(",")[0]}
                         </strong>
                         , ChatGPT sends them to{" "}
-                        <strong style={{ color: "#ffffff" }}>{topCompetitor}</strong> instead.
+                        <strong style={{ color: "#171717" }}>{topCompetitor}</strong> instead.
                         The biggest gap is in{" "}
-                        <strong style={{ color: "#ffffff" }}>
+                        <strong style={{ color: "#171717" }}>
                           {snapshot.weakestQueryType?.label ?? "discovery"}
                         </strong>{" "}prompts.
                       </>
                     ) : (
                       <>{snapshot.visibility.description} The clearest gap is in{" "}
-                        <strong style={{ color: "#ffffff" }}>
+                        <strong style={{ color: "#171717" }}>
                           {snapshot.weakestQueryType?.label ?? "discovery"}
                         </strong>{" "}
                         prompts, where AI still defaults to other businesses.
@@ -258,7 +267,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                 </div>
 
                 <div className="analysis-hero-score">
-                  <div style={{ filter: `drop-shadow(0 0 20px ${snapshot.visibility.color}40)` }}>
+                  <div>
                     <ScoreRing score={probability} size={132} strokeWidth={10} />
                   </div>
                   <div style={{ display: "grid", gap: 10, width: "100%" }}>
@@ -287,9 +296,10 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                     maxWidth: "85%",
                     padding: "10px 14px",
                     borderRadius: "12px 12px 2px 12px",
-                    background: "#22232a",
+                    background: "#f7f7f8",
+                    border: "1px solid #e5e5e5",
                     fontSize: "0.84rem",
-                    color: "rgba(255,255,255,0.8)",
+                    color: "#171717",
                     lineHeight: 1.5,
                   }}>
                     {worstDiscoveryQuery.queryText}
@@ -300,12 +310,12 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       width: 28,
                       height: 28,
                       borderRadius: "50%",
-                      background: "#10a37f20",
+                      background: "#10a37f15",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
-                      boxShadow: "0 0 0 2px rgba(16,163,127,0.3)",
+                      boxShadow: "0 0 0 2px rgba(16,163,127,0.2)",
                     }}>
                       <ProviderLogo provider="chatgpt" size={14} />
                     </div>
@@ -313,12 +323,13 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       flex: 1,
                       padding: "12px 14px",
                       borderRadius: "2px 12px 12px 12px",
-                      background: "#1a1b21",
-                      borderLeft: "3px solid #10a37f",
+                      background: "#fffbeb",
+                      borderLeft: "3px solid #d97706",
                       fontSize: "0.82rem",
-                      color: "rgba(255,255,255,0.7)",
+                      fontFamily: "var(--font-mono, monospace)",
+                      color: "#6e6e80",
                       lineHeight: 1.6,
-                      boxShadow: "0 2px 12px rgba(0,0,0,0.2)",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                     }}>
                       {worstDiscoveryQuery.rawResponseExcerpt}
                       {!worstDiscoveryQuery.businessMentioned && (
@@ -326,7 +337,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                           marginTop: 10,
                           padding: "6px 10px",
                           borderRadius: 6,
-                          background: "rgba(220,38,38,0.1)",
+                          background: "#fef2f2",
                           border: "1px solid rgba(220,38,38,0.15)",
                           fontSize: "0.75rem",
                           color: "#dc2626",
@@ -443,9 +454,9 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       style={{
                         padding: "14px 16px",
                         borderRadius: 12,
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                        color: "rgba(255,255,255,0.62)",
+                        background: "#f7f7f8",
+                        border: "1px solid #e5e5e5",
+                        color: "#6e6e80",
                         fontStyle: "italic",
                       }}
                     >
@@ -458,13 +469,15 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                 </div>
               </DashboardCard>
 
+              {/* CTA card — inverted dark element */}
               <DashboardCard
                 title={topCompetitor ? `Is ${topCompetitor} winning on Claude and Gemini too?` : "Unlock full audit"}
                 subtitle="Get the full picture across all 3 AI engines"
                 accentColor="#ffffff"
+                style={{ background: "#171717", border: "1px solid #171717" }}
               >
                 <div style={{ display: "grid", gap: 14 }}>
-                  <p style={{ margin: 0, fontSize: "0.84rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.55 }}>
+                  <p style={{ margin: 0, fontSize: "0.84rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.55 }}>
                     {topCompetitor
                       ? `You've seen how ChatGPT favors ${topCompetitor}. The full audit reveals whether Claude and Gemini do the same — plus an 80-step action plan to fix it.`
                       : "40+ prompts across ChatGPT, Claude, and Gemini. Source influence mapping, accuracy checks, and a personalized 80-step action plan."
@@ -489,7 +502,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       borderRadius: 8,
                       border: "none",
                       background: "#ffffff",
-                      color: "#0c0d10",
+                      color: "#171717",
                       cursor: "pointer",
                       transition: "all 0.15s",
                     }}

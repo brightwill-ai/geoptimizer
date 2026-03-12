@@ -45,12 +45,19 @@ export function DashboardShell({
       className="dashboard-shell"
       style={{
         width: "100%",
-        maxWidth: 1400,
-        margin: "0 auto",
-        padding: "0 2rem",
-        background: "#0c0d10",
         minHeight: "calc(100vh - 60px)",
       }}
+      >
+      {/* Transparent header zone — mesh gradient shows through */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 1200,
+          margin: "0 auto",
+          padding: "0 2rem",
+          position: "relative",
+          zIndex: 1,
+        }}
       >
       {/* Header */}
       <div
@@ -74,7 +81,7 @@ export function DashboardShell({
                 fontFamily: "var(--font-sans)",
                 fontSize: "clamp(1.5rem, 2vw, 2rem)",
                 fontWeight: 600,
-                color: "#ffffff",
+                color: "#171717",
                 margin: 0,
                 lineHeight: 1.2,
                 letterSpacing: "-0.03em",
@@ -86,7 +93,7 @@ export function DashboardShell({
               <p
                 style={{
                   fontSize: "0.82rem",
-                  color: "rgba(255,255,255,0.4)",
+                  color: "#8e8ea0",
                   margin: "4px 0 0",
                 }}
               >
@@ -107,38 +114,21 @@ export function DashboardShell({
         )}
       </div>
 
-      {/* Sticky section: KPI + Nav */}
+      {/* KPI + Nav section (non-sticky) */}
       <div
         className={`dashboard-shell-sticky ${stickyMode === "compact" ? "dashboard-shell-sticky-compact" : ""}`}
         style={{
-          position: "sticky",
-          top: 60,
-          zIndex: 40,
-          background: "rgba(12, 13, 16, 0.92)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-          paddingTop: "1rem",
-          paddingBottom: "1rem",
-          marginLeft: "-2rem",
-          marginRight: "-2rem",
-          paddingLeft: "2rem",
-          paddingRight: "2rem",
+          position: "relative",
+          zIndex: 2,
+          borderBottom: "none",
+          backgroundImage: "repeating-radial-gradient(circle, rgba(0,0,0,0.10) 0 1px, transparent 1px 6px)",
+          backgroundSize: "6px 2px",
+          backgroundRepeat: "repeat-x",
+          backgroundPosition: "bottom center",
+          paddingTop: "0",
+          paddingBottom: 2,
         }}
       >
-        {/* Pseudo-glow overlay */}
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "100%",
-            background: "radial-gradient(ellipse at center top, rgba(255,255,255,0.02), transparent 60%)",
-            pointerEvents: "none",
-            zIndex: 0,
-          }}
-        />
         {kpiItems && kpiItems.length > 0 && (
           <div style={{ marginBottom: 16 }} className="dashboard-shell-kpis">
             <KPIRow items={kpiItems} />
@@ -151,24 +141,53 @@ export function DashboardShell({
           layoutId={navLayoutId}
         />
       </div>
-
-      {/* Tab content with cross-fade transition */}
-      <div style={{ padding: "1.5rem 0 3rem" }} className="dashboard-shell-content">
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: -16, filter: "blur(4px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: 16, filter: "blur(4px)" }}
-            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
       </div>
 
-      {/* Sticky footer slot */}
-      {stickyFooter}
+      {/* Fade from mesh → gray */}
+      <div
+        style={{
+          height: 60,
+          background: "linear-gradient(to bottom, transparent 0%, #f7f7f8 100%)",
+          position: "relative",
+          zIndex: 1,
+        }}
+      />
+
+      {/* Gray content zone */}
+      <div
+        style={{
+          background: "#f7f7f8",
+          position: "relative",
+          zIndex: 1,
+        }}
+      >
+        <div
+          style={{
+            width: "100%",
+            maxWidth: 1200,
+            margin: "0 auto",
+            padding: "0 2rem",
+          }}
+        >
+          {/* Tab content with cross-fade transition */}
+          <div style={{ padding: "0 0 3rem" }} className="dashboard-shell-content">
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: -16, filter: "blur(4px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: 16, filter: "blur(4px)" }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+
+          {/* Sticky footer slot */}
+          {stickyFooter}
+        </div>
+      </div>
     </motion.div>
   );
 }

@@ -17,7 +17,8 @@ const SEVERITY_CONFIG = {
   strength: {
     label: "Strengths",
     color: "#16a34a",
-    bgColor: "rgba(22,163,74,0.08)",
+    bgColor: "#f0fdf4",
+    badgeBg: "rgba(22,163,74,0.1)",
     icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <circle cx="8" cy="8" r="7" stroke="#16a34a" strokeWidth="1.5" />
@@ -34,7 +35,8 @@ const SEVERITY_CONFIG = {
   opportunity: {
     label: "Opportunities",
     color: "#d97706",
-    bgColor: "rgba(217,119,6,0.08)",
+    bgColor: "#fffbeb",
+    badgeBg: "rgba(217,119,6,0.1)",
     icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <circle cx="8" cy="8" r="7" stroke="#d97706" strokeWidth="1.5" />
@@ -51,7 +53,8 @@ const SEVERITY_CONFIG = {
   gap: {
     label: "Information Gaps",
     color: "#dc2626",
-    bgColor: "rgba(220,38,38,0.08)",
+    bgColor: "#fef2f2",
+    badgeBg: "rgba(220,38,38,0.1)",
     icon: (
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
         <path
@@ -91,14 +94,13 @@ function InsightColumn({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay, ease: "easeOut" }}
       style={{
-        background: "rgba(20, 21, 26, 0.7)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "#ffffff",
+        border: "1px solid #e5e5e5",
         borderRadius: 12,
         borderTopWidth: 3,
         borderTopColor: config.color,
         overflow: "hidden",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
       }}
     >
       {/* Header */}
@@ -108,7 +110,8 @@ function InsightColumn({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          borderBottom: "1px solid #ececec",
+          background: config.bgColor,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -126,7 +129,7 @@ function InsightColumn({
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: "0.05em",
-              color: "rgba(255,255,255,0.5)",
+              color: "#6e6e80",
             }}
           >
             {config.label}
@@ -138,7 +141,7 @@ function InsightColumn({
             fontWeight: 500,
             padding: "2px 8px",
             borderRadius: 999,
-            background: config.bgColor,
+            background: config.badgeBg,
             color: config.color,
           }}
         >
@@ -165,13 +168,13 @@ function InsightColumn({
               padding: "0.75rem 1.25rem",
               borderBottom:
                 i < items.length - 1
-                  ? "1px solid rgba(255,255,255,0.04)"
+                  ? "1px solid #ececec"
                   : "none",
               transition: "background 0.15s ease",
               cursor: "default",
             }}
             onMouseOver={(e) => {
-              e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+              e.currentTarget.style.background = "#f7f7f8";
               e.currentTarget.style.borderRadius = "6px";
             }}
             onMouseOut={(e) => {
@@ -184,7 +187,7 @@ function InsightColumn({
               <div
                 style={{
                   fontSize: "0.82rem",
-                  color: "#ffffff",
+                  color: "#171717",
                   lineHeight: 1.4,
                 }}
               >
@@ -194,7 +197,7 @@ function InsightColumn({
                 <div
                   style={{
                     fontSize: "0.72rem",
-                    color: "rgba(255,255,255,0.35)",
+                    color: "#8e8ea0",
                     marginTop: 3,
                     lineHeight: 1.3,
                   }}
@@ -211,7 +214,7 @@ function InsightColumn({
               padding: "1.5rem 1.25rem",
               textAlign: "center",
               fontSize: "0.78rem",
-              color: "rgba(255,255,255,0.25)",
+              color: "#8e8ea0",
             }}
           >
             No {config.label.toLowerCase()} identified

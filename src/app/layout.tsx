@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Instrument_Serif, Inter } from "next/font/google";
 import { SmoothScroll } from "@/components/ui/smooth-scroll";
-import { SpotlightCursor } from "@/components/ui/spotlight-cursor";
 import "./globals.css";
 
 const instrumentSans = Instrument_Sans({
@@ -48,7 +47,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${instrumentSans.variable} ${instrumentSerif.variable} ${inter.variable} antialiased`}>
-        <SpotlightCursor config={{ radius: 200, brightness: 0.05 }} />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>

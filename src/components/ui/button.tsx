@@ -38,18 +38,18 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variantStyles = {
       primary: {
-        background: "#ffffff",
-        color: "#0c0d10",
+        background: "#171717",
+        color: "#ffffff",
       },
       secondary: {
         background: "transparent",
-        color: "#ffffff",
-        border: "1px solid #22232a",
+        color: "#171717",
+        border: "1px solid #e5e5e5",
       },
       outline: {
         background: "transparent",
-        color: "#ffffff",
-        border: "1px solid rgba(255,255,255,0.2)",
+        color: "#171717",
+        border: "1px solid #e5e5e5",
       },
     };
 
@@ -75,8 +75,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           e.currentTarget.style.opacity = "0.85";
           e.currentTarget.style.transform = "translateY(-1px)";
         } else {
-          e.currentTarget.style.borderColor = "rgba(255,255,255,0.4)";
-          e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+          e.currentTarget.style.borderColor = "#8e8ea0";
+          e.currentTarget.style.background = "#f7f7f8";
         }
       }
     };
@@ -87,8 +87,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         e.currentTarget.style.transform = "translateY(0)";
         if (variant !== "primary") {
           e.currentTarget.style.background = "transparent";
-          e.currentTarget.style.borderColor =
-            variant === "outline" ? "rgba(255,255,255,0.2)" : "#22232a";
+          e.currentTarget.style.borderColor = "#e5e5e5";
         }
       }
     };

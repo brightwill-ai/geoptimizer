@@ -8,6 +8,7 @@ import { type GEOAnalysis, type ActionPlan as ActionPlanType } from "@/lib/mock-
 import { SearchStep } from "@/components/analyze/search-step";
 import { LoadingStep } from "@/components/analyze/loading-step";
 import { PartialReport } from "@/components/analyze/partial-report";
+import { MeshGradient } from "@/components/ui/mesh-gradient";
 import { EmailGate } from "@/components/analyze/email-gate";
 import { FullReport } from "@/components/analyze/full-report";
 
@@ -27,9 +28,9 @@ function Nav() {
         justifyContent: "space-between",
         padding: "0 2.5rem",
         height: "60px",
-        background: "rgba(12,13,16,0.88)",
-        backdropFilter: "blur(16px)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: "transparent",
+        backdropFilter: "none",
+        borderBottom: "none",
       }}
     >
       <Link
@@ -39,7 +40,7 @@ function Nav() {
           fontWeight: 500,
           fontSize: "1.05rem",
           letterSpacing: "-0.02em",
-          color: "#ffffff",
+          color: "#171717",
           textDecoration: "none",
         }}
       >
@@ -272,9 +273,11 @@ function AnalyzePageInner() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0c0d10" }}>
+    <div style={{ minHeight: "100vh", background: "#f7f7f8" }}>
+      <MeshGradient mode="fixed" height={520} />
+
       <Nav />
-      <div style={{ paddingTop: 60 }}>
+      <div style={{ paddingTop: 60, position: "relative", zIndex: 1 }}>
         {error && step === "search" && (
           <div
             style={{
@@ -282,7 +285,7 @@ function AnalyzePageInner() {
               margin: "1rem auto",
               padding: "0.75rem 1rem",
               borderRadius: 8,
-              background: "rgba(220,38,38,0.15)",
+              background: "rgba(220,38,38,0.08)",
               color: "#dc2626",
               fontSize: "0.8rem",
               textAlign: "center",

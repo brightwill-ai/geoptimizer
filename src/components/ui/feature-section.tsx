@@ -85,10 +85,15 @@ export function FeatureSteps({
           position: "sticky",
           top: 60,
           zIndex: 20,
-          background: "#09090b",
+          background: "#ffffff",
           textAlign: "center",
           padding: "1.5rem 2.5rem 1.25rem",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderBottom: "none",
+          backgroundImage: "repeating-radial-gradient(circle, rgba(0,0,0,0.12) 0 1px, transparent 1px 6px)",
+          backgroundSize: "6px 2px",
+          backgroundRepeat: "repeat-x",
+          backgroundPosition: "bottom center",
+          paddingBottom: "calc(1.25rem + 2px)",
         }}
       >
         {label && (
@@ -98,7 +103,7 @@ export function FeatureSteps({
               fontWeight: 600,
               textTransform: "uppercase",
               letterSpacing: "0.1em",
-              color: "rgba(255,255,255,0.35)",
+              color: "#8e8ea0",
               marginBottom: "0.75rem",
               opacity: Math.min(1, titleProgress * 3),
               transform: `translateY(${(1 - Math.min(1, titleProgress * 3)) * 10}px)`,
@@ -114,7 +119,7 @@ export function FeatureSteps({
             fontSize: "clamp(2rem, 3.5vw, 2.8rem)",
             letterSpacing: "-0.04em",
             lineHeight: 1.1,
-            color: "#ffffff",
+            color: "#171717",
           }}
         >
           <WordFadeIn
@@ -157,15 +162,15 @@ export function FeatureSteps({
                   width: 48,
                   height: 48,
                   borderRadius: "50%",
-                  border: "1.5px solid rgba(255,255,255,0.1)",
-                  background: "rgba(255,255,255,0.03)",
+                  border: "1.5px solid #e5e5e5",
+                  background: "#f7f7f8",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   fontFamily: "var(--font-mono, monospace)",
                   fontSize: "1rem",
                   fontWeight: 500,
-                  color: "#ffffff",
+                  color: "#171717",
                   marginBottom: "1.25rem",
                 }}
               >
@@ -183,7 +188,7 @@ export function FeatureSteps({
                   fontWeight: 500,
                   letterSpacing: "-0.02em",
                   lineHeight: 1.2,
-                  color: "#ffffff",
+                  color: "#171717",
                   marginBottom: "0.5rem",
                 }}
               >
@@ -194,7 +199,7 @@ export function FeatureSteps({
               <p
                 style={{
                   fontSize: "0.88rem",
-                  color: "rgba(255,255,255,0.45)",
+                  color: "#6e6e80",
                   lineHeight: 1.6,
                 }}
               >

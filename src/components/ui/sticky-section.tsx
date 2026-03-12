@@ -35,7 +35,7 @@ const StickySections: React.FC<StickySectionsProps> & {
             style={{
               position: "relative",
               overflow: "clip",
-              background: "#09090b",
+              background: "#ffffff",
             }}
           >
             {/* Sticky header */}
@@ -51,9 +51,13 @@ const StickySections: React.FC<StickySectionsProps> & {
             >
               <div
                 style={{
-                  borderTop: "1px solid rgba(255,255,255,0.06)",
-                  borderBottom: "1px solid rgba(255,255,255,0.06)",
-                  background: "#09090b",
+                  borderTop: "none",
+                  borderBottom: "none",
+                  background: "#ffffff",
+                  backgroundImage: "repeating-radial-gradient(circle, rgba(0,0,0,0.12) 0 1px, transparent 1px 6px)",
+                  backgroundSize: "6px 2px",
+                  backgroundRepeat: "repeat-x",
+                  backgroundPosition: "top center, bottom center",
                 }}
               >
                 <div
@@ -70,7 +74,7 @@ const StickySections: React.FC<StickySectionsProps> & {
                       fontSize: "clamp(1.4rem, 2.5vw, 1.8rem)",
                       letterSpacing: "-0.03em",
                       lineHeight: 1,
-                      color: "#ffffff",
+                      color: "#171717",
                       margin: 0,
                     }}
                   >

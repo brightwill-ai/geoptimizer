@@ -30,7 +30,7 @@ const sourceTypeColors: Record<string, string> = {
   news: "#16a34a",
   social_media: "#c084fc",
   official_site: "#10a37f",
-  other: "rgba(255,255,255,0.4)",
+  other: "#8e8ea0",
 };
 
 export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: SourceInfluenceMapProps) {
@@ -62,16 +62,17 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       style={{
-        background: "#14151a",
+        background: "#ffffff",
         borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid #e5e5e5",
         padding: "1.5rem",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
         ...(blurred ? { filter: "blur(6px)", userSelect: "none" as const, pointerEvents: "none" as const } : {}),
       }}
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "rgba(255,255,255,0.4)" }}>Source Influence</div>
-        <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.3)" }}>
+        <div style={{ fontSize: "0.72rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8e8ea0" }}>Source Influence</div>
+        <span style={{ fontSize: "0.7rem", color: "#8e8ea0" }}>
           {items.length} sources identified
         </span>
       </div>
@@ -82,7 +83,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
           const influenceColor =
             item.influence === "high" ? "#16a34a"
             : item.influence === "medium" ? "#d97706"
-            : "rgba(255,255,255,0.4)";
+            : "#8e8ea0";
 
           return (
             <div
@@ -96,7 +97,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
                 transition: "background 0.15s ease",
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+                e.currentTarget.style.background = "#f7f7f8";
               }}
               onMouseOut={(e) => {
                 e.currentTarget.style.background = "transparent";
@@ -104,14 +105,14 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
             >
               {/* Source name + type */}
               <div style={{ width: 140, flexShrink: 0 }}>
-                <div style={{ fontSize: "0.8rem", color: "#ffffff", fontWeight: 500, lineHeight: 1.2 }}>
+                <div style={{ fontSize: "0.8rem", color: "#171717", fontWeight: 500, lineHeight: 1.2 }}>
                   {item.url ? (
                     <a
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{
-                        color: "#ffffff",
+                        color: "#171717",
                         textDecoration: "none",
                         display: "inline-flex",
                         alignItems: "center",
@@ -119,7 +120,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
                         transition: "color 0.15s",
                       }}
                       onMouseOver={(e) => (e.currentTarget.style.color = sourceTypeColors[item.type] ?? "#4285f4")}
-                      onMouseOut={(e) => (e.currentTarget.style.color = "#ffffff")}
+                      onMouseOut={(e) => (e.currentTarget.style.color = "#171717")}
                     >
                       {item.name}
                       <svg width="10" height="10" viewBox="0 0 12 12" fill="none" style={{ opacity: 0.5, flexShrink: 0 }}>
@@ -137,25 +138,25 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
                       width: 5,
                       height: 5,
                       borderRadius: "50%",
-                      background: sourceTypeColors[item.type] ?? "rgba(255,255,255,0.3)",
+                      background: sourceTypeColors[item.type] ?? "#8e8ea0",
                     }}
                   />
-                  <span style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>
+                  <span style={{ fontSize: "0.65rem", color: "#8e8ea0" }}>
                     {sourceTypeLabels[item.type] ?? item.type}
                   </span>
                 </div>
               </div>
 
               {/* Bar */}
-              <div style={{ flex: 1, height: 8, borderRadius: 4, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+              <div style={{ flex: 1, height: 8, borderRadius: 4, background: "#f0f0f0", overflow: "hidden" }}>
                 <div
                   style={{
                     height: "100%",
                     width: `${pct}%`,
                     borderRadius: 4,
-                    background: `linear-gradient(90deg, ${sourceTypeColors[item.type] ?? "#ffffff"}88, ${sourceTypeColors[item.type] ?? "#ffffff"})`,
+                    background: sourceTypeColors[item.type] ?? "#8e8ea0",
+                    opacity: 0.8,
                     transition: "width 0.8s ease-out",
-                    filter: `drop-shadow(0 0 6px ${(sourceTypeColors[item.type] ?? "#ffffff")}40)`,
                   }}
                 />
               </div>
@@ -184,7 +185,7 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
                   fontWeight: 500,
                   padding: "2px 8px",
                   borderRadius: 999,
-                  background: `${influenceColor}20`,
+                  background: `${influenceColor}15`,
                   color: influenceColor,
                   flexShrink: 0,
                   textTransform: "uppercase",
@@ -202,11 +203,11 @@ export function SourceInfluenceMap({ sourceInfluences, sources, blurred }: Sourc
 
       {/* Legend for provider dots */}
       {sourceInfluences && sourceInfluences.length > 0 && (
-        <div style={{ display: "flex", gap: 16, marginTop: 16, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ display: "flex", gap: 16, marginTop: 16, paddingTop: 12, borderTop: "1px solid #e5e5e5" }}>
           {LLM_PROVIDERS.map((p) => (
             <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <ProviderLogo provider={p.id} size={12} />
-              <span style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.4)" }}>{p.name}</span>
+              <span style={{ fontSize: "0.65rem", color: "#8e8ea0" }}>{p.name}</span>
             </div>
           ))}
         </div>

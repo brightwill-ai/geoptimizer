@@ -8,7 +8,7 @@ import { ActionPlanItem } from "./action-plan-item";
 const PRIORITY_COLOR = {
   critical: "#dc2626",
   high: "#d97706",
-  medium: "rgba(255,255,255,0.5)",
+  medium: "#6e6e80",
   low: "#16a34a",
 } as const;
 
@@ -33,9 +33,9 @@ export function ActionPlanCategorySection({
   return (
     <div
       style={{
-        background: "#14151a",
+        background: "#ffffff",
         borderRadius: 12,
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid #e5e5e5",
         overflow: "hidden",
       }}
     >
@@ -66,7 +66,7 @@ export function ActionPlanCategorySection({
         >
           <path
             d="M6 4L10 8L6 12"
-            stroke="rgba(255,255,255,0.4)"
+            stroke="#8e8ea0"
             strokeWidth={1.5}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -80,7 +80,7 @@ export function ActionPlanCategorySection({
               style={{
                 fontSize: "0.88rem",
                 fontWeight: 600,
-                color: "#ffffff",
+                color: "#171717",
               }}
             >
               {category.label}
@@ -90,9 +90,9 @@ export function ActionPlanCategorySection({
                 display: "inline-flex",
                 padding: "1px 8px",
                 borderRadius: 999,
-                background: "rgba(255,255,255,0.06)",
+                background: "#f0f0f0",
                 fontSize: "0.68rem",
-                color: "rgba(255,255,255,0.5)",
+                color: "#6e6e80",
               }}
             >
               {category.items.length} items
@@ -102,9 +102,9 @@ export function ActionPlanCategorySection({
                 display: "inline-flex",
                 padding: "1px 8px",
                 borderRadius: 999,
-                background: "rgba(255,255,255,0.04)",
+                background: "#f0f0f0",
                 fontSize: "0.68rem",
-                color: "rgba(255,255,255,0.35)",
+                color: "#8e8ea0",
               }}
             >
               {category.estimatedEffort}
@@ -118,7 +118,7 @@ export function ActionPlanCategorySection({
                 flex: 1,
                 height: 4,
                 borderRadius: 2,
-                background: "rgba(255,255,255,0.06)",
+                background: "#e5e5e5",
                 overflow: "hidden",
               }}
             >
@@ -135,7 +135,7 @@ export function ActionPlanCategorySection({
             <span
               style={{
                 fontSize: "0.72rem",
-                color: "rgba(255,255,255,0.4)",
+                color: "#8e8ea0",
                 minWidth: 36,
                 textAlign: "right",
               }}
@@ -158,7 +158,7 @@ export function ActionPlanCategorySection({
           >
             <div
               style={{
-                borderTop: "1px solid rgba(255,255,255,0.04)",
+                borderTop: "1px solid #e5e5e5",
                 padding: "8px 8px 12px",
               }}
             >
@@ -166,7 +166,7 @@ export function ActionPlanCategorySection({
               <p
                 style={{
                   fontSize: "0.76rem",
-                  color: "rgba(255,255,255,0.4)",
+                  color: "#8e8ea0",
                   margin: "4px 16px 12px",
                   lineHeight: 1.45,
                 }}

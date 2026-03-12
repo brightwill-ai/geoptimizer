@@ -27,10 +27,13 @@ export function DashboardNav({
       style={{
         display: "flex",
         gap: 4,
-        padding: 4,
-        background: "rgba(255,255,255,0.03)",
-        borderRadius: 10,
-        border: "1px solid rgba(255,255,255,0.06)",
+        padding: "0 0 0",
+        borderBottom: "none",
+        backgroundImage: "repeating-radial-gradient(circle, rgba(0,0,0,0.12) 0 1px, transparent 1px 6px)",
+        backgroundSize: "6px 2px",
+        backgroundRepeat: "repeat-x",
+        backgroundPosition: "bottom center",
+        paddingBottom: 2,
         overflowX: "auto",
         WebkitOverflowScrolling: "touch",
         scrollbarWidth: "none",
@@ -39,6 +42,7 @@ export function DashboardNav({
     >
       {tabs.map((tab) => {
         const isActive = tab.id === activeTab;
+        const activeColor = tab.color || "#171717";
         return (
           <button
             key={tab.id}
@@ -46,40 +50,49 @@ export function DashboardNav({
             style={{
               position: "relative",
               zIndex: 1,
-              padding: "8px 16px",
-              borderRadius: 8,
+              padding: "8px 16px 10px",
+              borderRadius: 0,
               border: "none",
               background: "transparent",
               cursor: "pointer",
               fontFamily: "var(--font-sans)",
               fontSize: "0.82rem",
               fontWeight: isActive ? 600 : 500,
-              color: isActive ? "#ffffff" : "rgba(255,255,255,0.4)",
-              transition: "color 0.2s ease",
+              color: isActive ? "#171717" : "#6e6e80",
+              transition: "color 0.2s ease, background 0.2s ease",
               whiteSpace: "nowrap",
               display: "flex",
               alignItems: "center",
               gap: 6,
+              borderTopLeftRadius: 6,
+              borderTopRightRadius: 6,
             }}
             onMouseOver={(e) => {
-              if (!isActive)
-                e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+              if (!isActive) {
+                e.currentTarget.style.color = "#171717";
+                e.currentTarget.style.background = "#f7f7f8";
+              }
             }}
             onMouseOut={(e) => {
-              if (!isActive)
-                e.currentTarget.style.color = "rgba(255,255,255,0.4)";
+              if (!isActive) {
+                e.currentTarget.style.color = "#6e6e80";
+                e.currentTarget.style.background = "transparent";
+              }
             }}
           >
-            {/* Animated sliding pill background */}
+            {/* Animated bottom border indicator */}
             {isActive && (
               <motion.div
                 layoutId={layoutId}
                 style={{
                   position: "absolute",
-                  inset: 0,
-                  background: tab.color ? `${tab.color}20` : "rgba(255,255,255,0.08)",
-                  borderRadius: 8,
-                  zIndex: -1,
+                  bottom: -1,
+                  left: 0,
+                  right: 0,
+                  height: 2,
+                  background: activeColor,
+                  borderRadius: "1px 1px 0 0",
+                  zIndex: 2,
                 }}
                 transition={{
                   type: "spring",
@@ -97,11 +110,11 @@ export function DashboardNav({
                   padding: "1px 6px",
                   borderRadius: 999,
                   background: isActive
-                    ? "rgba(255,255,255,0.12)"
-                    : "rgba(255,255,255,0.06)",
+                    ? "#f0f0f0"
+                    : "#f7f7f8",
                   color: isActive
-                    ? "rgba(255,255,255,0.8)"
-                    : "rgba(255,255,255,0.3)",
+                    ? "#171717"
+                    : "#8e8ea0",
                   lineHeight: 1.4,
                   transition: "all 0.2s ease",
                 }}

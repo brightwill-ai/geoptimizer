@@ -292,28 +292,39 @@ interface ActionPlanItemData = { id, title, description, reasoning,
 - **Accent:** Instrument Serif — available but rarely used (landing page uses Instrument Sans only)
 - Loaded via Google Fonts in layout.tsx
 
-### Colors (All-Dark Theme)
+### Colors (Light Theme)
 ```
-Surfaces:    #0c0d10 (page bg), #14151a (cards), #1a1b21 (elevated/inputs), #22232a (borders)
-Text:        #ffffff (primary), rgba(255,255,255,0.6) (secondary), rgba(255,255,255,0.4) (muted)
+Surfaces:    #ffffff (cards), #f7f7f8 (page bg / elevated), #f0f0f0 (hover / track)
+Borders:     #e5e5e5 (default), #ececec (subtle)
+Text:        #171717 (primary), #6e6e80 (secondary), #8e8ea0 (muted)
 Status:      #16a34a (green), #d97706 (amber), #dc2626 (red)
 LLM accents: #10a37f (ChatGPT), #c084fc (Claude), #4285f4 (Gemini)
+Mesh hero:   #fdf3ee (base), #fb923c (amber orb), #f472b6 (rose orb), #fde68a (gold orb)
 ```
 
+### Mesh gradient background
+Animated fluid mesh at the top of landing, analyze, and report pages:
+- **Container:** `position: fixed`, 520px tall, `background: #fdf3ee`, `zIndex: 0`
+- **Orbs:** 3 blurred circles (`border-radius: 50%`, `filter: blur(80px)`) with `radial-gradient` fills
+- **Animation:** CSS keyframes with prime-ish durations (6s, 8s, 11s) and `ease-in-out infinite alternate`
+- **Bottom fade:** Internal `linear-gradient(to bottom, transparent 0%, #f7f7f8 100%)` at 60% height
+- **Nav:** Transparent (`background: "transparent"`, no backdrop filter) so mesh shows through
+
 ### Landing page rhythm
-All dark — every section uses #0c0d10 bg with #14151a cards
-(Nav → Hero → PlatformBar → Stats → HowWeMeasure → ReportShowcase → Features → HowItWorks → Pricing → FAQ → CTA → Footer)
+Light theme with mesh hero — (Nav → Hero [mesh bg] → PlatformBar → Stats → HowWeMeasure → ReportShowcase → Features → HowItWorks → Pricing → FAQ → CTAFooter [mesh bg])
+- Vertical bounding lines via `.grid-bg` pseudo-elements (repeating-radial-gradient dotted pattern)
+- Section dividers via `.section-divider-dotted` (horizontal dotted pattern)
+- CTAFooter combines CTA + Footer with bottom mesh gradient
 
 ### Dashboard UI design language
-Dashboard components match the landing page's premium feel:
-- **Card depth:** `box-shadow: 0 4px 24px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.06)` with hover elevation (`translateY(-1px)`, `0 8px 40px`)
-- **Corner glows:** `radial-gradient(circle at top right, ${accentColor}15, transparent 70%)`
-- **Score ring glows:** `filter: drop-shadow(0 0 20px ${color}40)` on all score rings
-- **KPI cards:** 3px left accent bar + gradient color wash background
-- **Ambient glow:** Radial gradient behind sticky KPI row
-- **Motion easing:** `cubic-bezier(0.16, 1, 0.3, 1)` for enters, `type: "spring", damping: 25, stiffness: 300` for Framer Motion
-- **Provider-colored sub-tabs:** DashboardNav supports per-tab `color` for active pill tinting
-- **Hero gradients:** `linear-gradient(135deg, ${color}08, transparent 60%)` on hero cards
+Clean light dashboard (Linear/Notion-inspired):
+- **Dashboard shell:** Header/KPI zone is transparent (mesh gradient shows through from parent page), fades via 60px gradient into `#f7f7f8` content zone
+- **Card depth:** `box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)` with hover `translateY(-2px)` + `0 8px 24px rgba(0,0,0,0.06)`
+- **KPI cards:** White bg, `1px solid #e5e5e5`, optional 3px left accent bar
+- **Score rings:** SVG donut with `#f0f0f0` track, `#171717` fill, ref-guarded CSS transition (animates once on mount, stable on re-renders)
+- **Tab nav:** Bottom dotted border via `repeating-radial-gradient`, active tab has 2px solid underline
+- **Motion easing:** `cubic-bezier(0.16, 1, 0.3, 1)` for enters, `type: "spring", bounce: 0.15` for Framer Motion
+- **Provider-colored sub-tabs:** DashboardNav supports per-tab `color` for active underline tinting
 
 ### Styling approach
 - Inline styles with exact hex values (NOT Tailwind class approximations)
@@ -321,6 +332,7 @@ Dashboard components match the landing page's premium feel:
 - Framer Motion for analyze step transitions
 - CSS keyframes + IntersectionObserver reveal animations for landing page
 - Responsive breakpoint: 860px
+- Dotted patterns: `repeating-radial-gradient(circle, rgba(0,0,0,0.10-0.12) 0 1px, transparent 1px 6px)` for borders/dividers
 
 ## API Reference
 
