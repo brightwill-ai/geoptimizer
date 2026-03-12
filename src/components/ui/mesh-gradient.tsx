@@ -131,7 +131,7 @@ export function MeshGradient({ mode = "hero", height = 520, scrollFade = true, s
             right: 0,
             bottom: 0,
             height: "60%",
-            background: "linear-gradient(to bottom, transparent 0%, #f7f7f8 100%)",
+            background: "linear-gradient(to bottom, transparent 0%, #f3efe8 100%)",
           }}
         />
       </div>
