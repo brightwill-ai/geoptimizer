@@ -3,7 +3,7 @@
 /* BrightWill Design System — Light Theme (OpenAI Codex-inspired) */
 :root {
   /* Surfaces */
-  --bg-page: #ffffff;
+  --bg-page: #f3efe8;
   --bg-card: #ffffff;
   --bg-elevated: #f7f7f8;
   --bg-input: #f7f7f8;
@@ -39,7 +39,7 @@
   --tint-red: #fef2f2;
 
   /* Legacy aliases (Tailwind theme) */
-  --bg: #ffffff;
+  --bg: #f3efe8;
   --bg2: #f7f7f8;
   --black: #171717;
   --mid: #6e6e80;

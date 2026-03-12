@@ -20,7 +20,7 @@ export function MeshGradient({ mode = "hero", height = 520, scrollFade = true, s
     if (!wrapperRef.current || !overlayRef.current) return;
     const heroHeight = wrapperRef.current.offsetHeight;
     const progress = Math.min(window.scrollY / (heroHeight * 0.6), 1);
-    overlayRef.current.style.background = `rgba(255, 255, 255, ${progress})`;
+    overlayRef.current.style.background = `rgba(243, 239, 232, ${progress})`;
   }, []);
 
   useEffect(() => {
@@ -177,7 +177,7 @@ export function MeshGradient({ mode = "hero", height = 520, scrollFade = true, s
             inset: 0,
             zIndex: 1,
             pointerEvents: "none",
-            background: "rgba(255, 255, 255, 0)",
+            background: "rgba(243, 239, 232, 0)",
           }}
         />
       )}
