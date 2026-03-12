@@ -163,7 +163,7 @@ export function FeatureSteps({
                 flexDirection: "column",
                 flex: 1,
                 background: isLight ? "#fafafa" : undefined,
-                border: isLight ? "1px solid rgba(0,0,0,0.06)" : undefined,
+                border: isLight ? "none" : undefined,
               }}
             >
               {/* Number badge */}

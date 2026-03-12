@@ -1097,20 +1097,57 @@ function StepMockupSearch() {
   const typedBusiness = useTypewriter(["Hana Sushi Miami"]).typedText;
 
   return (
-    <div className="mockup-frame mockup-frame-light" style={{ padding: 0 }}>
-      <div style={{ height: 32, display: "flex", alignItems: "center", gap: 6, padding: "0 12px", position: "relative", zIndex: 2 }}>
+    <div className="mockup-frame" style={{ padding: 0 }}>
+      <div
+        style={{
+          height: 32,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "0 12px",
+          position: "relative",
+          zIndex: 2,
+          background: "#f4f4f5",
+          borderBottom: "1px solid rgba(0,0,0,0.06)",
+        }}
+      >
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f87171" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
-        <span style={{ marginLeft: "auto", fontSize: "0.6rem", color: "rgba(0,0,0,0.35)" }}>brightwill.ai/analyze</span>
+        <span style={{ marginLeft: "auto", fontSize: "0.6rem", color: "rgba(0,0,0,0.35)" }}>
+          brightwill.ai/analyze
+        </span>
       </div>
-      <div style={{ padding: "1.25rem 1.5rem 1.5rem" }}>
-        <div style={{ fontSize: "0.68rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(0,0,0,0.45)", marginBottom: 12 }}>
+      <div
+        style={{
+          padding: "1.25rem 1.5rem 1.5rem",
+          background: "#ffffff",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "0.68rem",
+            fontWeight: 500,
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            color: "#71717a",
+            marginBottom: 12,
+          }}
+        >
           AI Visibility Audit
         </div>
         <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: "0.65rem", color: "rgba(0,0,0,0.5)", marginBottom: 4 }}>Business name</div>
-          <div style={{ background: "#f4f4f5", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "#18181b" }}>
+          <div style={{ fontSize: "0.65rem", color: "#71717a", marginBottom: 4 }}>Business name</div>
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid rgba(0,0,0,0.12)",
+              borderRadius: 6,
+              padding: "8px 10px",
+              fontSize: "0.78rem",
+              color: "#18181b",
+            }}
+          >
             {typedBusiness}
             <span className="bw-typing-caret" aria-hidden>
               |
@@ -1118,19 +1155,50 @@ function StepMockupSearch() {
           </div>
         </div>
         <div style={{ marginBottom: 10 }}>
-          <div style={{ fontSize: "0.65rem", color: "rgba(0,0,0,0.5)", marginBottom: 4 }}>Location</div>
-          <div style={{ background: "#f4f4f5", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "rgba(0,0,0,0.6)" }}>
+          <div style={{ fontSize: "0.65rem", color: "#71717a", marginBottom: 4 }}>Location</div>
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid rgba(0,0,0,0.12)",
+              borderRadius: 6,
+              padding: "8px 10px",
+              fontSize: "0.78rem",
+              color: "#71717a",
+            }}
+          >
             Miami, FL
           </div>
         </div>
         <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: "0.65rem", color: "rgba(0,0,0,0.5)", marginBottom: 4 }}>Category</div>
-          <div style={{ background: "#f4f4f5", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 6, padding: "8px 10px", fontSize: "0.78rem", color: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: "0.65rem", color: "#71717a", marginBottom: 4 }}>Category</div>
+          <div
+            style={{
+              background: "#ffffff",
+              border: "1px solid rgba(0,0,0,0.12)",
+              borderRadius: 6,
+              padding: "8px 10px",
+              fontSize: "0.78rem",
+              color: "#71717a",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             Restaurant
-            <span style={{ fontSize: "0.6rem", color: "rgba(0,0,0,0.35)" }}>▼</span>
+            <span style={{ fontSize: "0.6rem", color: "rgba(0,0,0,0.25)" }}>▼</span>
           </div>
         </div>
-        <div style={{ background: "#18181b", color: "#ffffff", borderRadius: 6, padding: "8px", textAlign: "center", fontSize: "0.78rem", fontWeight: 500 }}>
+        <div
+          style={{
+            background: "#18181b",
+            color: "#ffffff",
+            borderRadius: 6,
+            padding: "8px",
+            textAlign: "center",
+            fontSize: "0.78rem",
+            fontWeight: 500,
+          }}
+        >
           Run free audit →
         </div>
       </div>
@@ -1161,16 +1229,41 @@ function StepMockupResults() {
   }, []);
 
   return (
-    <div className="mockup-frame mockup-frame-light" style={{ padding: 0 }}>
-      <div style={{ height: 32, display: "flex", alignItems: "center", gap: 6, padding: "0 12px", position: "relative", zIndex: 2 }}>
+    <div className="mockup-frame" style={{ padding: 0 }}>
+      <div
+        style={{
+          height: 32,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "0 12px",
+          position: "relative",
+          zIndex: 2,
+          background: "#f4f4f5",
+          borderBottom: "1px solid rgba(0,0,0,0.06)",
+        }}
+      >
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f87171" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
       </div>
-      <div style={{ padding: "1.25rem 1.5rem 1.5rem" }}>
+      <div
+        style={{
+          padding: "1.25rem 1.5rem 1.5rem",
+          background: "#ffffff",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 14 }}>
           <ProviderLogo provider="chatgpt" size={14} />
-          <span style={{ fontSize: "0.62rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(0,0,0,0.45)" }}>
+          <span
+            style={{
+              fontSize: "0.62rem",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              color: "#71717a",
+            }}
+          >
             ChatGPT Loading
           </span>
           <span
@@ -1186,21 +1279,52 @@ function StepMockupResults() {
         </div>
         <div style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: "0.66rem", color: "rgba(0,0,0,0.55)" }}>
+            <span style={{ fontSize: "0.66rem", color: "#71717a" }}>
               Running query {Math.min(lineIndex + 1, loadingQueries.length)} of {loadingQueries.length}
               {dots}
             </span>
-            <span style={{ fontSize: "0.66rem", color: "rgba(0,0,0,0.65)", fontWeight: 500 }}>{progress}%</span>
+            <span style={{ fontSize: "0.66rem", color: "#18181b", fontWeight: 500 }}>{progress}%</span>
           </div>
-          <div style={{ height: 5, borderRadius: 3, background: "rgba(0,0,0,0.08)", overflow: "hidden" }}>
-            <div style={{ width: `${progress}%`, height: "100%", background: "#18181b", borderRadius: 3, transition: "width 0.25s ease" }} />
+          <div
+            style={{
+              height: 5,
+              borderRadius: 3,
+              background: "rgba(0,0,0,0.06)",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                width: `${progress}%`,
+                height: "100%",
+                background: "#18181b",
+                borderRadius: 3,
+                transition: "width 0.25s ease",
+              }}
+            />
           </div>
         </div>
-        <div style={{ border: "1px solid rgba(0,0,0,0.08)", borderRadius: 6, padding: "7px 8px", background: "rgba(0,0,0,0.03)", marginBottom: 8 }}>
-          <div style={{ fontSize: "0.58rem", color: "rgba(0,0,0,0.4)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 3 }}>
+        <div
+          style={{
+            border: "1px solid rgba(0,0,0,0.08)",
+            borderRadius: 6,
+            padding: "7px 8px",
+            background: "#fafafa",
+            marginBottom: 8,
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.58rem",
+              color: "#71717a",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              marginBottom: 3,
+            }}
+          >
             Current prompt
           </div>
-          <div style={{ fontSize: "0.68rem", color: "rgba(0,0,0,0.7)" }}>
+          <div style={{ fontSize: "0.68rem", color: "#18181b" }}>
             &ldquo;{typedText}
             <span className="bw-typing-caret" aria-hidden>
               |
@@ -1214,8 +1338,19 @@ function StepMockupResults() {
           { q: "Prompt queue prepared", status: "done" as const },
           { q: "Parsing model response", status: "running" as const },
         ].map((item, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "5px 8px", borderRadius: 5, background: i % 2 === 0 ? "rgba(0,0,0,0.03)" : "transparent", marginBottom: 2 }}>
-            <span style={{ fontSize: "0.65rem", color: "rgba(0,0,0,0.6)" }}>{item.q}</span>
+          <div
+            key={i}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "5px 8px",
+              borderRadius: 5,
+              background: i % 2 === 0 ? "rgba(0,0,0,0.02)" : "transparent",
+              marginBottom: 2,
+            }}
+          >
+            <span style={{ fontSize: "0.65rem", color: "#52525b" }}>{item.q}</span>
             <span
               style={{
                 width: 6,
@@ -1256,14 +1391,40 @@ function StepMockupReport() {
   }, []);
 
   return (
-    <div className="mockup-frame mockup-frame-light" style={{ padding: 0 }}>
-      <div style={{ height: 32, display: "flex", alignItems: "center", gap: 6, padding: "0 12px", position: "relative", zIndex: 2 }}>
+    <div className="mockup-frame" style={{ padding: 0 }}>
+      <div
+        style={{
+          height: 32,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "0 12px",
+          position: "relative",
+          zIndex: 2,
+          background: "#f4f4f5",
+          borderBottom: "1px solid rgba(0,0,0,0.06)",
+        }}
+      >
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f87171" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#fbbf24" }} />
         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#4ade80" }} />
       </div>
-      <div style={{ padding: "1.25rem 1.5rem 1.5rem" }}>
-        <div style={{ fontSize: "0.62rem", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(0,0,0,0.45)", marginBottom: 14 }}>
+      <div
+        style={{
+          padding: "1.25rem 1.5rem 1.5rem",
+          background: "#ffffff",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "0.62rem",
+            fontWeight: 500,
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            color: "#71717a",
+            marginBottom: 14,
+          }}
+        >
           Cross-platform analysis
         </div>
         {providers.map((p, i) => (
@@ -1271,11 +1432,11 @@ function StepMockupReport() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                 <ProviderLogo provider={p.name.toLowerCase()} size={11} />
-                <span style={{ fontSize: "0.65rem", color: "rgba(0,0,0,0.6)" }}>{p.name}</span>
+                <span style={{ fontSize: "0.65rem", color: "#52525b" }}>{p.name}</span>
               </div>
               <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "#18181b" }}>{p.pct}%</span>
             </div>
-            <div style={{ height: 4, background: "rgba(0,0,0,0.08)", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ height: 4, background: "rgba(0,0,0,0.06)", borderRadius: 2, overflow: "hidden" }}>
               <div
                 style={{
                   width: animateIn ? `${p.pct}%` : "0%",
@@ -1288,8 +1449,8 @@ function StepMockupReport() {
             </div>
           </div>
         ))}
-        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(0,0,0,0.08)" }}>
-          <div style={{ fontSize: "0.6rem", color: "rgba(0,0,0,0.4)", marginBottom: 6 }}>Top sources cited</div>
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+          <div style={{ fontSize: "0.6rem", color: "#71717a", marginBottom: 6 }}>Top sources cited</div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {["Google Business", "Yelp", "TripAdvisor"].map((s, i) => (
               <span
@@ -1298,8 +1459,8 @@ function StepMockupReport() {
                   fontSize: "0.58rem",
                   padding: "2px 6px",
                   borderRadius: 4,
-                  background: "rgba(0,0,0,0.05)",
-                  color: "rgba(0,0,0,0.55)",
+                  background: "rgba(0,0,0,0.02)",
+                  color: "#52525b",
                   opacity: animateIn ? 1 : 0,
                   transform: animateIn ? "translateY(0)" : "translateY(4px)",
                   transition: `opacity 0.35s ease ${260 + i * 80}ms, transform 0.35s ease ${260 + i * 80}ms`,
