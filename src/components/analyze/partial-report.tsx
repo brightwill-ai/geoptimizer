@@ -134,7 +134,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
       <span style={{ fontSize: "0.84rem", color: "rgba(255,255,255,0.7)" }}>
         {topCompetitor
           ? `${topCompetitor} is beating you on ChatGPT. Find out if they're winning everywhere.`
-          : "See how ChatGPT, Claude, and Gemini compare across 40+ prompts."
+          : "See how ChatGPT, Claude, and Gemini compare across 100+ prompts."
         }
       </span>
       <button
@@ -485,7 +485,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                   <p style={{ margin: 0, fontSize: "0.84rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.55 }}>
                     {topCompetitor
                       ? `You've seen how ChatGPT favors ${topCompetitor}. The full audit reveals whether Claude and Gemini do the same — plus an 80-step action plan to fix it.`
-                      : "40+ prompts across ChatGPT, Claude, and Gemini. Source influence mapping, accuracy checks, and a personalized 80-step action plan."
+                      : "100+ prompts across ChatGPT, Claude, and Gemini. Source influence mapping, accuracy checks, and a personalized 80-step action plan."
                     }
                   </p>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>

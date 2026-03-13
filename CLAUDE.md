@@ -1,6 +1,6 @@
 # BrightWill
 
-GEO (Generative Engine Optimization) analysis platform for local businesses. Measures **recommendation probability** — how likely each AI engine is to recommend a business when relevant queries are asked. Three tiers: free (ChatGPT only, 5 queries, instant), Full Audit ($99, all 3 engines, 40+ queries), and Audit + Strategy ($199, full audit plus execution roadmap, monthly re-audits, strategy call).
+GEO (Generative Engine Optimization) analysis platform for local businesses. Measures **recommendation probability** — how likely each AI engine is to recommend a business when relevant queries are asked. Three tiers: free (ChatGPT only, 5 queries, instant), Full Audit ($99, all 3 engines, 100+ queries), and Audit + Strategy ($199, full audit plus execution roadmap, monthly re-audits, strategy call).
 
 ## Quick Start
 
@@ -96,7 +96,7 @@ src/
         ├── runner.ts                     # runFreeAudit() + runComprehensiveAudit() + legacy runAnalysis()
         ├── parser.ts                     # GPT-4o-mini structured extraction
         ├── aggregator.ts                 # Score computation (probability-weighted) + report assembly
-        ├── query-bank.ts                 # Query template bank (37 templates per category, ~65% generic / ~35% direct)
+        ├── query-bank.ts                 # Query template bank (37+ templates per category × 3 providers = 100+ queries, ~65% generic / ~35% direct)
         └── action-plan-generator.ts      # GPT-4.1 generates comprehensive GEO action plan from analysis
 ```
 
@@ -127,7 +127,7 @@ Payment gate → POST /api/checkout → Stripe Checkout → redirect back → PO
                                           profileBusiness() → subcategory/specialties (~2-4s)
                                                           ↓
                                        3 providers in parallel (Promise.allSettled)
-                                       each: 33+ queries sequential → parse → QueryExecution
+                                       each: 37+ queries sequential → parse → QueryExecution
                                                           ↓
                                                aggregator → DB update + shareToken
                                                           ↑
@@ -185,7 +185,7 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 ### Query Bank System
 `query-bank.ts` manages reusable query templates stored in `QueryTemplate` table.
 
-- **37 templates per category** (5 free + 32 comprehensive) across 9 query types: discovery, subcategory_discovery, direct, comparison, use_case, reviews, specifics, source_probing, verification
+- **37+ templates per category** (5 free + 32+ comprehensive) across 9 query types, run against all 3 providers = **100+ total queries** per comprehensive audit: discovery, subcategory_discovery, direct, comparison, use_case, reviews, specifics, source_probing, verification
 - **~65% generic / ~35% direct-mention** — most queries do NOT mention the business name, mirroring real user search behavior. Only direct, reviews, specifics, source_probing, and verification queries mention `{businessName}`.
 - Templates use placeholders: `{businessName}`, `{location}`, `{categoryPlural}`, `{categoryDescriptor}`, `{subcategoryPlural}`, `{specialty}`, `{searchTerm}`
 - Subcategory-aware placeholders (`{subcategoryPlural}`, `{specialty}`, `{searchTerm}`) are populated by the business profiler — e.g., a sushi restaurant gets "sushi restaurants" not "restaurants"
@@ -202,7 +202,7 @@ Categories: restaurant, gym, salon, hvac, dental, legal, realtor, saas, ecommerc
 
 ### Three tiers
 - **Free Snapshot** (15-25s): ChatGPT only, 5 queries from query bank. Shows recommendation probability + query evidence. Competitor-first messaging to drive upgrades. Cache: 24h.
-- **Full Audit — $99** (5-15min): 3 providers, 33+ queries each. Full methodology, source influence, verification, 80-step action plan, PDF export. Gated by Stripe Checkout (dev bypass in development). Generates shareToken. Cache: 72h.
+- **Full Audit — $99** (5-15min): 3 providers, 37+ queries each (100+ total). Full methodology, source influence, verification, 80-step action plan, PDF export. Gated by Stripe Checkout (dev bypass in development). Generates shareToken. Cache: 72h.
 - **Audit + Strategy — $199**: Everything in Full Audit plus dedicated execution roadmap, monthly re-audit, 3 competitor monitoring dashboards, custom GEO strategy call (30 min), priority email support. Payment works (separate Stripe Price ID via `STRIPE_PRICE_ID_STRATEGY`), stored as `priceTier: "audit_strategy"` on Analysis. Strategy extras (call scheduling, re-audits, competitor monitoring) are delivered manually by founder — no backend automation yet.
 
 ## Data Model

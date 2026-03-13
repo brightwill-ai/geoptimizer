@@ -62,7 +62,7 @@ export async function sendPaymentConfirmationEmail(params: PaymentConfirmationPa
             <tr><td style="background-color:#f7f7f8;border-radius:8px;padding:20px 24px;">
               <p style="margin:0 0 4px;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.08em;color:#8e8ea0;">What happens next</p>
               <p style="margin:0;font-size:14px;color:#171717;line-height:1.6;">
-                Your comprehensive audit is running now — we're querying ChatGPT, Claude, and Gemini with 40+ real queries about your business. This typically takes <strong>5–15 minutes</strong>.
+                Your comprehensive audit is running now — we're querying ChatGPT, Claude, and Gemini with 100+ real queries about your business. This typically takes <strong>5–15 minutes</strong>.
               </p>
               <p style="margin:12px 0 0;font-size:14px;color:#171717;line-height:1.6;">
                 We'll send you another email with your full report link as soon as it's ready.
@@ -123,7 +123,7 @@ export async function sendReportReadyEmail(params: ReportEmailParams): Promise<v
             Your GEO report is ready
           </p>
           <p style="margin:0 0 28px;font-size:14px;color:#6e6e80;line-height:1.5;">
-            We analyzed <strong style="color:#171717;">${params.businessName}</strong> across ChatGPT, Claude, and Gemini with 40+ queries.
+            We analyzed <strong style="color:#171717;">${params.businessName}</strong> across ChatGPT, Claude, and Gemini with 100+ queries.
           </p>
           <table width="100%" cellpadding="0" cellspacing="0" role="presentation" style="margin-bottom:28px;">
             <tr><td style="background-color:#f7f7f8;border-radius:8px;padding:20px 24px;">

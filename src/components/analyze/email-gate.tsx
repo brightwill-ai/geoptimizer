@@ -21,7 +21,7 @@ const TIERS = [
     labelColor: "#10a37f",
     features: [
       "Full analysis across ChatGPT, Claude & Gemini",
-      "40+ real queries with response evidence",
+      "100+ real queries with response evidence",
       "Source influence map — what drives AI recommendations",
       "Verification prompts you can test yourself",
       "80-step actionable optimization playbook",

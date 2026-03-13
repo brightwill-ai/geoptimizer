@@ -599,7 +599,7 @@ function Stats() {
 
   const stats = [
     { value: 100, suffix: "M+", label: "Daily AI searches your customers are making" },
-    { value: 40, suffix: "+", label: "Real queries per comprehensive audit" },
+    { value: 100, suffix: "+", label: "Real queries per comprehensive audit" },
     { value: 3, suffix: "", label: "AI platforms tested simultaneously" },
   ];
 
@@ -2024,7 +2024,7 @@ function Pricing() {
       cta: "Get full audit",
       features: [
         "ChatGPT, Claude & Gemini analysis",
-        "40+ queries across all 3 AI engines",
+        "100+ queries across all 3 AI engines",
         "Source influence map",
         "Cross-platform verification",
         "80-step optimization action plan",
@@ -2262,7 +2262,7 @@ function FAQ() {
     },
     {
       q: "How long does the full audit take?",
-      a: "The free snapshot takes about 30 seconds. The full audit runs 40+ queries across all 3 AI platforms and takes 5-15 minutes. We'll email you when your report is ready.",
+      a: "The free snapshot takes about 30 seconds. The full audit runs 100+ queries across all 3 AI platforms and takes 5-15 minutes. We'll email you when your report is ready.",
     },
     {
       q: "What do I get with the full audit?",

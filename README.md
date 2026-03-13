@@ -51,14 +51,14 @@ User enters business → Free snapshot (ChatGPT, 5 queries, 15-25s)
                               ↓
          Payment gate (tier selector: $99 or $199) → Stripe Checkout
                               ↓
-        Comprehensive audit (3 providers, 40+ queries, 5-15min)
+        Comprehensive audit (3 providers, 100+ queries, 5-15min)
                               ↓
          Full report + 80-step action plan + shareable link
 ```
 
 ### Three tiers
 - **Free Snapshot** — ChatGPT only, 5 queries, instant results
-- **Full Audit ($99)** — ChatGPT + Claude + Gemini, 40+ queries, source influence, action plan, PDF export
+- **Full Audit ($99)** — ChatGPT + Claude + Gemini, 100+ queries, source influence, action plan, PDF export
 - **Audit + Strategy ($199)** — Full Audit + execution roadmap, monthly re-audit, competitor monitoring, strategy call
 
 ## Commands

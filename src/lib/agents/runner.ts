@@ -422,7 +422,7 @@ export async function runFreeAudit(
 }
 
 /**
- * Comprehensive tier audit: All 3 providers, 35-40 queries each.
+ * Comprehensive tier audit: All 3 providers, 37+ queries each (~100+ total).
  * Stores individual QueryExecution records for full transparency.
  * Target: 5-15 minutes.
  */

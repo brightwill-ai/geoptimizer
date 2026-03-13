@@ -137,7 +137,7 @@ export function LoadingStep({ businessName, onComplete, jobStatuses, queryProgre
           </h2>
           {isComprehensive && (
             <p style={{ fontSize: "0.76rem", color: "#8e8ea0", margin: "8px 0 0", lineHeight: 1.5 }}>
-              40+ queries across 3 AI platforms — this may take a few minutes
+              100+ queries across 3 AI platforms — this may take a few minutes
             </p>
           )}
         </div>
