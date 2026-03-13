@@ -135,7 +135,7 @@ export default function AdminPage() {
 
   const tierLabel = (tier: string) => {
     if (tier === "audit_strategy") return "$199 Strategy";
-    if (tier === "full_audit") return "$99 Audit";
+    if (tier === "full_audit") return "$19 Audit";
     return tier;
   };
 

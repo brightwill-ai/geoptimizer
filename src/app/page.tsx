@@ -2018,7 +2018,7 @@ function Pricing() {
     },
     {
       name: "Full Audit",
-      price: "99",
+      price: "19",
       featured: true,
       href: "/analyze",
       cta: "Get full audit",

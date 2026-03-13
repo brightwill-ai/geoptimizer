@@ -1,6 +1,6 @@
 # BrightWill
 
-GEO (Generative Engine Optimization) analysis platform for local businesses. Measures **recommendation probability** — how likely each AI engine is to recommend a business when relevant queries are asked. Three tiers: free (ChatGPT only, 5 queries, instant), Full Audit ($99, all 3 engines, 100+ queries), and Audit + Strategy ($199, full audit plus execution roadmap, monthly re-audits, strategy call).
+GEO (Generative Engine Optimization) analysis platform for local businesses. Measures **recommendation probability** — how likely each AI engine is to recommend a business when relevant queries are asked. Three tiers: free (ChatGPT only, 5 queries, instant), Full Audit ($19, all 3 engines, 100+ queries), and Audit + Strategy ($199, full audit plus execution roadmap, monthly re-audits, strategy call).
 
 ## Quick Start
 
@@ -19,7 +19,7 @@ npm run dev
 - **LLM SDKs:** OpenAI (`openai`), Anthropic (`@anthropic-ai/sdk`), Google (`@google/genai`)
 - **Animations:** Framer Motion + CSS keyframes
 - **Email:** Resend SDK (`resend`) — payment confirmation + report-ready notification
-- **Payments:** Stripe Checkout ($99 Full Audit + $199 Audit+Strategy) — `stripe` SDK, promotion codes enabled, dev bypass via NODE_ENV
+- **Payments:** Stripe Checkout ($19 Full Audit + $199 Audit+Strategy) — `stripe` SDK, promotion codes enabled, dev bypass via NODE_ENV
 - **PDF:** Client-side export via `html2canvas` + `jspdf`
 - **Auth:** None (Stripe payment gate for full reports)
 - **Deployment:** Docker on Alibaba Cloud VPC, GitHub Actions CI/CD
@@ -60,8 +60,8 @@ src/
 │   └── analyze/                          # Analysis feature components
 │       ├── search-step.tsx               # Business name + location (Nominatim autocomplete) + category form
 │       ├── loading-step.tsx              # Provider badges + query progress (tier-aware)
-│       ├── partial-report.tsx            # Competitor-first dashboard: 2 tabs (Overview + Evidence), "what customers see" card, $99 CTAs
-│       ├── email-gate.tsx                # Payment gate modal with tier selector ($99/$199) → Stripe Checkout redirect
+│       ├── partial-report.tsx            # Competitor-first dashboard: 2 tabs (Overview + Evidence), "what customers see" card, $19 CTAs
+│       ├── email-gate.tsx                # Payment gate modal with tier selector ($19/$199) → Stripe Checkout redirect
 │       ├── full-report.tsx               # Dashboard layout: 5 tabs (Overview, Providers, Sources, Evidence, Action Plan) + PDF download
 │       ├── dashboard-shell.tsx           # Dashboard outer container: sticky KPI + nav, cross-fade tab content
 │       ├── dashboard-card.tsx            # Glassmorphism card wrapper with lock overlay support
@@ -172,9 +172,9 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 7. **Frontend polling** (`analyze/page.tsx`): Polls every 2s. Response includes `queryProgress: { completed, total, currentQueryText }`. `total` comes from `Analysis.queryCount` (set before the query loop starts). Loading step is tier-aware: free shows ChatGPT badge only, comprehensive shows all 3 provider badges with individual status.
 
-8. **Partial report** (`partial-report.tsx`): Competitor-first dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: hero card with competitor callout ("ChatGPT recommends [competitor] over you"), "What your customers see" card (verbatim AI response showing competitor winning), snapshot blockers/wins, query patterns, competitive context, source/sentiment readout, and unlock CTA card with $99 price. Sticky CTA bar at bottom with competitor-aware messaging. Score ring glow and gradient hero background.
+8. **Partial report** (`partial-report.tsx`): Competitor-first dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: hero card with competitor callout ("ChatGPT recommends [competitor] over you"), "What your customers see" card (verbatim AI response showing competitor winning), snapshot blockers/wins, query patterns, competitive context, source/sentiment readout, and unlock CTA card with $19 price. Sticky CTA bar at bottom with competitor-aware messaging. Score ring glow and gradient hero background.
 
-9. **Payment gate** (`email-gate.tsx`): Shows tier selector ($99 Full Audit vs $199 Audit + Strategy) + email form → `POST /api/checkout` with `priceTier` → Stripe Checkout Session (with `allow_promotion_codes: true`) → redirects to Stripe hosted page. On success, Stripe redirects back to `/analyze?session_id={id}&analysis_id={id}`. Page detects URL params → `POST /api/analysis/[id]/claim` with `stripeSessionId` → claim route verifies payment with Stripe API, reads `priceTier` from session metadata → creates comprehensive analysis with `priceTier` field → sends payment confirmation email. Dev bypass: skips Stripe in `NODE_ENV=development`, redirects directly. Webhook (`/api/webhooks/stripe`) serves as backup reconciliation.
+9. **Payment gate** (`email-gate.tsx`): Shows tier selector ($19 Full Audit vs $199 Audit + Strategy) + email form → `POST /api/checkout` with `priceTier` → Stripe Checkout Session (with `allow_promotion_codes: true`) → redirects to Stripe hosted page. On success, Stripe redirects back to `/analyze?session_id={id}&analysis_id={id}`. Page detects URL params → `POST /api/analysis/[id]/claim` with `stripeSessionId` → claim route verifies payment with Stripe API, reads `priceTier` from session metadata → creates comprehensive analysis with `priceTier` field → sends payment confirmation email. Dev bypass: skips Stripe in `NODE_ENV=development`, redirects directly. Webhook (`/api/webhooks/stripe`) serves as backup reconciliation.
 
 10. **Full report** (`full-report.tsx`): Dashboard layout with sticky KPI row (avg + per-provider probabilities with mini rings) + 5 tabs. Overview: ProviderComparisonVisual + InsightCards + SourceInfluenceMap + Methodology + LLMComparisonTable. Deep Dive: provider sub-tabs → 2-column grid with hero, metrics, query breakdown, competitors, topics, accuracy, sources, sentiment, evidence. Sources: cross-platform + per-provider maps. Evidence: provider sub-tabs → QueryEvidence. Action Plan: ActionPlan or ActionItems.
 
@@ -202,7 +202,7 @@ Categories: restaurant, gym, salon, hvac, dental, legal, realtor, saas, ecommerc
 
 ### Three tiers
 - **Free Snapshot** (15-25s): ChatGPT only, 5 queries from query bank. Shows recommendation probability + query evidence. Competitor-first messaging to drive upgrades. Cache: 24h.
-- **Full Audit — $99** (5-15min): 3 providers, 37+ queries each (100+ total). Full methodology, source influence, verification, 80-step action plan, PDF export. Gated by Stripe Checkout (dev bypass in development). Generates shareToken. Cache: 72h.
+- **Full Audit — $19** (5-15min): 3 providers, 37+ queries each (100+ total). Full methodology, source influence, verification, 80-step action plan, PDF export. Gated by Stripe Checkout (dev bypass in development). Generates shareToken. Cache: 72h.
 - **Audit + Strategy — $199**: Everything in Full Audit plus dedicated execution roadmap, monthly re-audit, 3 competitor monitoring dashboards, custom GEO strategy call (30 min), priority email support. Payment works (separate Stripe Price ID via `STRIPE_PRICE_ID_STRATEGY`), stored as `priceTier: "audit_strategy"` on Analysis. Strategy extras (call scheduling, re-audits, competitor monitoring) are delivered manually by founder — no backend automation yet.
 
 ## Data Model
@@ -385,7 +385,7 @@ RESEND_FROM_EMAIL=                   # Optional: custom from address (default: o
 STRIPE_SECRET_KEY=sk_test_...        # Stripe secret key (test for dev, live for prod)
 STRIPE_PUBLISHABLE_KEY=pk_test_...   # Stripe publishable key
 STRIPE_WEBHOOK_SECRET=whsec_...      # Stripe webhook signing secret
-STRIPE_PRICE_ID=price_...            # Stripe Price ID for $99 Full Audit
+STRIPE_PRICE_ID=price_...            # Stripe Price ID for $19 Full Audit
 STRIPE_PRICE_ID_STRATEGY=price_...   # Stripe Price ID for $199 Audit + Strategy
 ADMIN_PASSWORD=...                   # Password for /admin dashboard
 ```
@@ -432,7 +432,7 @@ npm run dev                           # Starts on http://localhost:3000
 ### How dev mode works
 - `NODE_ENV=development` is set automatically by `npm run dev`
 - **Stripe is bypassed** — clicking "Pay" in the email gate skips real checkout and redirects directly to the claim flow. No card needed.
-- Both `priceTier` options ($99 / $199) work in dev — the tier is passed through the dev bypass URL
+- Both `priceTier` options ($19 / $199) work in dev — the tier is passed through the dev bypass URL
 - Database points to Supabase (same or separate project from prod)
 - LLM API keys can be free-tier/test keys
 

@@ -16,7 +16,7 @@ const TIERS = [
   {
     id: "full_audit" as PriceTier,
     name: "Full Audit",
-    price: "$99",
+    price: "$19",
     label: "Most popular",
     labelColor: "#10a37f",
     features: [
@@ -103,7 +103,7 @@ export function EmailGate({ analysisId, onClose }: EmailGateProps) {
     boxSizing: "border-box",
   };
 
-  const selectedPrice = TIERS.find((t) => t.id === selectedTier)?.price || "$99";
+  const selectedPrice = TIERS.find((t) => t.id === selectedTier)?.price || "$19";
 
   return (
     <motion.div

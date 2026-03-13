@@ -151,7 +151,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
           cursor: "pointer",
         }}
       >
-        Unlock full audit — $99
+        Unlock full audit — $19
       </button>
     </div>
   );
@@ -512,7 +512,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       transition: "all 0.15s",
                     }}
                   >
-                    Unlock full audit — $99
+                    Unlock full audit — $19
                   </button>
                 </div>
               </DashboardCard>

@@ -24,7 +24,7 @@ npm run dev                  # http://localhost:3000
 
 ### Dev mode behavior
 - **Stripe is bypassed** — payment gate skips real checkout, no card needed
-- Both pricing tiers ($99 / $199) work through the dev bypass flow
+- Both pricing tiers ($19 / $199) work through the dev bypass flow
 - LLM API keys can be free-tier or test keys
 - Admin dashboard at `/admin` (set `ADMIN_PASSWORD` in `.env`)
 
@@ -49,7 +49,7 @@ User enters business → Free snapshot (ChatGPT, 5 queries, 15-25s)
                               ↓
               Partial report (competitor-first, upgrade CTAs)
                               ↓
-         Payment gate (tier selector: $99 or $199) → Stripe Checkout
+         Payment gate (tier selector: $19 or $199) → Stripe Checkout
                               ↓
         Comprehensive audit (3 providers, 100+ queries, 5-15min)
                               ↓
@@ -58,7 +58,7 @@ User enters business → Free snapshot (ChatGPT, 5 queries, 15-25s)
 
 ### Three tiers
 - **Free Snapshot** — ChatGPT only, 5 queries, instant results
-- **Full Audit ($99)** — ChatGPT + Claude + Gemini, 100+ queries, source influence, action plan, PDF export
+- **Full Audit ($19)** — ChatGPT + Claude + Gemini, 100+ queries, source influence, action plan, PDF export
 - **Audit + Strategy ($199)** — Full Audit + execution roadmap, monthly re-audit, competitor monitoring, strategy call
 
 ## Commands
@@ -96,7 +96,7 @@ APP_URL="https://brightwill.ai/"
 STRIPE_SECRET_KEY="sk_test_..."      # sk_live_... in production
 STRIPE_PUBLISHABLE_KEY="pk_test_..."
 STRIPE_WEBHOOK_SECRET="whsec_..."
-STRIPE_PRICE_ID="price_..."          # $99 Full Audit
+STRIPE_PRICE_ID="price_..."          # $19 Full Audit
 STRIPE_PRICE_ID_STRATEGY="price_..."  # $199 Audit + Strategy
 
 # Admin
