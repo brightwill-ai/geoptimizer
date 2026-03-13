@@ -67,7 +67,7 @@ export function DashboardShell({
       <div
         className="dashboard-shell-header"
         style={{
-          padding: "2.5rem 0 1.5rem",
+          padding: "1.5rem 0 0.75rem",
           display: "flex",
           alignItems: "flex-start",
           justifyContent: "space-between",
@@ -134,7 +134,7 @@ export function DashboardShell({
         }}
       >
         {kpiItems && kpiItems.length > 0 && (
-          <div style={{ marginBottom: 16 }} className="dashboard-shell-kpis">
+          <div style={{ marginBottom: 8 }} className="dashboard-shell-kpis">
             <KPIRow items={kpiItems} />
           </div>
         )}
@@ -152,7 +152,7 @@ export function DashboardShell({
       {/* Fade from mesh → gray */}
       <div
         style={{
-          height: 60,
+          height: 36,
           background: "linear-gradient(to bottom, transparent 0%, #f3efe8 100%)",
           position: "relative",
           zIndex: 1,
@@ -223,7 +223,7 @@ export function DashboardShell({
           )}
 
           {/* Tab content with cross-fade transition */}
-          <div style={{ padding: "0 0 3rem", flexGrow: 1, minWidth: 0, paddingTop: layout === "sidebar" ? "2rem" : 0 }} className={layout === "sidebar" ? "dashboard-shell-content dashboard-sidebar-content" : "dashboard-shell-content"}>
+          <div style={{ padding: "0 0 3rem", flexGrow: 1, minWidth: 0, paddingTop: layout === "sidebar" ? "1.25rem" : 0 }} className={layout === "sidebar" ? "dashboard-shell-content dashboard-sidebar-content" : "dashboard-shell-content"}>
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.div
                 key={activeTab}

@@ -74,7 +74,7 @@ function InsightCard({
         background: "#f7f7f8",
       }}
     >
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
         <div style={{ fontSize: "0.98rem", color: "#171717", fontWeight: 600, lineHeight: 1.35 }}>{title}</div>
         {badge && (
           <span
@@ -418,12 +418,14 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                       </div>
                       <div
                         style={{
-                          padding: "6px 10px",
+                          padding: "3px 8px",
                           borderRadius: 999,
-                          background: `${provider.color}16`,
+                          background: `${provider.color}18`,
+                          border: `1px solid ${provider.color}30`,
                           color: provider.color,
-                          fontSize: "0.72rem",
+                          fontSize: "0.7rem",
                           fontWeight: 600,
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {provider.mentionCount}/{provider.totalQueries} prompts

@@ -37,7 +37,7 @@ export function KPIRow({ items }: KPIRowProps) {
             background: "#ffffff",
             border: "1px solid #e5e5e5",
             borderRadius: 12,
-            padding: "1.25rem 1.5rem",
+            padding: "0.85rem 1.25rem",
             position: "relative",
             overflow: "hidden",
             boxShadow: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",

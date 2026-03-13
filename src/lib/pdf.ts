@@ -124,6 +124,16 @@ class PDFBuilder {
     return text.substring(0, Math.max(maxChars - 3, 4)) + "...";
   }
 
+  // Accurate fit using jsPDF text measurement — call only after setting font+size
+  private fitText(text: string, maxWidth: number): string {
+    if (this.doc.getTextWidth(text) <= maxWidth) return text;
+    let t = text;
+    while (t.length > 4 && this.doc.getTextWidth(t + "...") > maxWidth) {
+      t = t.slice(0, -1);
+    }
+    return t + "...";
+  }
+
   // ── Drawing primitives ──
 
   private sectionTitle(text: string) {
@@ -192,15 +202,18 @@ class PDFBuilder {
         this.doc.rect(x, this.y + 2, 2.5, boxH - 4, "F");
       }
 
+      const textX = x + (item.color ? 8 : 6);
+      const textMaxW = boxW - (item.color ? 11 : 8);
+
       this.doc.setFontSize(7);
       this.doc.setTextColor(...C.sub);
       this.doc.setFont("helvetica", "normal");
-      this.doc.text(item.label, x + (item.color ? 8 : 6), this.y + 7);
+      this.doc.text(this.fitText(item.label, textMaxW), textX, this.y + 7);
 
       this.doc.setFontSize(13);
       this.doc.setTextColor(...(item.color ?? C.black));
       this.doc.setFont("helvetica", "bold");
-      this.doc.text(item.value, x + (item.color ? 8 : 6), this.y + 14.5);
+      this.doc.text(this.fitText(item.value, textMaxW), textX, this.y + 14.5);
     }
 
     this.y += boxH + 6;
