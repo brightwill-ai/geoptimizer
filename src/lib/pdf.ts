@@ -124,10 +124,20 @@ class PDFBuilder {
     return text.substring(0, Math.max(maxChars - 3, 4)) + "...";
   }
 
+  // Accurate fit using jsPDF text measurement — call only after setting font+size
+  private fitText(text: string, maxWidth: number): string {
+    if (this.doc.getTextWidth(text) <= maxWidth) return text;
+    let t = text;
+    while (t.length > 4 && this.doc.getTextWidth(t + "...") > maxWidth) {
+      t = t.slice(0, -1);
+    }
+    return t + "...";
+  }
+
   // ── Drawing primitives ──
 
   private sectionTitle(text: string) {
-    this.ensureSpace(18);
+    this.ensureSpace(24);
     this.y += 8;
     this.doc.setFontSize(7);
     this.doc.setTextColor(...C.muted);
@@ -149,16 +159,23 @@ class PDFBuilder {
     this.y += size * 0.45 + 3;
   }
 
-  private body(text: string, indent = 0) {
-    this.doc.setFontSize(9);
-    this.doc.setTextColor(...C.text);
-    this.doc.setFont("helvetica", "normal");
-    const lines = this.doc.splitTextToSize(text, this.CW - indent);
-    for (const line of lines) {
-      this.ensureSpace(5);
-      this.doc.text(line as string, this.M + indent, this.y);
-      this.y += 4.2;
+  private para(text: string, x: number, maxWidth: number, fontSize: number, color: RGB = C.text, fontStyle: string = "normal", maxLines?: number) {
+    this.doc.setFontSize(fontSize);
+    this.doc.setTextColor(...color);
+    this.doc.setFont("helvetica", fontStyle);
+    let lines = this.doc.splitTextToSize(text, maxWidth);
+    if (maxLines && maxLines > 0) {
+      lines = lines.slice(0, maxLines);
     }
+    for (const line of lines) {
+      this.ensureSpace(fontSize * 0.35 + 2);
+      this.doc.text(line as string, x, this.y);
+      this.y += (fontSize * 0.35 + 1.2);
+    }
+  }
+
+  private body(text: string, indent = 0) {
+    this.para(text, this.M + indent, this.CW - indent, 9, C.text, "normal");
     this.y += 2;
   }
 
@@ -185,15 +202,18 @@ class PDFBuilder {
         this.doc.rect(x, this.y + 2, 2.5, boxH - 4, "F");
       }
 
+      const textX = x + (item.color ? 8 : 6);
+      const textMaxW = boxW - (item.color ? 11 : 8);
+
       this.doc.setFontSize(7);
       this.doc.setTextColor(...C.sub);
       this.doc.setFont("helvetica", "normal");
-      this.doc.text(item.label, x + (item.color ? 8 : 6), this.y + 7);
+      this.doc.text(this.fitText(item.label, textMaxW), textX, this.y + 7);
 
       this.doc.setFontSize(13);
       this.doc.setTextColor(...(item.color ?? C.black));
       this.doc.setFont("helvetica", "bold");
-      this.doc.text(item.value, x + (item.color ? 8 : 6), this.y + 14.5);
+      this.doc.text(this.fitText(item.value, textMaxW), textX, this.y + 14.5);
     }
 
     this.y += boxH + 6;
@@ -215,7 +235,8 @@ class PDFBuilder {
 
     let xPos = this.M + pad;
     for (let i = 0; i < headers.length; i++) {
-      this.doc.text(headers[i], xPos, this.y + 5);
+      const cellText = this.fit(headers[i], widths[i]);
+      this.doc.text(cellText, xPos, this.y + 5);
       xPos += widths[i];
     }
     this.y += rh;
@@ -254,25 +275,9 @@ class PDFBuilder {
     this.doc.setFillColor(...color);
     this.doc.circle(this.M + 2, this.y - 1, 1.2, "F");
 
-    this.doc.setFontSize(8.5);
-    this.doc.setTextColor(...C.black);
-    this.doc.setFont("helvetica", "bold");
-
-    const titleLines = this.doc.splitTextToSize(title, this.CW - 10);
-    for (const line of titleLines) {
-      this.doc.text(line as string, this.M + 7, this.y);
-      this.y += 4;
-    }
-
-    this.doc.setFontSize(7.5);
-    this.doc.setTextColor(...C.sub);
-    this.doc.setFont("helvetica", "normal");
-    const detailLines = this.doc.splitTextToSize(detail, this.CW - 10);
-    for (const line of detailLines) {
-      this.ensureSpace(4);
-      this.doc.text(line as string, this.M + 7, this.y);
-      this.y += 3.8;
-    }
+    this.para(title, this.M + 7, this.CW - 10, 8.5, C.black, "bold");
+    this.y -= 0.2; // Adjust spacing slightly between title and detail
+    this.para(detail, this.M + 7, this.CW - 10, 7.5, C.sub, "normal");
     this.y += 3;
   }
 
@@ -291,14 +296,8 @@ class PDFBuilder {
 
     // Business name
     this.y = 56;
-    this.doc.setFontSize(28);
-    this.doc.setTextColor(...C.black);
-    this.doc.setFont("helvetica", "bold");
-    const nameLines = this.doc.splitTextToSize(this.analysis.businessName, this.CW);
-    for (const line of nameLines) {
-      this.doc.text(line as string, this.M, this.y);
-      this.y += 13;
-    }
+    this.para(this.analysis.businessName, this.M, this.CW, 28, C.black, "bold");
+    this.y += 2;
 
     // Subtitle
     this.y += 1;
@@ -342,17 +341,7 @@ class PDFBuilder {
 
     // Bottom disclaimer
     if (this.analysis.methodology.disclaimer) {
-      this.doc.setFontSize(7);
-      this.doc.setTextColor(...C.muted);
-      this.doc.setFont("helvetica", "italic");
-      const disclaimer = this.doc.splitTextToSize(
-        this.analysis.methodology.disclaimer, this.CW
-      );
-      let dy = this.H - 28;
-      for (const line of disclaimer) {
-        this.doc.text(line as string, this.M, dy);
-        dy += 3.5;
-      }
+      this.para(this.analysis.methodology.disclaimer, this.M, this.CW, 7, C.muted, "italic");
     }
 
     this.doc.setFontSize(7);
@@ -701,37 +690,14 @@ class PDFBuilder {
         }
 
         // Title
-        this.doc.setFontSize(8);
-        this.doc.setTextColor(...C.black);
-        this.doc.setFont("helvetica", "bold");
-        const titleLines = this.doc.splitTextToSize(item.title, this.CW - 12);
-        for (const line of titleLines) {
-          this.ensureSpace(4.5);
-          this.doc.text(line as string, this.M + 8, this.y);
-          this.y += 4;
-        }
+        this.para(item.title, this.M + 8, this.CW - 12, 8, C.black, "bold");
 
         // Priority + effort
-        this.doc.setFontSize(6.5);
-        this.doc.setTextColor(...C.muted);
-        this.doc.setFont("helvetica", "normal");
-        this.doc.text(
-          `${item.priority} | ${item.effort.replace(/_/g, " ")}`,
-          this.M + 8, this.y
-        );
-        this.y += 4;
+        this.para(`${item.priority} | ${item.effort.replace(/_/g, " ")}`, this.M + 8, this.CW - 12, 6.5, C.muted, "normal");
 
         // Description (max 2 lines)
         if (item.description) {
-          this.doc.setFontSize(7.5);
-          this.doc.setTextColor(...C.sub);
-          this.doc.setFont("helvetica", "normal");
-          const descLines = this.doc.splitTextToSize(item.description, this.CW - 12).slice(0, 2);
-          for (const line of descLines) {
-            this.ensureSpace(4);
-            this.doc.text(line as string, this.M + 8, this.y);
-            this.y += 3.8;
-          }
+          this.para(item.description, this.M + 8, this.CW - 12, 7.5, C.sub, "normal", 2);
         }
 
         this.y += 3;

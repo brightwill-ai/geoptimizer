@@ -24,17 +24,17 @@
   --shadow-hover: 0 4px 12px rgba(0,0,0,0.06);
 
   /* Provider accents */
-  --accent-chatgpt: #10a37f;
-  --accent-claude: #c084fc;
-  --accent-gemini: #4285f4;
+  --accent-chatgpt: #0f9172;
+  --accent-claude: #a87ad4;
+  --accent-gemini: #5b8de8;
 
   /* Status colors */
-  --status-green: #16a34a;
+  --status-green: #15803d;
   --status-amber: #d97706;
   --status-red: #dc2626;
 
   /* Status tinted backgrounds */
-  --tint-green: #f0fdf4;
+  --tint-green: rgba(15, 145, 114, 0.08);
   --tint-amber: #fffbeb;
   --tint-red: #fef2f2;
 
@@ -513,6 +513,31 @@ body {
   box-shadow: 0 8px 24px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
 }
 
+/* Dashboard Sidebar Layout */
+.dashboard-sidebar-layout {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+}
+
+.dashboard-sidebar-aside {
+  width: 220px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: fit-content;
+}
+
+@media (min-width: 861px) {
+  .hide-on-desktop {
+    display: none !important;
+  }
+}
+
+.dashboard-sidebar-content {
+  overflow-x: hidden;
+}
+
 /* Hide scrollbar on dashboard nav */
 .dashboard-nav-scroll::-webkit-scrollbar {
   display: none;
@@ -635,6 +660,14 @@ body {
 
   .dashboard-shell-header-main {
     width: 100%;
+  }
+
+  .dashboard-sidebar-layout {
+    flex-direction: column !important;
+  }
+
+  .dashboard-sidebar-aside {
+    display: none !important;
   }
 
   .dashboard-shell-header-side {
@@ -776,28 +809,27 @@ body {
   z-index: 2;
 }
 
-/* Circle dot at left vertical line intersection */
-.section-divider-dotted::before {
-  content: '';
-  position: absolute;
-  top: -3.5px;
-  left: max(calc((100% - 1280px) / 2), 2.5rem);
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #999;
-}
-
-/* Circle dot at right vertical line intersection */
+.section-divider-dotted::before,
 .section-divider-dotted::after {
   content: '';
   position: absolute;
-  top: -3.5px;
-  right: max(calc((100% - 1280px) / 2), 2.5rem);
-  width: 6px;
-  height: 6px;
+  top: -4px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #999;
+  background-color: #fcfcfc;
+  border: 1px solid #d0d0d0;
+  z-index: 3;
+}
+
+.section-divider-dotted::before {
+  left: max(calc((100% - 1280px) / 2), 2.5rem);
+  transform: translateX(-50%);
+}
+
+.section-divider-dotted::after {
+  right: max(calc((100% - 1280px) / 2), 2.5rem);
+  transform: translateX(50%);
 }
 
 /* Constrained width divider (within content area) */

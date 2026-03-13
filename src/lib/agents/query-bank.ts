@@ -72,26 +72,18 @@ export async function getQueriesForTier(
       orderBy: { createdAt: "asc" },
     });
 
-    return genericTemplates.map((t, i) => ({
+    return genericTemplates.map((t: { id: string; queryType: string; template: string }, i: number) => ({
       templateId: t.id,
       queryType: t.queryType,
       prompt: renderTemplate(t.template, businessName, location, category, profile, i),
     }));
   }
 
-  return templates.map((t, i) => ({
+  return templates.map((t: { id: string; queryType: string; template: string }, i: number) => ({
     templateId: t.id,
     queryType: t.queryType,
     prompt: renderTemplate(t.template, businessName, location, category, profile, i),
   }));
-}
-
-/**
- * Get all supported categories (from DB templates + hardcoded fallback).
- */
-// POSSIBLY UNUSED: review before deleting
-function getSupportedCategories(): string[] {
-  return BUSINESS_CATEGORIES.map((c) => c.id);
 }
 
 // ── Query template definitions for seeding ──
