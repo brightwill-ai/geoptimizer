@@ -89,7 +89,8 @@ export async function getQueriesForTier(
 /**
  * Get all supported categories (from DB templates + hardcoded fallback).
  */
-export function getSupportedCategories(): string[] {
+// POSSIBLY UNUSED: review before deleting
+function getSupportedCategories(): string[] {
   return BUSINESS_CATEGORIES.map((c) => c.id);
 }
 
@@ -107,7 +108,7 @@ interface QuerySeed {
  * Distribution: 27 generic (71%) / 11 direct-mention (29%).
  * Uses subcategory-aware placeholders: {subcategoryPlural}, {specialty}, {searchTerm}.
  */
-export const GENERIC_QUERY_TEMPLATES: QuerySeed[] = [
+const GENERIC_QUERY_TEMPLATES: QuerySeed[] = [
   // ── FREE TIER (5 queries: 4 generic, 1 direct) ──
   {
     queryType: "discovery",
