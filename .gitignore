@@ -51,3 +51,6 @@ prisma/dev.db
 
 # mcp config (contains tokens)
 .mcp.json
+
+# claude settings (contains server credentials)
+.claude/settings.json
