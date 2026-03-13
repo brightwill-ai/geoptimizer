@@ -38,9 +38,21 @@ export async function GET(
     }
 
     // Parse the cached plan and overlay live completion states
-    const actionPlan = JSON.parse(analysis.actionPlanJson);
+    const actionPlan = JSON.parse(analysis.actionPlanJson) as {
+      categories: {
+        key: string;
+        items: {
+          id?: string;
+          completed?: boolean;
+          notes?: string | null;
+        }[];
+        completedCount?: number;
+      }[];
+      completedItems?: number;
+      [key: string]: unknown;
+    };
     const itemsById = new Map(
-      analysis.actionPlanItems.map((item: any) => [`${item.categoryKey}-${item.itemIndex % 100}`, item])
+      analysis.actionPlanItems.map((item: { id: string; completed: boolean; notes: string | null; categoryKey: string; itemIndex: number }) => [`${item.categoryKey}-${item.itemIndex % 100}`, item])
     );
 
     // Rebuild categories with live DB state (completion, notes)
@@ -50,16 +62,18 @@ export async function GET(
       for (let i = 0; i < cat.items.length; i++) {
         const dbItem = itemsById.get(`${cat.key}-${i}`);
         if (dbItem) {
-          cat.items[i].id = dbItem.id;
-          cat.items[i].completed = dbItem.completed;
-          cat.items[i].notes = dbItem.notes;
+          Object.assign(cat.items[i], {
+            id: dbItem.id,
+            completed: dbItem.completed,
+            notes: dbItem.notes,
+          });
           if (dbItem.completed) catCompleted++;
         }
       }
-      cat.completedCount = catCompleted;
+      Object.assign(cat, { completedCount: catCompleted });
       totalCompleted += catCompleted;
     }
-    actionPlan.completedItems = totalCompleted;
+    Object.assign(actionPlan, { completedItems: totalCompleted });
 
     return NextResponse.json({
       status: "complete",

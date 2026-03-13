@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 import { MeshGradient } from "@/components/ui/mesh-gradient";
 import { WordFadeIn } from "@/components/ui/word-fade-in";

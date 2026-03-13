@@ -64,7 +64,6 @@ export function CursorTrail() {
           container.appendChild(el);
 
           // Force browser to register the initial layout to enable CSS transition
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           void el.offsetWidth;
 
           // Apply target state for animation immediately
