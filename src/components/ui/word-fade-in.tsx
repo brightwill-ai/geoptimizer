@@ -12,6 +12,8 @@ interface WordFadeInProps {
   scrollDriven?: boolean
   /** External scroll progress 0-1 (for scrollDriven mode) */
   scrollProgress?: number
+  /** Inline styles for the container div */
+  style?: React.CSSProperties
 }
 
 export function WordFadeIn({
@@ -20,6 +22,7 @@ export function WordFadeIn({
   wordClassName,
   scrollDriven = false,
   scrollProgress: externalProgress,
+  style,
 }: WordFadeInProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
@@ -31,10 +34,8 @@ export function WordFadeIn({
     const rect = ref.current.getBoundingClientRect()
     const vh = window.innerHeight
 
-    // Start fading when element enters bottom 80% of viewport
-    // Complete when element reaches center of viewport
-    const start = vh * 0.85
-    const end = vh * 0.35
+    const start = vh * 0.82
+    const end = vh * 0.52
     const elementCenter = rect.top + rect.height / 2
 
     if (elementCenter < start) {
@@ -86,7 +87,7 @@ export function WordFadeIn({
   const wordArray = words.split(" ")
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} className={className} style={style}>
       {wordArray.map((word, i) => {
         // Each word fades in at a staggered point in the progress
         const wordStart = i / wordArray.length

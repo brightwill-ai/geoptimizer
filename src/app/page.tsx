@@ -5,9 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 import { MeshGradient } from "@/components/ui/mesh-gradient";
+import { WordFadeIn } from "@/components/ui/word-fade-in";
 
 // ── Shared scroll-reveal hook ──
-function useReveal(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
+function useReveal(ref: React.RefObject<HTMLElement | null>, threshold = 0.15, { once = false } = {}) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -16,7 +17,8 @@ function useReveal(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("visible");
-          } else {
+            if (once) observer.unobserve(entry.target);
+          } else if (!once) {
             entry.target.classList.remove("visible");
           }
         });
@@ -28,7 +30,7 @@ function useReveal(ref: React.RefObject<HTMLElement | null>, threshold = 0.15) {
     );
     targets.forEach((t) => observer.observe(t));
     return () => observer.disconnect();
-  }, [ref, threshold]);
+  }, [ref, threshold, once]);
 }
 
 function useTypewriter(lines: string[]) {
@@ -582,7 +584,7 @@ function Hero() {
 // ── Stats Section ──
 function Stats() {
   const ref = useRef<HTMLDivElement>(null);
-  useReveal(ref);
+  useReveal(ref, 0.15, { once: true });
 
   const stats = [
     { value: 100, suffix: "M+", label: "Daily AI searches your customers are making" },
@@ -1948,7 +1950,11 @@ function HowItWorks() {
         >
           Getting Started
         </div>
-        <h2
+        <WordFadeIn
+          words="See how AI sees you. In 30 seconds."
+          className=""
+          wordClassName=""
+          scrollDriven
           style={{
             fontFamily: "var(--font-display)",
             fontWeight: 300,
@@ -1957,13 +1963,8 @@ function HowItWorks() {
             lineHeight: 1.1,
             color: "#171717",
             margin: 0,
-            opacity: titleVisible ? 1 : 0,
-            transform: titleVisible ? "translateY(0)" : "translateY(20px)",
-            transition: "opacity 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s, transform 0.7s cubic-bezier(0.16,1,0.3,1) 0.1s",
           }}
-        >
-          See how AI sees you. In 30 seconds.
-        </h2>
+        />
       </div>
 
       {/* Alternating rows */}
