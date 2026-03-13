@@ -42,8 +42,10 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           command_timeout: 10m
           script: |
+            set -eu
             cd ~/geoptimizer
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
             docker build -t brightwill .
             docker stop brightwill 2>/dev/null || true
             docker rm brightwill 2>/dev/null || true

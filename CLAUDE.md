@@ -365,7 +365,7 @@ Clean light dashboard (Linear/Notion-inspired) on warm beige page:
 ## Environment Variables
 
 ```
-DATABASE_URL=file:./prisma/dev.db    # Path relative to schema.prisma
+DATABASE_URL=file:./dev.db           # Path relative to schema.prisma
 OPENAI_API_KEY=sk-...                # Required for ChatGPT + parser
 OPENAI_BASE_URL=                     # Optional: LiteLLM proxy URL (e.g. Duke AI Gateway)
 ANTHROPIC_API_KEY=sk-ant-...         # Required for Claude

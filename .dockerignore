@@ -32,6 +32,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Local SQLite database files (Prisma)
+prisma/**/*.db
+prisma/**/*.db-journal
+
 # IDE
 .idea
 .vscode

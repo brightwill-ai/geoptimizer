@@ -22,10 +22,11 @@ Requires `SERVER_PASSWORD` secret in GitHub repo settings.
 ```bash
 ssh root@47.251.113.72
 cd ~/geoptimizer
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 docker build -t brightwill .
 docker stop brightwill && docker rm brightwill
-docker run -d --name brightwill -p 3000:3000 -e DATABASE_URL="file:./dev.db" --restart unless-stopped brightwill
+docker run -d --name brightwill -p 3003:3000 -e DATABASE_URL="file:./dev.db" --restart unless-stopped brightwill
 ```
 
 ### Local Docker

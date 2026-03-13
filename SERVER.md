@@ -72,7 +72,7 @@ server {
 ### BrightWill (geoptimizer)
 - **Trigger:** Push to `main` on GitHub
 - **Workflow:** `.github/workflows/deploy.yml`
-- **Steps:** lint → type-check → build → SSH into server → `git pull` → `docker build` → restart container on port 3003
+- **Steps:** lint → type-check → build → SSH into server → `git fetch` + `git reset --hard origin/main` → `docker build` → restart container on port 3003
 
 ### Bite App
 - Has its own auto-deploy setup (separate repo/workflow)
@@ -93,7 +93,8 @@ docker restart brightwill
 
 # Manually redeploy brightwill
 cd ~/geoptimizer
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 docker build -t brightwill .
 docker rm -f brightwill
 docker run -d --name brightwill -p 3003:3000 --env-file ~/geoptimizer/.env --restart unless-stopped brightwill
