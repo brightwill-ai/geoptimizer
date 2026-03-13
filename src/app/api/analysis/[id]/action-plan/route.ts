@@ -40,7 +40,7 @@ export async function GET(
     // Parse the cached plan and overlay live completion states
     const actionPlan = JSON.parse(analysis.actionPlanJson);
     const itemsById = new Map(
-      analysis.actionPlanItems.map((item) => [`${item.categoryKey}-${item.itemIndex % 100}`, item])
+      analysis.actionPlanItems.map((item: any) => [`${item.categoryKey}-${item.itemIndex % 100}`, item])
     );
 
     // Rebuild categories with live DB state (completion, notes)

@@ -39,6 +39,8 @@ export const metadata: Metadata = {
   ],
 };
 
+import { CursorTrail } from "@/components/ui/cursor-trail";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,6 +49,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${instrumentSans.variable} ${instrumentSerif.variable} ${inter.variable} antialiased`}>
+        <CursorTrail />
         <SmoothScroll>{children}</SmoothScroll>
       </body>
     </html>

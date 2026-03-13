@@ -20,6 +20,8 @@ interface DashboardShellProps {
   stickyFooter?: ReactNode;
   navLayoutId?: string;
   stickyMode?: "regular" | "compact";
+  layout?: "sidebar" | "tabs";
+  tabIcons?: Record<string, ReactNode>;
 }
 
 export function DashboardShell({
@@ -36,6 +38,8 @@ export function DashboardShell({
   stickyFooter,
   navLayoutId,
   stickyMode = "regular",
+  layout = "tabs",
+  tabIcons = {},
 }: DashboardShellProps) {
   return (
     <motion.div
@@ -134,12 +138,14 @@ export function DashboardShell({
             <KPIRow items={kpiItems} />
           </div>
         )}
-        <DashboardNav
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={onTabChange}
-          layoutId={navLayoutId}
-        />
+        <div className={layout === "sidebar" ? "hide-on-desktop" : ""}>
+          <DashboardNav
+            tabs={tabs}
+            activeTab={activeTab}
+            onTabChange={onTabChange}
+            layoutId={navLayoutId}
+          />
+        </div>
       </div>
       </div>
 
@@ -162,6 +168,7 @@ export function DashboardShell({
         }}
       >
         <div
+          className={layout === "sidebar" ? "dashboard-sidebar-layout" : ""}
           style={{
             width: "100%",
             maxWidth: 1200,
@@ -169,8 +176,54 @@ export function DashboardShell({
             padding: "0 2rem",
           }}
         >
+          {layout === "sidebar" && (
+            <aside className="dashboard-sidebar-aside">
+              <nav style={{ display: "flex", flexDirection: "column", gap: "0.25rem", padding: "2rem 1.5rem 2rem 0" }}>
+                {tabs.map((tab) => {
+                  const isActive = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => onTabChange(tab.id)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.75rem",
+                        padding: "0.6rem 0.85rem",
+                        borderRadius: "0 8px 8px 0",
+                        width: "100%",
+                        border: "none",
+                        background: isActive ? "#f7f7f8" : "transparent",
+                        cursor: "pointer",
+                        borderLeft: isActive ? "3px solid #171717" : "3px solid transparent",
+                        color: isActive ? "#171717" : "#6e6e80",
+                        fontWeight: isActive ? 600 : 500,
+                        fontSize: "0.88rem",
+                        textAlign: "left",
+                        transition: "all 0.15s",
+                      }}
+                      onMouseOver={(e) => {
+                        if (!isActive) e.currentTarget.style.background = "#e5e5e5";
+                      }}
+                      onMouseOut={(e) => {
+                        if (!isActive) e.currentTarget.style.background = "transparent";
+                      }}
+                    >
+                      {tabIcons[tab.id] && (
+                        <span style={{ display: "flex", alignItems: "center", opacity: isActive ? 1 : 0.7 }}>
+                          {tabIcons[tab.id]}
+                        </span>
+                      )}
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </nav>
+            </aside>
+          )}
+
           {/* Tab content with cross-fade transition */}
-          <div style={{ padding: "0 0 3rem" }} className="dashboard-shell-content">
+          <div style={{ padding: "0 0 3rem", flexGrow: 1, minWidth: 0, paddingTop: layout === "sidebar" ? "2rem" : 0 }} className={layout === "sidebar" ? "dashboard-shell-content dashboard-sidebar-content" : "dashboard-shell-content"}>
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.div
                 key={activeTab}

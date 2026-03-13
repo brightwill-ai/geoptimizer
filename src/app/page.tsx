@@ -216,13 +216,25 @@ function Nav() {
           textDecoration: "none",
         }}
       >
-        <Image
-          src="/logo.png"
-          alt="BrightWill"
-          width={28}
-          height={28}
-          style={{ borderRadius: 4 }}
-        />
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 28 28"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ borderRadius: 6 }}
+        >
+          <rect width="28" height="28" rx="6" fill="url(#bw-gradient)" />
+          {/* Overlapping subtle diamond shapes for the icon */}
+          <path d="M14 6L21 13L14 20L7 13L14 6Z" fill="white" fillOpacity="0.9" />
+          <path d="M14 11.5L20.5 18L14 24.5L7.5 18L14 11.5Z" fill="white" fillOpacity="0.45" />
+          <defs>
+            <linearGradient id="bw-gradient" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+              <stop stopColor="#fb923c" />
+              <stop offset="1" stopColor="#f472b6" />
+            </linearGradient>
+          </defs>
+        </svg>
         BrightWill
       </Link>
 
@@ -1760,18 +1772,17 @@ function HowItWorksRow({
         className="how-it-works-text"
         style={{
           gridColumn: reverse ? "9 / span 4" : "1 / span 4",
+          gridRow: "1",
           display: "flex",
           flexDirection: "column",
-          alignSelf: "stretch",
-          height: "100%",
-          minHeight: "clamp(25rem, 38vw, 34rem)",
+          alignSelf: "end",
           paddingBottom: "0.9rem",
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0)" : "translateY(26px)",
           transition: "opacity 0.7s cubic-bezier(0.16,1,0.3,1) 0.08s, transform 0.7s cubic-bezier(0.16,1,0.3,1) 0.08s",
         }}
       >
-        <div style={{ marginTop: "auto" }}>
+        <>
           <div
             style={{
               display: "inline-flex",
@@ -1817,13 +1828,14 @@ function HowItWorksRow({
           >
             {content}
           </p>
-        </div>
+        </>
       </div>
 
       <div
         className="how-it-works-media"
         style={{
           gridColumn: reverse ? "1 / span 7" : "6 / span 7",
+          gridRow: "1",
           alignSelf: "end",
           opacity: visible ? 1 : 0,
           transform: visible ? "translateY(0) scale(1)" : "translateY(34px) scale(0.985)",

@@ -8,9 +8,9 @@ export interface LLMInfo {
 }
 
 export const LLM_PROVIDERS: LLMInfo[] = [
-  { id: "chatgpt", name: "ChatGPT", color: "#10a37f" },
-  { id: "claude", name: "Claude", color: "#c084fc" },
-  { id: "gemini", name: "Gemini", color: "#4285f4" },
+  { id: "chatgpt", name: "ChatGPT", color: "#0f9172" },
+  { id: "claude", name: "Claude", color: "#a87ad4" },
+  { id: "gemini", name: "Gemini", color: "#5b8de8" },
 ];
 
 // ── Recommendation Probability (core metric) ──
