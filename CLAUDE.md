@@ -15,11 +15,11 @@ npm run dev
 
 - **Framework:** Next.js 16 (App Router) + TypeScript
 - **Styling:** Tailwind CSS v4 + inline styles (warm beige palette, Anthropic-inspired)
-- **Database:** SQLite (`prisma/dev.db`) via Prisma ORM
+- **Database:** PostgreSQL (Supabase) via Prisma ORM
 - **LLM SDKs:** OpenAI (`openai`), Anthropic (`@anthropic-ai/sdk`), Google (`@google/genai`)
 - **Animations:** Framer Motion + CSS keyframes
-- **Email:** Resend SDK (`resend`) — sends report-ready notification after comprehensive analysis
-- **Payments:** Stripe Checkout ($99 one-time) — `stripe` SDK, dev bypass via NODE_ENV
+- **Email:** Resend SDK (`resend`) — payment confirmation + report-ready notification
+- **Payments:** Stripe Checkout ($99 Full Audit + $199 Audit+Strategy) — `stripe` SDK, promotion codes enabled, dev bypass via NODE_ENV
 - **PDF:** Client-side export via `html2canvas` + `jspdf`
 - **Auth:** None (Stripe payment gate for full reports)
 - **Deployment:** Docker on Alibaba Cloud VPC, GitHub Actions CI/CD
@@ -46,7 +46,13 @@ src/
 │   │   │   └── action-plan/
 │   │   │       ├── route.ts              # GET (live plan) + POST (regenerate)
 │   │   │       └── [itemId]/route.ts     # PATCH (toggle completion, notes)
+│   │   ├── admin/
+│   │   │   ├── auth.ts                   # Admin cookie auth helpers
+│   │   │   ├── login/route.ts            # POST /api/admin/login (password → cookie)
+│   │   │   └── stats/route.ts            # GET /api/admin/stats (KPIs + recent data)
 │   │   └── report/[token]/route.ts       # GET /api/report/[token] (public report data)
+│   ├── admin/
+│   │   └── page.tsx                      # Admin dashboard (password-gated, KPIs + customer/analysis tables)
 │   ├── globals.css
 │   └── layout.tsx
 ├── components/
@@ -55,7 +61,7 @@ src/
 │       ├── search-step.tsx               # Business name + location (Nominatim autocomplete) + category form
 │       ├── loading-step.tsx              # Provider badges + query progress (tier-aware)
 │       ├── partial-report.tsx            # Competitor-first dashboard: 2 tabs (Overview + Evidence), "what customers see" card, $99 CTAs
-│       ├── email-gate.tsx                # Payment gate modal → Stripe Checkout redirect (dev bypass in development)
+│       ├── email-gate.tsx                # Payment gate modal with tier selector ($99/$199) → Stripe Checkout redirect
 │       ├── full-report.tsx               # Dashboard layout: 5 tabs (Overview, Providers, Sources, Evidence, Action Plan) + PDF download
 │       ├── dashboard-shell.tsx           # Dashboard outer container: sticky KPI + nav, cross-fade tab content
 │       ├── dashboard-card.tsx            # Glassmorphism card wrapper with lock overlay support
@@ -80,7 +86,7 @@ src/
 └── lib/
     ├── prisma.ts                         # Prisma singleton
     ├── utils.ts                          # cn(), formatDate(), slugify()
-    ├── email.ts                          # Resend client + sendReportReadyEmail() (dark-themed HTML template)
+    ├── email.ts                          # Resend client + sendPaymentConfirmationEmail() + sendReportReadyEmail()
     ├── pdf.ts                            # Client-side PDF generation (html2canvas + jspdf)
     ├── mock-data.ts                      # Types + mock data generator (source of truth for LLMProvider)
     └── agents/                           # LLM analysis pipeline
@@ -168,7 +174,7 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 8. **Partial report** (`partial-report.tsx`): Competitor-first dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: hero card with competitor callout ("ChatGPT recommends [competitor] over you"), "What your customers see" card (verbatim AI response showing competitor winning), snapshot blockers/wins, query patterns, competitive context, source/sentiment readout, and unlock CTA card with $99 price. Sticky CTA bar at bottom with competitor-aware messaging. Score ring glow and gradient hero background.
 
-9. **Payment gate** (`email-gate.tsx`): Collects email → `POST /api/checkout` → Stripe Checkout Session → redirects to Stripe hosted page. On success, Stripe redirects back to `/analyze?session_id={id}&analysis_id={id}`. Page detects URL params → `POST /api/analysis/[id]/claim` with `stripeSessionId` → claim route verifies payment with Stripe API → creates comprehensive analysis. Dev bypass: skips Stripe in `NODE_ENV=development`, redirects directly. Webhook (`/api/webhooks/stripe`) serves as backup reconciliation.
+9. **Payment gate** (`email-gate.tsx`): Shows tier selector ($99 Full Audit vs $199 Audit + Strategy) + email form → `POST /api/checkout` with `priceTier` → Stripe Checkout Session (with `allow_promotion_codes: true`) → redirects to Stripe hosted page. On success, Stripe redirects back to `/analyze?session_id={id}&analysis_id={id}`. Page detects URL params → `POST /api/analysis/[id]/claim` with `stripeSessionId` → claim route verifies payment with Stripe API, reads `priceTier` from session metadata → creates comprehensive analysis with `priceTier` field → sends payment confirmation email. Dev bypass: skips Stripe in `NODE_ENV=development`, redirects directly. Webhook (`/api/webhooks/stripe`) serves as backup reconciliation.
 
 10. **Full report** (`full-report.tsx`): Dashboard layout with sticky KPI row (avg + per-provider probabilities with mini rings) + 5 tabs. Overview: ProviderComparisonVisual + InsightCards + SourceInfluenceMap + Methodology + LLMComparisonTable. Deep Dive: provider sub-tabs → 2-column grid with hero, metrics, query breakdown, competitors, topics, accuracy, sources, sentiment, evidence. Sources: cross-platform + per-provider maps. Evidence: provider sub-tabs → QueryEvidence. Action Plan: ActionPlan or ActionItems.
 
@@ -197,7 +203,7 @@ Categories: restaurant, gym, salon, hvac, dental, legal, realtor, saas, ecommerc
 ### Three tiers
 - **Free Snapshot** (15-25s): ChatGPT only, 5 queries from query bank. Shows recommendation probability + query evidence. Competitor-first messaging to drive upgrades. Cache: 24h.
 - **Full Audit — $99** (5-15min): 3 providers, 33+ queries each. Full methodology, source influence, verification, 80-step action plan, PDF export. Gated by Stripe Checkout (dev bypass in development). Generates shareToken. Cache: 72h.
-- **Audit + Strategy — $199**: Everything in Full Audit plus dedicated execution roadmap, monthly re-audit, 3 competitor monitoring dashboards, custom GEO strategy call (30 min), priority email support. Marketing-only for now (CTA links to /analyze, backend not yet implemented).
+- **Audit + Strategy — $199**: Everything in Full Audit plus dedicated execution roadmap, monthly re-audit, 3 competitor monitoring dashboards, custom GEO strategy call (30 min), priority email support. Payment works (separate Stripe Price ID via `STRIPE_PRICE_ID_STRATEGY`), stored as `priceTier: "audit_strategy"` on Analysis. Strategy extras (call scheduling, re-audits, competitor monitoring) are delivered manually by founder — no backend automation yet.
 
 ## Data Model
 
@@ -210,7 +216,8 @@ model Analysis {
   id, userId?, businessName, location, category, tier, status,
   queryCount Int, recommendationProbability Float?, methodology String?,
   shareToken String? @unique,
-  paid Boolean @default(false), stripeSessionId String?, paidAt DateTime?,
+  paid Boolean @default(false), priceTier String @default("free"),
+  stripeSessionId String?, paidAt DateTime?,
   actionPlanJson String?, actionPlanStatus String @default("pending"),
   resultJson?, errorMessage?, startedAt, completedAt?, expiresAt, createdAt,
   llmJobs[], queryExecutions[], sourceInfluences[], actionPlanItems[]
@@ -354,18 +361,20 @@ Clean light dashboard (Linear/Notion-inspired) on warm beige page:
 | POST | `/api/analysis` | Create analysis + start audit (free or comprehensive) |
 | GET | `/api/analysis/[id]` | Poll status + query progress + results |
 | POST | `/api/analysis/[id]/claim` | Verify Stripe payment → kick off comprehensive audit |
-| POST | `/api/checkout` | Create Stripe Checkout Session (dev bypass in development) |
+| POST | `/api/checkout` | Create Stripe Checkout Session (supports priceTier, promotion codes, dev bypass) |
 | POST | `/api/webhooks/stripe` | Stripe webhook handler (backup payment reconciliation) |
 | GET | `/api/health` | DB health check (for UptimeRobot monitoring) |
 | GET | `/api/report/[token]` | Public report by share token (no auth) |
 | GET | `/api/analysis/[id]/action-plan` | Live action plan with completion states |
 | POST | `/api/analysis/[id]/action-plan` | Regenerate action plan |
 | PATCH | `/api/analysis/[id]/action-plan/[itemId]` | Toggle item completion / update notes |
+| POST | `/api/admin/login` | Admin login (password → cookie) |
+| GET | `/api/admin/stats` | Admin KPIs + recent analyses/signups (cookie-protected) |
 
 ## Environment Variables
 
 ```
-DATABASE_URL=file:./prisma/dev.db    # Path relative to schema.prisma
+DATABASE_URL=postgresql://...         # Supabase PostgreSQL connection string
 OPENAI_API_KEY=sk-...                # Required for ChatGPT + parser
 OPENAI_BASE_URL=                     # Optional: LiteLLM proxy URL (e.g. Duke AI Gateway)
 ANTHROPIC_API_KEY=sk-ant-...         # Required for Claude
@@ -376,7 +385,9 @@ RESEND_FROM_EMAIL=                   # Optional: custom from address (default: o
 STRIPE_SECRET_KEY=sk_test_...        # Stripe secret key (test for dev, live for prod)
 STRIPE_PUBLISHABLE_KEY=pk_test_...   # Stripe publishable key
 STRIPE_WEBHOOK_SECRET=whsec_...      # Stripe webhook signing secret
-STRIPE_PRICE_ID=price_...            # Stripe Price ID for $99 comprehensive audit
+STRIPE_PRICE_ID=price_...            # Stripe Price ID for $99 Full Audit
+STRIPE_PRICE_ID_STRATEGY=price_...   # Stripe Price ID for $199 Audit + Strategy
+ADMIN_PASSWORD=...                   # Password for /admin dashboard
 ```
 
 ## Key Commands
@@ -398,8 +409,50 @@ Requires GitHub secret: `SERVER_PASSWORD`
 
 ### VPC Server (Alibaba Cloud)
 - IP: `47.251.113.72`
-- Docker container `brightwill` on port 80
+- Docker container `brightwill` maps port 3003 → 3000 internal
 - `--restart unless-stopped`
+- Env vars loaded from `~/geoptimizer/.env` via `--env-file`
+
+### Admin Dashboard
+- `/admin` — password-gated (env var `ADMIN_PASSWORD`)
+- Cookie-based session (7-day expiry)
+- Shows: KPIs (revenue, paid count, conversion rate), paid customer table, free analyses, signups
+
+## Local Development
+
+### First-time setup
+```bash
+npm install
+cp .env.example .env                  # Fill in your Supabase URL + API keys
+npx prisma db push                    # Creates tables in your Supabase database
+npx tsx prisma/seed.ts                # Seeds 407 query templates (required for audits to work)
+npm run dev                           # Starts on http://localhost:3000
+```
+
+### How dev mode works
+- `NODE_ENV=development` is set automatically by `npm run dev`
+- **Stripe is bypassed** — clicking "Pay" in the email gate skips real checkout and redirects directly to the claim flow. No card needed.
+- Both `priceTier` options ($99 / $199) work in dev — the tier is passed through the dev bypass URL
+- Database points to Supabase (same or separate project from prod)
+- LLM API keys can be free-tier/test keys
+
+### Key dev commands
+```bash
+npm run dev           # Dev server (port 3000, falls back to 3001)
+npm run build         # Production build
+npm run lint          # ESLint
+npm run type-check    # TypeScript check
+npx prisma studio     # Database GUI (connects to your DATABASE_URL)
+npx prisma db push    # Sync schema changes to database
+npx prisma generate   # Regenerate Prisma client after schema changes
+npx tsx prisma/seed.ts          # Seed query templates
+npx tsx prisma/seed.ts --force  # Clear and re-seed templates
+```
+
+### Environment files
+- **Local dev**: `.env` in project root (git-ignored). Uses test Stripe keys, free LLM keys.
+- **Production server**: `~/geoptimizer/.env` on the VPC. Uses live Stripe keys, paid LLM keys.
+- `NODE_ENV` controls Stripe bypass logic — no other config needed.
 
 ## Agent Instructions
 

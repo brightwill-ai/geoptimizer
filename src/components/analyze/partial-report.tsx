@@ -523,6 +523,13 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
             />
           </DashboardCard>
         )}
+      {/* Support footer */}
+      <div style={{ textAlign: "center", padding: "2rem 0 1rem", fontSize: "0.75rem", color: "#8e8ea0" }}>
+        Need help? Reach us at{" "}
+        <a href="mailto:support@brightwill.ai" style={{ color: "#4285f4", textDecoration: "none" }}>
+          support@brightwill.ai
+        </a>
+      </div>
       </DashboardShell>
     </div>
   );

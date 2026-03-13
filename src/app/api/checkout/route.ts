@@ -6,6 +6,7 @@ import { getStripe } from "@/lib/stripe";
 const CheckoutInput = z.object({
   analysisId: z.string(),
   email: z.string().email(),
+  priceTier: z.enum(["full_audit", "audit_strategy"]).default("full_audit"),
 });
 
 export async function POST(request: Request) {
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { analysisId, email } = parsed.data;
+    const { analysisId, email, priceTier } = parsed.data;
 
     // Verify analysis exists
     const analysis = await prisma.analysis.findUnique({
@@ -36,14 +37,19 @@ export async function POST(request: Request) {
     // Dev bypass: skip Stripe, return fake redirect to trigger claim directly
     if (process.env.NODE_ENV === "development") {
       const appUrl = process.env.APP_URL || "http://localhost:3000";
-      const successUrl = `${appUrl}/analyze?session_id=dev_bypass&analysis_id=${analysisId}&email=${encodeURIComponent(email)}`;
+      const successUrl = `${appUrl}/analyze?session_id=dev_bypass&analysis_id=${analysisId}&email=${encodeURIComponent(email)}&priceTier=${priceTier}`;
       return NextResponse.json({ url: successUrl });
     }
 
-    const priceId = process.env.STRIPE_PRICE_ID;
+    // Select price based on tier
+    const priceId =
+      priceTier === "audit_strategy"
+        ? process.env.STRIPE_PRICE_ID_STRATEGY
+        : process.env.STRIPE_PRICE_ID;
+
     if (!priceId) {
       return NextResponse.json(
-        { error: "Stripe not configured" },
+        { error: "Stripe not configured for this tier" },
         { status: 500 }
       );
     }
@@ -53,11 +59,13 @@ export async function POST(request: Request) {
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
       line_items: [{ price: priceId, quantity: 1 }],
+      allow_promotion_codes: true,
       customer_email: email,
       success_url: `${appUrl}/analyze?session_id={CHECKOUT_SESSION_ID}&analysis_id=${analysisId}`,
       cancel_url: `${appUrl}/analyze?cancelled=true&analysis_id=${analysisId}`,
       metadata: {
         analysisId,
+        priceTier,
         businessName: analysis.businessName,
         location: analysis.location,
         category: analysis.category,

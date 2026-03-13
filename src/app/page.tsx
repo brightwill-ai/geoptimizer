@@ -2439,7 +2439,7 @@ function CTAFooter() {
         <p style={{ fontSize: "0.78rem", color: "#8e8ea0" }}>
           &copy; 2025 BrightWill. Generative Engine Optimization for local businesses.
         </p>
-        <p style={{ fontSize: "0.78rem", color: "#8e8ea0" }}>hello@brightwill.ai</p>
+        <p style={{ fontSize: "0.78rem", color: "#8e8ea0" }}>support@brightwill.ai</p>
       </footer>
     </div>
   );

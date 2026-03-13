@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -47,6 +47,7 @@ model Analysis {
   actionPlanJson            String?
   actionPlanStatus          String            @default("pending")
   paid                      Boolean           @default(false)
+  priceTier                 String            @default("free")
   stripeSessionId           String?
   paidAt                    DateTime?
   llmJobs                   LLMJob[]

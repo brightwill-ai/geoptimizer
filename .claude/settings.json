@@ -7,7 +7,10 @@
       "Bash(mkdir -p /Users/william/Desktop/Brightwill/geoptimzer/src/app/api/report/[token])",
       "Bash(mkdir -p /Users/william/Desktop/Brightwill/geoptimzer/src/app/report/[token])",
       "Bash(npm run lint)",
-      "WebFetch(domain:www.tryprofound.com)"
+      "WebFetch(domain:www.tryprofound.com)",
+      "Bash(sqlite3 /Users/william/Desktop/Brightwill/geoptimzer/prisma/dev.db \".tables\")",
+      "Bash(npx prisma:*)",
+      "Bash(claude mcp:*)"
     ]
   }
 }

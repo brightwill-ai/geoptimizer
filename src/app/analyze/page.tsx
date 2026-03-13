@@ -123,6 +123,7 @@ function AnalyzePageInner() {
     const sessionId = searchParams.get("session_id");
     const returnedAnalysisId = searchParams.get("analysis_id");
     const emailParam = searchParams.get("email");
+    const priceTierParam = searchParams.get("priceTier");
 
     if (!sessionId || !returnedAnalysisId || stripeHandled.current) return;
     stripeHandled.current = true;
@@ -151,6 +152,7 @@ function AnalyzePageInner() {
             email,
             name: name || undefined,
             stripeSessionId: sessionId === "dev_bypass" ? undefined : sessionId,
+            priceTier: priceTierParam || sessionStorage.getItem("bw_checkout_priceTier") || undefined,
           }),
         });
 

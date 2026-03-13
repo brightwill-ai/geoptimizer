@@ -50,11 +50,14 @@ export async function POST(request: Request) {
         return NextResponse.json({ received: true });
       }
 
+      const priceTier = (session.metadata?.priceTier as string) || "full_audit";
+
       // Mark as paid
       await prisma.analysis.update({
         where: { id: analysisId },
         data: {
           paid: true,
+          priceTier,
           stripeSessionId: session.id,
           paidAt: new Date(),
         },
@@ -92,6 +95,7 @@ export async function POST(request: Request) {
             tier: "comprehensive",
             status: "pending",
             paid: true,
+            priceTier,
             stripeSessionId: session.id,
             paidAt: new Date(),
             expiresAt,

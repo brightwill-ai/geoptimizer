@@ -96,7 +96,7 @@ cd ~/geoptimizer
 git pull origin main
 docker build -t brightwill .
 docker stop brightwill && docker rm brightwill
-docker run -d --name brightwill -p 3003:3000 -e DATABASE_URL="file:./dev.db" --restart unless-stopped brightwill
+docker run -d --name brightwill -p 3003:3000 --env-file ~/geoptimizer/.env --restart unless-stopped brightwill
 
 # Test nginx config
 nginx -t

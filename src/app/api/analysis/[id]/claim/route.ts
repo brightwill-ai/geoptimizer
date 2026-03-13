@@ -4,11 +4,13 @@ import { prisma } from "@/lib/prisma";
 import { runComprehensiveAudit } from "@/lib/agents/runner";
 import { LLM_PROVIDERS } from "@/lib/mock-data";
 import { getStripe } from "@/lib/stripe";
+import { sendPaymentConfirmationEmail } from "@/lib/email";
 
 const ClaimInput = z.object({
   email: z.string().email(),
   name: z.string().optional(),
   stripeSessionId: z.string().optional(),
+  priceTier: z.enum(["full_audit", "audit_strategy"]).optional(),
 });
 
 export async function POST(
@@ -28,6 +30,7 @@ export async function POST(
     }
 
     const { email, name, stripeSessionId } = parsed.data;
+    let resolvedPriceTier = parsed.data.priceTier || "full_audit";
 
     // In production, require Stripe payment verification
     if (process.env.NODE_ENV !== "development" && stripeSessionId) {
@@ -40,6 +43,10 @@ export async function POST(
             { error: "Payment not completed" },
             { status: 402 }
           );
+        }
+        // Read priceTier from Stripe session metadata (set during checkout)
+        if (session.metadata?.priceTier) {
+          resolvedPriceTier = session.metadata.priceTier as "full_audit" | "audit_strategy";
         }
       } catch {
         return NextResponse.json(
@@ -101,6 +108,7 @@ export async function POST(
           tier: "comprehensive",
           status: "pending",
           paid: !!stripeSessionId || process.env.NODE_ENV === "development",
+          priceTier: resolvedPriceTier,
           stripeSessionId: stripeSessionId || null,
           paidAt: stripeSessionId ? new Date() : null,
           expiresAt,
@@ -131,6 +139,14 @@ export async function POST(
           .catch(console.error);
       });
     }
+
+    // Send payment confirmation email (fire and forget)
+    sendPaymentConfirmationEmail({
+      to: email,
+      name: name || undefined,
+      businessName: analysis.businessName,
+      priceTier: resolvedPriceTier,
+    }).catch((err) => console.error("Failed to send payment confirmation email:", err));
 
     return NextResponse.json({
       userId: user.id,
