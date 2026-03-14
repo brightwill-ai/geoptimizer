@@ -39,6 +39,90 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Format raw LLM response text into structured React elements */
+function formatResponseText(text: string): React.ReactNode[] {
+  // Clean markdown artifacts first
+  let cleaned = text
+    .replace(/\[([^\]]*)\]\(([^)]*)\)/g, "$1") // [text](url) → text
+    .replace(/^#{1,6}\s+/gm, "")               // Remove headers
+    .replace(/`([^`]+)`/g, "$1")                // Remove inline code
+    .replace(/^>\s*/gm, "")                     // Remove blockquotes
+    .replace(/^[-*]{3,}\s*$/gm, "")             // Remove horizontal rules
+    .trim();
+
+  const lines = cleaned.split("\n");
+  const elements: React.ReactNode[] = [];
+  let currentListItems: React.ReactNode[] = [];
+
+  const flushList = () => {
+    if (currentListItems.length > 0) {
+      elements.push(
+        <ol key={`list-${elements.length}`} style={{ margin: "6px 0", paddingLeft: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+          {currentListItems}
+        </ol>
+      );
+      currentListItems = [];
+    }
+  };
+
+  const formatInline = (str: string): React.ReactNode => {
+    // Bold **text** or __text__
+    const parts = str.split(/(\*\*[^*]+\*\*|__[^_]+__)/g);
+    if (parts.length === 1) return str;
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} style={{ color: "#171717", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith("__") && part.endsWith("__")) {
+        return <strong key={i} style={{ color: "#171717", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) {
+      flushList();
+      continue;
+    }
+
+    // Numbered list: "1. **Name** — description"
+    const numberedMatch = line.match(/^(\d+)\.\s*(.+)/);
+    if (numberedMatch) {
+      const num = numberedMatch[1];
+      const content = numberedMatch[2];
+      currentListItems.push(
+        <li key={`item-${i}`} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <span style={{ width: 20, height: 20, borderRadius: 6, background: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.68rem", fontWeight: 600, color: "#8e8ea0", flexShrink: 0, marginTop: 1 }}>{num}</span>
+          <span style={{ flex: 1 }}>{formatInline(content)}</span>
+        </li>
+      );
+      continue;
+    }
+
+    // Bullet list: "- item" or "* item"
+    const bulletMatch = line.match(/^[-*]\s+(.+)/);
+    if (bulletMatch) {
+      currentListItems.push(
+        <li key={`item-${i}`} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#8e8ea0", flexShrink: 0, marginTop: 8 }} />
+          <span style={{ flex: 1 }}>{formatInline(bulletMatch[1])}</span>
+        </li>
+      );
+      continue;
+    }
+
+    // Regular paragraph
+    flushList();
+    elements.push(
+      <p key={`p-${i}`} style={{ margin: "4px 0", lineHeight: 1.55 }}>{formatInline(line)}</p>
+    );
+  }
+  flushList();
+  return elements;
+}
+
 function FindingBlock({
   title,
   detail,
@@ -291,10 +375,64 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
               </div>
             </DashboardCard>
 
-            {/* What your customers see — verbatim AI response */}
+            {/* CTA — upgrade to full audit */}
+            <DashboardCard
+              accentColor="#ffffff"
+              style={{ background: "#171717", border: "1px solid #171717" }}
+            >
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                <div style={{ flex: 1, minWidth: 240 }}>
+                  <div style={{ fontSize: "1.05rem", fontWeight: 600, color: "#ffffff", lineHeight: 1.3 }}>
+                    {topCompetitor
+                      ? `Is ${topCompetitor} winning on Claude and Gemini too?`
+                      : "See how you rank across all 3 AI engines"
+                    }
+                  </div>
+                  <p style={{ margin: "6px 0 0", fontSize: "0.82rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+                    100+ prompts across ChatGPT, Claude & Gemini. Source mapping + 80-step action plan.
+                  </p>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    {LLM_PROVIDERS.map((provider) => (
+                      <ProviderLogo key={provider.id} provider={provider.id} size={16} />
+                    ))}
+                  </div>
+                  <button
+                    onClick={onUnlock}
+                    style={{
+                      padding: "0.7rem 1.4rem",
+                      fontSize: "0.85rem",
+                      fontWeight: 600,
+                      fontFamily: "var(--font-sans)",
+                      borderRadius: 8,
+                      border: "none",
+                      background: "#ffffff",
+                      color: "#171717",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Unlock full audit — $19
+                  </button>
+                </div>
+              </div>
+            </DashboardCard>
+
+            {/* What your customers see — verbatim AI response, natural page scroll */}
             {worstDiscoveryQuery && (
-              <DashboardCard title="What your customers see" subtitle={`When someone asks: "${worstDiscoveryQuery.queryText}"`} accentColor="#10a37f">
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <DashboardCard title="What your customers see" accentColor="#10a37f">
+                <div
+                  className="query-response-scroll"
+                  style={{
+                    maxHeight: 360,
+                    overflowY: "auto",
+                    overscrollBehavior: "contain",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 12,
+                  }}
+                >
                   {/* User query bubble */}
                   <div style={{
                     alignSelf: "flex-end",
@@ -306,6 +444,7 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                     fontSize: "0.84rem",
                     color: "#171717",
                     lineHeight: 1.5,
+                    flexShrink: 0,
                   }}>
                     {worstDiscoveryQuery.queryText}
                   </div>
@@ -316,43 +455,44 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                       height: 28,
                       borderRadius: "50%",
                       background: "#10a37f15",
+                      border: "2px solid rgba(16,163,127,0.2)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
-                      boxShadow: "0 0 0 2px rgba(16,163,127,0.2)",
                     }}>
                       <ProviderLogo provider="chatgpt" size={14} />
                     </div>
                     <div style={{
                       flex: 1,
-                      padding: "12px 14px",
                       borderRadius: "2px 12px 12px 12px",
-                      background: "#fffbeb",
-                      borderLeft: "3px solid #d97706",
-                      fontSize: "0.82rem",
-                      fontFamily: "var(--font-mono, monospace)",
-                      color: "#6e6e80",
-                      lineHeight: 1.6,
+                      background: "#ffffff",
+                      border: "1px solid #e5e5e5",
+                      borderLeft: "3px solid #10a37f",
                       boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
+                      padding: "12px 14px",
+                      fontSize: "0.82rem",
+                      color: "#6e6e80",
+                      lineHeight: 1.55,
                     }}>
-                      {worstDiscoveryQuery.rawResponseExcerpt}
-                      {!worstDiscoveryQuery.businessMentioned && (
-                        <div style={{
-                          marginTop: 10,
-                          padding: "6px 10px",
-                          borderRadius: 6,
-                          background: "#fef2f2",
-                          border: "1px solid rgba(220,38,38,0.15)",
-                          fontSize: "0.75rem",
-                          color: "#dc2626",
-                          fontWeight: 500,
-                        }}>
-                          {analysis.businessName} was not mentioned in this response
-                        </div>
-                      )}
+                      {formatResponseText(worstDiscoveryQuery.rawResponseExcerpt)}
                     </div>
                   </div>
+                  {!worstDiscoveryQuery.businessMentioned && (
+                    <div style={{
+                      padding: "8px 12px",
+                      borderRadius: 8,
+                      background: "#fef2f2",
+                      border: "1px solid rgba(220,38,38,0.15)",
+                      fontSize: "0.78rem",
+                      color: "#dc2626",
+                      fontWeight: 500,
+                      textAlign: "center",
+                      flexShrink: 0,
+                    }}>
+                      {analysis.businessName} was not mentioned in this response
+                    </div>
+                  )}
                 </div>
               </DashboardCard>
             )}
@@ -433,100 +573,215 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
               </div>
             </div>
 
-            <div className="dashboard-grid">
-              <DashboardCard title="Source and sentiment readout" subtitle="Why ChatGPT formed this impression">
-                <div style={{ display: "grid", gap: 14 }}>
-                  <div className="analysis-mini-grid">
-                    <div className="analysis-mini-panel">
-                      <span>Most cited source</span>
-                      <strong>{snapshot.topSource?.name ?? "No source data"}</strong>
-                      <small>
-                        {snapshot.topSource
-                          ? `${snapshot.topSource.count} citations`
-                          : "No source data available"}
-                      </small>
-                    </div>
-                    <div className="analysis-mini-panel">
-                      <span>Sentiment</span>
-                      <strong style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <SentimentBadge sentiment={snapshot.sentimentLabel} size="md" />
-                      </strong>
-                      <small>{chatgpt.sentiment.positive}% positive phrasing when mentioned</small>
-                    </div>
+            {/* Blurred preview — what the full audit reveals */}
+            <div style={{ position: "relative" }}>
+              <SectionLabel>Full Audit Preview</SectionLabel>
+              <div style={{ position: "relative" }}>
+                {/* Blurred fake content */}
+                <div style={{
+                  filter: "blur(6px)",
+                  opacity: 0.5,
+                  pointerEvents: "none",
+                  userSelect: "none",
+                }}>
+                  <div className="dashboard-grid">
+                    {/* Fake Claude card */}
+                    <DashboardCard accentColor="#c084fc">
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                        <ProviderLogo provider="claude" size={20} />
+                        <div>
+                          <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "#171717" }}>Claude Analysis</div>
+                          <div style={{ fontSize: "0.75rem", color: "#8e8ea0" }}>37+ queries analyzed</div>
+                        </div>
+                      </div>
+                      <div style={{ display: "grid", gap: 10 }}>
+                        <div className="analysis-mini-panel">
+                          <span>Visibility</span>
+                          <strong>??%</strong>
+                          <small>Recommendation probability</small>
+                        </div>
+                        <div className="analysis-mini-panel">
+                          <span>Top competitor</span>
+                          <strong>Locked</strong>
+                          <small>Who Claude recommends instead</small>
+                        </div>
+                      </div>
+                    </DashboardCard>
+
+                    {/* Fake Gemini card */}
+                    <DashboardCard accentColor="#4285f4">
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                        <ProviderLogo provider="gemini" size={20} />
+                        <div>
+                          <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "#171717" }}>Gemini Analysis</div>
+                          <div style={{ fontSize: "0.75rem", color: "#8e8ea0" }}>37+ queries analyzed</div>
+                        </div>
+                      </div>
+                      <div style={{ display: "grid", gap: 10 }}>
+                        <div className="analysis-mini-panel">
+                          <span>Visibility</span>
+                          <strong>??%</strong>
+                          <small>Recommendation probability</small>
+                        </div>
+                        <div className="analysis-mini-panel">
+                          <span>Top competitor</span>
+                          <strong>Locked</strong>
+                          <small>Who Gemini recommends instead</small>
+                        </div>
+                      </div>
+                    </DashboardCard>
                   </div>
-                  {snapshot.sampleQuote && (
-                    <div
+
+                  {/* Fake cross-platform comparison */}
+                  <div style={{ marginTop: 16 }}>
+                    <DashboardCard>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                        <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "#171717" }}>Cross-Platform Comparison</div>
+                      </div>
+                      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+                        {LLM_PROVIDERS.map((p) => (
+                          <div key={p.id} style={{ textAlign: "center", padding: 16, borderRadius: 10, background: "#f7f7f8", border: "1px solid #e5e5e5" }}>
+                            <ProviderLogo provider={p.id} size={24} />
+                            <div style={{ fontSize: "1.6rem", fontWeight: 700, color: "#171717", marginTop: 8 }}>??%</div>
+                            <div style={{ fontSize: "0.72rem", color: "#8e8ea0" }}>{p.name}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </DashboardCard>
+                  </div>
+
+                  {/* Fake action plan */}
+                  <div style={{ marginTop: 16 }}>
+                    <DashboardCard>
+                      <div style={{ fontSize: "0.92rem", fontWeight: 600, color: "#171717", marginBottom: 10 }}>80-Step Action Plan</div>
+                      <div style={{ display: "grid", gap: 8 }}>
+                        {["Claim & verify Google Business Profile", "Add schema.org markup to homepage", "Get listed on top 5 review platforms"].map((item, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 8, background: "#f7f7f8", border: "1px solid #e5e5e5" }}>
+                            <div style={{ width: 20, height: 20, borderRadius: 4, border: "2px solid #d0d0d0" }} />
+                            <span style={{ fontSize: "0.82rem", color: "#6e6e80" }}>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </DashboardCard>
+                  </div>
+                </div>
+
+                {/* Unlock overlay */}
+                <div style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 10,
+                }}>
+                  <div style={{
+                    background: "#ffffff",
+                    border: "1px solid #e5e5e5",
+                    borderRadius: 16,
+                    padding: "28px 36px",
+                    textAlign: "center",
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.12)",
+                    maxWidth: 420,
+                  }}>
+                    <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
+                      {LLM_PROVIDERS.map((provider) => (
+                        <div key={provider.id} style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 10,
+                          background: `${provider.color}12`,
+                          border: `1px solid ${provider.color}30`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}>
+                          <ProviderLogo provider={provider.id} size={18} />
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "#171717", marginBottom: 6 }}>
+                      {topCompetitor
+                        ? `Is ${topCompetitor} winning on Claude and Gemini too?`
+                        : "See the full picture across all 3 AI engines"
+                      }
+                    </div>
+                    <p style={{ margin: "0 0 16px", fontSize: "0.82rem", color: "#6e6e80", lineHeight: 1.5 }}>
+                      100+ prompts, cross-platform source mapping, and a personalized 80-step action plan to fix every gap.
+                    </p>
+                    <button
+                      onClick={onUnlock}
                       style={{
-                        padding: "14px 16px",
-                        borderRadius: 12,
-                        background: "#f7f7f8",
-                        border: "1px solid #e5e5e5",
-                        color: "#6e6e80",
-                        fontStyle: "italic",
+                        width: "100%",
+                        padding: "0.85rem",
+                        fontSize: "0.9rem",
+                        fontWeight: 600,
+                        fontFamily: "var(--font-sans)",
+                        borderRadius: 10,
+                        border: "none",
+                        background: "#171717",
+                        color: "#ffffff",
+                        cursor: "pointer",
                       }}
                     >
-                      {snapshot.sampleQuote}
-                    </div>
-                  )}
-                  {(chatgpt.sources?.length ?? 0) > 0 && (
-                    <SourceInfluenceMap sources={chatgpt.sources} providerName="ChatGPT" />
-                  )}
-                </div>
-              </DashboardCard>
-
-              {/* CTA card — inverted dark element */}
-              <DashboardCard
-                title={topCompetitor ? `Is ${topCompetitor} winning on Claude and Gemini too?` : "Unlock full audit"}
-                subtitle="Get the full picture across all 3 AI engines"
-                accentColor="#ffffff"
-                style={{ background: "#171717", border: "1px solid #171717" }}
-              >
-                <div style={{ display: "grid", gap: 14 }}>
-                  <p style={{ margin: 0, fontSize: "0.84rem", color: "rgba(255,255,255,0.7)", lineHeight: 1.55 }}>
-                    {topCompetitor
-                      ? `You've seen how ChatGPT favors ${topCompetitor}. The full audit reveals whether Claude and Gemini do the same — plus an 80-step action plan to fix it.`
-                      : "100+ prompts across ChatGPT, Claude, and Gemini. Source influence mapping, accuracy checks, and a personalized 80-step action plan."
-                    }
-                  </p>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    {LLM_PROVIDERS.map((provider) => (
-                      <span key={provider.id} className="analysis-provider-pill">
-                        <ProviderLogo provider={provider.id} size={12} />
-                        {provider.name}
-                      </span>
-                    ))}
+                      Unlock full audit — $19
+                    </button>
                   </div>
-                  <button
-                    onClick={onUnlock}
-                    style={{
-                      width: "100%",
-                      padding: "0.75rem",
-                      fontSize: "0.85rem",
-                      fontWeight: 600,
-                      fontFamily: "var(--font-sans)",
-                      borderRadius: 8,
-                      border: "none",
-                      background: "#ffffff",
-                      color: "#171717",
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                    }}
-                  >
-                    Unlock full audit — $19
-                  </button>
                 </div>
-              </DashboardCard>
+              </div>
             </div>
           </div>
         )}
 
         {activeTab === "evidence" && (
-          <DashboardCard noPadding>
-            <QueryEvidence
-              queries={chatgpt.queryResults}
-              businessName={analysis.businessName}
-            />
-          </DashboardCard>
+          <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+            <DashboardCard noPadding>
+              <QueryEvidence
+                queries={chatgpt.queryResults}
+                businessName={analysis.businessName}
+              />
+            </DashboardCard>
+
+            <DashboardCard title="Source and sentiment readout" subtitle="Why ChatGPT formed this impression">
+              <div style={{ display: "grid", gap: 14 }}>
+                <div className="analysis-mini-grid">
+                  <div className="analysis-mini-panel">
+                    <span>Most cited source</span>
+                    <strong>{snapshot.topSource?.name ?? "No source data"}</strong>
+                    <small>
+                      {snapshot.topSource
+                        ? `${snapshot.topSource.count} citations`
+                        : "No source data available"}
+                    </small>
+                  </div>
+                  <div className="analysis-mini-panel">
+                    <span>Sentiment</span>
+                    <strong style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <SentimentBadge sentiment={snapshot.sentimentLabel} size="md" />
+                    </strong>
+                    <small>{chatgpt.sentiment.positive}% positive phrasing when mentioned</small>
+                  </div>
+                </div>
+                {snapshot.sampleQuote && (
+                  <div
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 12,
+                      background: "#f7f7f8",
+                      border: "1px solid #e5e5e5",
+                      color: "#6e6e80",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    {snapshot.sampleQuote}
+                  </div>
+                )}
+                {(chatgpt.sources?.length ?? 0) > 0 && (
+                  <SourceInfluenceMap sources={chatgpt.sources} providerName="ChatGPT" />
+                )}
+              </div>
+            </DashboardCard>
+          </div>
         )}
       {/* Support footer */}
       <div style={{ textAlign: "center", padding: "2rem 0 1rem", fontSize: "0.75rem", color: "#8e8ea0" }}>

@@ -105,8 +105,22 @@ export default function PublicReportPage() {
             letterSpacing: "-0.02em",
             color: "#171717",
             textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
           }}
         >
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ borderRadius: 6 }}>
+            <rect width="28" height="28" rx="6" fill="url(#bw-gradient-report)" />
+            <path d="M14 6L21 13L14 20L7 13L14 6Z" fill="white" fillOpacity="0.9" />
+            <path d="M14 11.5L20.5 18L14 24.5L7.5 18L14 11.5Z" fill="white" fillOpacity="0.45" />
+            <defs>
+              <linearGradient id="bw-gradient-report" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#fb923c" />
+                <stop offset="1" stopColor="#f472b6" />
+              </linearGradient>
+            </defs>
+          </svg>
           BrightWill
         </Link>
         <Link

@@ -160,18 +160,22 @@ Both reports use `DashboardShell` → sticky KPI row + animated tab nav + cross-
 
 **Partial report (free tier):**
 - KPI row: Probability, Mentions, Primary, Avg Rank
-- 2 tabs: Overview (2-col grid with hero, breakdown, competitors, sentiment, sources, locked teasers) + Evidence
-- Locked cards use DashboardCard `locked={true}` with blur overlay + ProviderLogo pill
-- Sticky CTA bar at bottom
+- 2 tabs: Overview + Evidence
+- Overview: hero with competitor callout, "What your customers see" scrollable chat card, snapshot blockers/wins, query patterns, competitive context, blurred full audit preview with unlock overlay
+- Evidence: QueryEvidence + source/sentiment readout
+- Chat-style scroll containers: `maxHeight: 360`, `overflowY: auto`, `overscrollBehavior: contain`, query + response scroll together
+- `formatResponseText()` renders raw LLM markdown as structured React (numbered lists with badges, bullets, bold)
+- Sticky CTA bar at bottom with competitor-aware messaging
 
 **Full report (comprehensive):**
 - KPI row: Avg Probability + per-provider probabilities with mini rings
-- 5 tabs: Overview, Deep Dive, Sources, Evidence, Action Plan
-- Overview: 2-col grid (ProviderComparisonVisual + InsightCards + SourceInfluenceMap + Methodology + LLMComparisonTable)
-- Deep Dive: provider sub-tabs → 2-col asymmetric grid (1.2fr + 0.8fr)
-- Sources: cross-platform + per-provider source maps
+- 5 tabs: Overview, AI Models, Sources, Evidence, Action Plan
+- Overview: 2-col grid (ProviderComparisonVisual + InsightCards + Methodology + LLMComparisonTable)
+- AI Models (was "Providers"): provider sub-tabs → 2-col asymmetric grid (1.2fr + 0.8fr)
+- Sources: cross-platform source influence + accuracy issues + per-provider source breakdowns
 - Evidence: provider sub-tabs → QueryEvidence
 - Action Plan: ActionPlan or ActionItems
+- All user-facing "provider" labels renamed to "AI model" / "AI models"
 
 **Responsive:** 1024px (2-col → 1-col), 860px (full stack, existing analyze-grid)
 

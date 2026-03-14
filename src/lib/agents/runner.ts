@@ -246,7 +246,8 @@ export async function runFreeAudit(
   analysisId: string,
   businessName: string,
   location: string,
-  category: string
+  category: string,
+  digitalOpts?: { businessScope?: string; productDescription?: string; targetAudience?: string }
 ): Promise<void> {
   const provider: LLMProvider = "chatgpt";
   const providerInfo = LLM_PROVIDERS.find((p) => p.id === provider)!;
@@ -272,10 +273,13 @@ export async function runFreeAudit(
 
   try {
     // Profile the business to get subcategory-specific search terms
-    const profile = await profileBusiness(businessName, location, category);
+    const profile = await profileBusiness(businessName, location, category, {
+      productDescription: digitalOpts?.productDescription,
+      targetAudience: digitalOpts?.targetAudience,
+    });
 
     // Load 5 free-tier queries from query bank
-    const queries = await getQueriesForTier("free", category, businessName, location, profile);
+    const queries = await getQueriesForTier("free", category, businessName, location, profile, digitalOpts);
     const querySlice = queries.slice(0, 5);
 
     // Set queryCount upfront so polling API knows the total
@@ -430,7 +434,8 @@ export async function runComprehensiveAudit(
   analysisId: string,
   businessName: string,
   location: string,
-  category: string
+  category: string,
+  digitalOpts?: { businessScope?: string; productDescription?: string; targetAudience?: string }
 ): Promise<void> {
   const tier = "comprehensive" as const;
 
@@ -444,10 +449,13 @@ export async function runComprehensiveAudit(
   const jobs = await prisma.lLMJob.findMany({ where: { analysisId } });
 
   // Profile the business to get subcategory-specific search terms
-  const profile = await profileBusiness(businessName, location, category);
+  const profile = await profileBusiness(businessName, location, category, {
+    productDescription: digitalOpts?.productDescription,
+    targetAudience: digitalOpts?.targetAudience,
+  });
 
   // Load comprehensive queries
-  const queries = await getQueriesForTier("comprehensive", category, businessName, location, profile);
+  const queries = await getQueriesForTier("comprehensive", category, businessName, location, profile, digitalOpts);
 
   // Set queryCount upfront so polling API knows the total
   await prisma.analysis.update({

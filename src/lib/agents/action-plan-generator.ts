@@ -43,7 +43,7 @@ function buildAnalysisSummary(analysis: GEOAnalysis, category: string, location:
   lines.push(`Business: ${analysis.businessName}`);
   lines.push(`Category: ${category}`);
   lines.push(`Location: ${location}`);
-  lines.push(`Overall Recommendation Probability: ${Math.round(summary.averageProbability * 100)}%`);
+  lines.push(`Overall AI Visibility Score: ${Math.round(summary.averageProbability * 100)}%`);
   lines.push(`Overall GEO Score: ${summary.averageScore}/100`);
   lines.push(`Overall Sentiment: ${summary.overallSentiment}`);
   lines.push(`Total Queries Tested: ${summary.totalQueries}`);
@@ -57,7 +57,7 @@ function buildAnalysisSummary(analysis: GEOAnalysis, category: string, location:
     if (!report || report.recommendations.totalQueries === 0) continue;
 
     lines.push(`--- ${providerInfo.name} ---`);
-    lines.push(`  Recommendation Probability: ${Math.round(report.recommendations.recommendationProbability * 100)}%`);
+    lines.push(`  AI Visibility Score: ${Math.round(report.recommendations.recommendationProbability * 100)}%`);
     lines.push(`  Primary Recommendation Rate: ${Math.round(report.recommendations.primaryProbability * 100)}%`);
     lines.push(`  GEO Score: ${report.overallScore}/100`);
     lines.push(`  Sentiment: ${report.sentiment.positive}% positive, ${report.sentiment.negative}% negative`);
@@ -161,9 +161,9 @@ function buildAnalysisSummary(analysis: GEOAnalysis, category: string, location:
 
 const SYSTEM_PROMPT = `You are an expert GEO (Generative Engine Optimization) consultant. Your job is to create a comprehensive, actionable optimization plan for a business based on their AI visibility audit results.
 
-GEO optimizes how AI engines (ChatGPT, Claude, Gemini) recommend businesses. The goal is to increase the probability that these AI engines mention and recommend the business when users ask relevant questions.
+GEO optimizes how AI engines (ChatGPT, Claude, Gemini) recommend businesses. The goal is to increase the AI visibility score — how likely these AI engines are to mention and recommend the business when users ask relevant questions.
 
-You will receive detailed audit findings including per-provider recommendation probabilities, competitor rankings, sentiment analysis, source citations, failed queries, and accuracy data.
+You will receive detailed audit findings including per-provider AI visibility scores, competitor rankings, sentiment analysis, source citations, failed queries, and accuracy data.
 
 Generate an action plan with EXACTLY these 10 categories:
 

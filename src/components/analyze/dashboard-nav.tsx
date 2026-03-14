@@ -50,7 +50,7 @@ export function DashboardNav({
             style={{
               position: "relative",
               zIndex: 1,
-              padding: "8px 16px 10px",
+              padding: "8px 12px 10px",
               borderRadius: 0,
               border: "none",
               background: "transparent",

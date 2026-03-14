@@ -135,13 +135,13 @@ export function QueryTypeBreakdown({ queryResults, blurred }: QueryTypeBreakdown
 
           return (
             <div key={t.type}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-                <div>
-                  <span style={{ fontSize: "0.8rem", fontWeight: 500, color: "#171717" }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 4, gap: 8, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap", minWidth: 0 }}>
+                  <span style={{ fontSize: "0.8rem", fontWeight: 500, color: "#171717", whiteSpace: "nowrap" }}>
                     {t.label}
                   </span>
                   {t.description && (
-                    <span style={{ fontSize: "0.68rem", color: "#8e8ea0", marginLeft: 8 }}>
+                    <span style={{ fontSize: "0.68rem", color: "#8e8ea0" }}>
                       {t.description}
                     </span>
                   )}

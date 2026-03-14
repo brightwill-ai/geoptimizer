@@ -195,7 +195,7 @@ function findTopSourceGap(
   sourceInfluences: SourceInfluenceEntry[]
 ): string | null {
   const officialSiteSeen = sourceInfluences.some((source) => source.sourceType === "official_site");
-  if (!officialSiteSeen) return "No provider cited the official website.";
+  if (!officialSiteSeen) return "No AI model cited the official website.";
 
   const weakProviders = providers.filter((provider) => provider.sourceCount < 2);
   if (weakProviders.length > 0) {
@@ -203,7 +203,7 @@ function findTopSourceGap(
   }
 
   const directoryCoverage = sourceInfluences.filter((source) => source.sourceType === "directory").length;
-  if (directoryCoverage === 0) return "Directory coverage is thin across providers.";
+  if (directoryCoverage === 0) return "Directory coverage is thin across AI models.";
 
   return null;
 }
@@ -370,7 +370,7 @@ export function getAnalysisSnapshot(analysis: GEOAnalysis): AnalysisSnapshot {
   if (topSource) {
     wins.push({
       title: `${topSource.source} is a meaningful citation source`,
-      detail: `It appears ${topSource.citationCount} times across the provider set.`,
+      detail: `It appears ${topSource.citationCount} times across all AI models.`,
       tone: "neutral",
     });
   }

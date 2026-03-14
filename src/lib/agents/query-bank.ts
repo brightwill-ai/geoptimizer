@@ -1,4 +1,4 @@
-import { categoryPlural, categoryDescriptor, BUSINESS_CATEGORIES } from "./prompts";
+import { categoryPlural, categoryDescriptor, BUSINESS_CATEGORIES, getCategoryScope } from "./prompts";
 import { prisma } from "@/lib/prisma";
 import type { BusinessProfile } from "./profiler";
 
@@ -6,6 +6,25 @@ export interface RenderedQuery {
   templateId: string;
   queryType: string;
   prompt: string;
+}
+
+/**
+ * Build the {marketContext} replacement string based on available context.
+ * - Local: "in Miami"
+ * - Digital (target audience): "for startups"
+ * - Digital (product only): "for project management software"
+ * - Hybrid: "in NYC for enterprise companies"
+ */
+export function buildMarketContext(
+  location?: string,
+  targetAudience?: string,
+  productDescription?: string
+): string {
+  const parts: string[] = [];
+  if (location) parts.push(`in ${location}`);
+  if (targetAudience) parts.push(`for ${targetAudience}`);
+  if (!parts.length && productDescription) parts.push(`for ${productDescription}`);
+  return parts.join(" ") || "";
 }
 
 /**
@@ -18,15 +37,31 @@ export function renderTemplate(
   location: string,
   category: string,
   profile?: BusinessProfile,
-  templateIndex?: number
+  templateIndex?: number,
+  digitalContext?: { productDescription?: string; targetAudience?: string }
 ): string {
   const idx = templateIndex ?? 0;
   const specialties = profile?.specialties ?? [categoryPlural(category)];
   const searchTerms = profile?.searchTerms ?? [categoryPlural(category)];
+  const marketContext = buildMarketContext(
+    location || undefined,
+    digitalContext?.targetAudience,
+    digitalContext?.productDescription
+  );
 
-  return template
+  // When location is empty (digital businesses), replace "in {location}" / "near {location}"
+  // patterns with marketContext to avoid "in for startups" — instead get "for startups"
+  let rendered = template;
+  if (!location && marketContext) {
+    rendered = rendered
+      .replace(/\bin \{location\}/g, marketContext)
+      .replace(/\bnear \{location\}/g, marketContext);
+  }
+
+  return rendered
     .replace(/\{businessName\}/g, businessName)
-    .replace(/\{location\}/g, location)
+    .replace(/\{location\}/g, location || marketContext)
+    .replace(/\{marketContext\}/g, marketContext)
     .replace(/\{categoryPlural\}/g, categoryPlural(category))
     .replace(/\{categoryDescriptor\}/g, categoryDescriptor(category))
     .replace(/\{category\}/g, category)
@@ -45,17 +80,32 @@ export async function getQueriesForTier(
   category: string,
   businessName: string,
   location: string,
-  profile?: BusinessProfile
+  profile?: BusinessProfile,
+  options?: { businessScope?: string; productDescription?: string; targetAudience?: string }
 ): Promise<RenderedQuery[]> {
   // For comprehensive, include both free and comprehensive templates
   const tierFilter = tier === "comprehensive"
     ? { in: ["free", "comprehensive"] }
     : "free";
 
+  // Scope filtering: local → local+all, digital → digital+all, hybrid → all three
+  const scope = options?.businessScope || getCategoryScope(category);
+  const scopeFilter = scope === "local"
+    ? { in: ["local", "all"] }
+    : scope === "digital"
+    ? { in: ["digital", "all"] }
+    : { in: ["local", "digital", "all"] }; // hybrid gets everything
+
+  const digitalContext = {
+    productDescription: options?.productDescription,
+    targetAudience: options?.targetAudience,
+  };
+
   const templates = await prisma.queryTemplate.findMany({
     where: {
       category,
       tier: tierFilter,
+      scope: scopeFilter,
       isActive: true,
     },
     orderBy: { createdAt: "asc" },
@@ -67,6 +117,7 @@ export async function getQueriesForTier(
       where: {
         category: "generic",
         tier: tierFilter,
+        scope: scopeFilter,
         isActive: true,
       },
       orderBy: { createdAt: "asc" },
@@ -75,14 +126,14 @@ export async function getQueriesForTier(
     return genericTemplates.map((t: { id: string; queryType: string; template: string }, i: number) => ({
       templateId: t.id,
       queryType: t.queryType,
-      prompt: renderTemplate(t.template, businessName, location, category, profile, i),
+      prompt: renderTemplate(t.template, businessName, location, category, profile, i, digitalContext),
     }));
   }
 
   return templates.map((t: { id: string; queryType: string; template: string }, i: number) => ({
     templateId: t.id,
     queryType: t.queryType,
-    prompt: renderTemplate(t.template, businessName, location, category, profile, i),
+    prompt: renderTemplate(t.template, businessName, location, category, profile, i, digitalContext),
   }));
 }
 
@@ -92,6 +143,7 @@ interface QuerySeed {
   queryType: string;
   tier: "free" | "comprehensive";
   template: string;
+  scope?: "local" | "digital" | "all";
 }
 
 /**
@@ -307,6 +359,62 @@ const GENERIC_QUERY_TEMPLATES: QuerySeed[] = [
     tier: "comprehensive",
     template: "Is {businessName} still operating in {location}? What's their current status?",
   },
+
+  // ── DIGITAL-ONLY TEMPLATES (scope: "digital") ──
+  {
+    queryType: "comparison",
+    tier: "comprehensive",
+    template: "What are the best alternatives to {businessName}?",
+    scope: "digital",
+  },
+  {
+    queryType: "comparison",
+    tier: "comprehensive",
+    template: "What should I use instead of {businessName}?",
+    scope: "digital",
+  },
+  {
+    queryType: "comparison",
+    tier: "comprehensive",
+    template: "{businessName} vs competitors — which is better {marketContext}?",
+    scope: "digital",
+  },
+  {
+    queryType: "specifics",
+    tier: "comprehensive",
+    template: "How does {businessName} pricing compare to competitors?",
+    scope: "digital",
+  },
+  {
+    queryType: "specifics",
+    tier: "comprehensive",
+    template: "Is {businessName} worth the price?",
+    scope: "digital",
+  },
+  {
+    queryType: "reviews",
+    tier: "comprehensive",
+    template: "What do users on G2 and Capterra say about {businessName}?",
+    scope: "digital",
+  },
+  {
+    queryType: "reviews",
+    tier: "comprehensive",
+    template: "What are the most common complaints about {businessName}?",
+    scope: "digital",
+  },
+  {
+    queryType: "discovery",
+    tier: "free",
+    template: "What are the best {subcategoryPlural} {marketContext}? I'm looking for top recommendations.",
+    scope: "digital",
+  },
+  {
+    queryType: "direct",
+    tier: "free",
+    template: "Tell me about {businessName}. What do they offer and would you recommend them {marketContext}?",
+    scope: "digital",
+  },
 ];
 
 /**
@@ -323,6 +431,7 @@ export async function seedQueryTemplates(category: string = "generic"): Promise<
         queryType: t.queryType,
         template: t.template,
         tier: t.tier,
+        scope: t.scope || "all",
         isActive: true,
       },
     });

@@ -87,7 +87,7 @@ export function ProviderComparisonVisual({ analysis }: ProviderComparisonVisualP
                 {prob}%
               </div>
               <div style={{ fontSize: "0.7rem", color: "#8e8ea0" }}>
-                recommendation probability
+                AI visibility score
               </div>
             </div>
 

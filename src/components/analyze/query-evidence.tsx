@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { QueryResult, LLMProvider } from "@/lib/mock-data";
 import { ProviderLogo } from "@/components/ui/provider-logo";
@@ -26,46 +26,80 @@ const PROVIDER_NAMES: Record<LLMProvider, string> = {
 
 const ITEMS_PER_PAGE = 7;
 
-/** Strip markdown artifacts and return clean readable text. */
-function cleanResponseText(text: string): string {
-  let cleaned = text;
+/** Format raw LLM response text into structured React elements */
+function formatResponseText(text: string): React.ReactNode[] {
+  let cleaned = text
+    .replace(/\[([^\]]*)\]\(([^)]*)\)/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^>\s*/gm, "")
+    .replace(/^[-*]{3,}\s*$/gm, "")
+    .trim();
 
-  // Remove markdown link syntax [text](url) -> just "text"
-  cleaned = cleaned.replace(/\[([^\]]*)\]\([^)]*\)/g, "$1");
+  const lines = cleaned.split("\n");
+  const elements: React.ReactNode[] = [];
+  let currentListItems: React.ReactNode[] = [];
 
-  // Remove markdown headers (## ... ###)
-  cleaned = cleaned.replace(/^#{1,6}\s+/gm, "");
+  const flushList = () => {
+    if (currentListItems.length > 0) {
+      elements.push(
+        <ol key={`list-${elements.length}`} style={{ margin: "6px 0", paddingLeft: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+          {currentListItems}
+        </ol>
+      );
+      currentListItems = [];
+    }
+  };
 
-  // Remove markdown bold **text** or __text__
-  cleaned = cleaned.replace(/\*\*([^*]+)\*\*/g, "$1");
-  cleaned = cleaned.replace(/__([^_]+)__/g, "$1");
+  const formatInline = (str: string): React.ReactNode => {
+    const parts = str.split(/(\*\*[^*]+\*\*|__[^_]+__)/g);
+    if (parts.length === 1) return str;
+    return parts.map((part, i) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return <strong key={i} style={{ color: "#171717", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+      }
+      if (part.startsWith("__") && part.endsWith("__")) {
+        return <strong key={i} style={{ color: "#171717", fontWeight: 600 }}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
 
-  // Remove markdown italic *text* or _text_ (single)
-  cleaned = cleaned.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "$1");
-  cleaned = cleaned.replace(/(?<!_)_([^_]+)_(?!_)/g, "$1");
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) { flushList(); continue; }
 
-  // Remove markdown bullet point formatting (- item or * item)
-  cleaned = cleaned.replace(/^[\s]*[-*]\s+/gm, "");
+    const numberedMatch = line.match(/^(\d+)\.\s*(.+)/);
+    if (numberedMatch) {
+      const num = numberedMatch[1];
+      const content = numberedMatch[2];
+      currentListItems.push(
+        <li key={`item-${i}`} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <span style={{ width: 20, height: 20, borderRadius: 6, background: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.68rem", fontWeight: 600, color: "#8e8ea0", flexShrink: 0, marginTop: 1 }}>{num}</span>
+          <span style={{ flex: 1 }}>{formatInline(content)}</span>
+        </li>
+      );
+      continue;
+    }
 
-  // Remove numbered list formatting (1. item)
-  cleaned = cleaned.replace(/^[\s]*\d+\.\s+/gm, "");
+    const bulletMatch = line.match(/^[-*]\s+(.+)/);
+    if (bulletMatch) {
+      currentListItems.push(
+        <li key={`item-${i}`} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <span style={{ width: 4, height: 4, borderRadius: "50%", background: "#8e8ea0", flexShrink: 0, marginTop: 8 }} />
+          <span style={{ flex: 1 }}>{formatInline(bulletMatch[1])}</span>
+        </li>
+      );
+      continue;
+    }
 
-  // Remove horizontal rules (--- or ***)
-  cleaned = cleaned.replace(/^[-*]{3,}\s*$/gm, "");
-
-  // Remove inline code backticks
-  cleaned = cleaned.replace(/`([^`]+)`/g, "$1");
-
-  // Remove blockquote markers
-  cleaned = cleaned.replace(/^>\s*/gm, "");
-
-  // Collapse multiple blank lines into one
-  cleaned = cleaned.replace(/\n{3,}/g, "\n\n");
-
-  // Trim leading/trailing whitespace
-  cleaned = cleaned.trim();
-
-  return cleaned;
+    flushList();
+    elements.push(
+      <p key={`p-${i}`} style={{ margin: "4px 0", lineHeight: 1.55 }}>{formatInline(line)}</p>
+    );
+  }
+  flushList();
+  return elements;
 }
 
 export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
@@ -345,8 +379,9 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                     fontWeight: 500,
                     lineHeight: 1.3,
                     overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical" as const,
                   }}
                 >
                   {q.queryText}
@@ -393,8 +428,12 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                     style={{ overflow: "hidden" }}
                   >
                     <div
+                      className="query-response-scroll"
                       style={{
                         padding: "0.5rem 1.25rem 1rem",
+                        maxHeight: 320,
+                        overflowY: "auto",
+                        overscrollBehavior: "contain",
                         display: "flex",
                         flexDirection: "column",
                         gap: 12,
@@ -498,18 +537,13 @@ export function QueryEvidence({ queries, businessName }: QueryEvidenceProps) {
                             {providerName}
                           </div>
                           <div
-                            className="query-response-scroll"
                             style={{
                               fontSize: "0.8rem",
                               color: "#6e6e80",
                               lineHeight: 1.6,
-                              whiteSpace: "pre-line",
-                              maxHeight: 160,
-                              overflowY: "auto",
-                              overscrollBehavior: "contain",
                             }}
                           >
-                            {cleanResponseText(q.rawResponseExcerpt)}
+                            {formatResponseText(q.rawResponseExcerpt)}
                           </div>
                         </div>
                       </div>

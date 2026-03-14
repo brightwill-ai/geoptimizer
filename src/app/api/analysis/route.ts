@@ -6,9 +6,12 @@ import { LLM_PROVIDERS } from "@/lib/mock-data";
 
 const AnalysisInput = z.object({
   businessName: z.string().min(1).max(200),
-  location: z.string().min(1).max(200),
+  location: z.string().max(200).default(""),
   category: z.string().min(1).max(100).default("restaurant"),
   tier: z.enum(["fast", "comprehensive"]).default("fast"),
+  businessScope: z.enum(["local", "digital", "hybrid"]).default("local"),
+  productDescription: z.string().max(500).optional(),
+  targetAudience: z.string().max(300).optional(),
 });
 
 // Simple in-memory rate limiter
@@ -55,7 +58,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { businessName, location, category, tier } = parsed.data;
+    const { businessName, location, category, tier, businessScope, productDescription, targetAudience } = parsed.data;
     const normalizedName = businessName.trim().toLowerCase();
     const normalizedLocation = location.trim().toLowerCase();
     const normalizedCategory = category.trim().toLowerCase();
@@ -96,6 +99,9 @@ export async function POST(request: Request) {
         businessName: normalizedName,
         location: normalizedLocation,
         category: normalizedCategory,
+        businessScope,
+        productDescription: productDescription || null,
+        targetAudience: targetAudience || null,
         tier,
         status: "pending",
         expiresAt,
@@ -109,9 +115,10 @@ export async function POST(request: Request) {
     });
 
     // Fire and forget — use the appropriate runner for the tier
+    const digitalOpts = { businessScope, productDescription, targetAudience };
     const runner = tier === "fast"
-      ? runFreeAudit(analysis.id, businessName, location, normalizedCategory)
-      : runComprehensiveAudit(analysis.id, businessName, location, normalizedCategory);
+      ? runFreeAudit(analysis.id, businessName, location, normalizedCategory, digitalOpts)
+      : runComprehensiveAudit(analysis.id, businessName, location, normalizedCategory, digitalOpts);
 
     runner.catch((err) => {
       console.error(`Analysis ${analysis.id} failed:`, err);

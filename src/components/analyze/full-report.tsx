@@ -25,7 +25,7 @@ interface FullReportProps {
   actionPlanStatus?: string;
 }
 
-type DashboardTab = "overview" | "providers" | "sources" | "evidence" | "action-plan";
+type DashboardTab = "overview" | "ai-models" | "sources" | "evidence" | "action-plan";
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -171,11 +171,11 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
       ring: { score: Math.round(analysisSnapshot.averageProbability * 100) },
     },
     {
-      label: "Best provider",
+      label: "Best AI model",
       value: analysisSnapshot.bestProvider?.name ?? "N/A",
       sublabel: analysisSnapshot.bestProvider
-        ? `${Math.round(analysisSnapshot.bestProvider.probability * 100)}% recommendation probability`
-        : "No provider data",
+        ? `${Math.round(analysisSnapshot.bestProvider.probability * 100)}% AI visibility score`
+        : "No data",
     },
     {
       label: "Prompt coverage",
@@ -193,7 +193,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
       <span className="analysis-meta-pill">Complete report</span>
       <span className="analysis-meta-pill">{analysis.methodology.totalQueries} total queries</span>
-      <span className="analysis-meta-pill">{analysis.methodology.providers.length} AI providers</span>
+      <span className="analysis-meta-pill">{analysis.methodology.providers.length} AI models</span>
       <span className="analysis-meta-pill">{analysis.methodology.queryTypes.length} query types</span>
     </div>
   );
@@ -212,7 +212,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
   return (
     <DashboardShell
       businessName={analysis.businessName}
-      subtitle="Cross-provider GEO report with comparative visibility, source influence, evidence, and action planning."
+      subtitle="Cross-platform GEO report with comparative visibility, source influence, evidence, and action planning."
       headerLeft={
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {availableProviders.map((provider) => (
@@ -266,14 +266,14 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
       layout="sidebar"
       tabIcons={{
         overview: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>,
-        providers: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>,
+        "ai-models": <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>,
         sources: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>,
         evidence: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>,
         "action-plan": <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>,
       }}
       tabs={[
         { id: "overview", label: "Overview" },
-        { id: "providers", label: "Providers" },
+        { id: "ai-models", label: "AI Models" },
         { id: "sources", label: "Sources" },
         { id: "evidence", label: "Evidence" },
         { id: "action-plan", label: "Action Plan" },
@@ -326,7 +326,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                     lineHeight: 1.6,
                   }}
                 >
-                  {analysisSnapshot.bestProvider?.name ?? "Your strongest provider"} proves there is already a path to visibility,
+                  {analysisSnapshot.bestProvider?.name ?? "Your strongest AI model"} proves there is already a path to visibility,
                   but weaker source coverage, factual inconsistency, and underperforming query types are still limiting how
                   often the business becomes the default recommendation.
                 </p>
@@ -356,7 +356,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                 </div>
                 <div style={{ display: "grid", gap: 10, width: "100%" }}>
                   <div className="analysis-mini-stat">
-                    <span>Best provider</span>
+                    <span>Best AI model</span>
                     <strong>{analysisSnapshot.bestProvider?.name ?? "N/A"}</strong>
                   </div>
                   <div className="analysis-mini-stat">
@@ -376,20 +376,20 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
             <SectionLabel>Priority Findings</SectionLabel>
             <div className="dashboard-grid-insights">
               <InsightCard
-                title={analysisSnapshot.findings[0]?.title ?? "Visibility is uneven across providers"}
-                detail={analysisSnapshot.findings[0]?.detail ?? "The business performs noticeably better on one provider than the others."}
+                title={analysisSnapshot.findings[0]?.title ?? "Visibility is uneven across AI models"}
+                detail={analysisSnapshot.findings[0]?.detail ?? "The business performs noticeably better on one AI model than the others."}
                 tone={analysisSnapshot.findings[0]?.tone ?? "warning"}
                 badge="Biggest blocker"
               />
               <InsightCard
                 title={analysisSnapshot.topSourceGap ?? "Source coverage needs to be strengthened"}
-                detail="Cross-provider citations are not balanced enough yet, which makes the recommendation probability fragile."
+                detail="Cross-platform citations are not balanced enough yet, which makes the AI visibility score fragile."
                 tone="warning"
                 badge="Source gap"
               />
               <InsightCard
                 title={analysisSnapshot.bestProvider ? `${analysisSnapshot.bestProvider.name} is the clearest proof point` : "A clear proof point exists"}
-                detail={analysisSnapshot.wins[0]?.detail ?? "At least one provider already sees enough value to recommend the business at a competitive rate."}
+                detail={analysisSnapshot.wins[0]?.detail ?? "At least one AI model already sees enough value to recommend the business at a competitive rate."}
                 tone="positive"
                 badge="Best signal"
               />
@@ -397,7 +397,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
           </div>
 
           <div>
-            <SectionLabel>Provider Comparison</SectionLabel>
+            <SectionLabel>AI Model Comparison</SectionLabel>
             <div className="dashboard-grid-insights">
               {analysisSnapshot.providerSnapshots.map((provider) => (
                 <DashboardCard
@@ -413,7 +413,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                           {Math.round(provider.probability * 100)}%
                         </div>
                         <div style={{ marginTop: 6, fontSize: "0.76rem", color: "#8e8ea0" }}>
-                          recommendation probability
+                          AI visibility score
                         </div>
                       </div>
                       <div
@@ -452,7 +452,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
           <div>
             <SectionLabel>Competitor And Query Patterns</SectionLabel>
             <div className="dashboard-grid">
-              <DashboardCard title="Who wins today" subtitle="Competitive pressure across providers">
+              <DashboardCard title="Who wins today" subtitle="Competitive pressure across AI models">
                 <CompetitorTable competitors={analysis.reports.chatgpt?.competitors ?? activeReport.competitors} />
               </DashboardCard>
               <DashboardCard title="Where the business appears" subtitle="How prompt intent changes visibility">
@@ -482,26 +482,6 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                     businessName={analysis.businessName}
                   />
                 </div>
-              </DashboardCard>
-            </div>
-          </div>
-
-          <div>
-            <SectionLabel>Sources And Accuracy</SectionLabel>
-            <div className="dashboard-grid">
-              <DashboardCard title="Source influence" subtitle="What AI trusts most today">
-                {analysis.sourceInfluences.length > 0 ? (
-                  <SourceInfluenceMap sourceInfluences={analysis.sourceInfluences} />
-                ) : (
-                  <div className="analysis-mini-panel">
-                    <span>Source influence</span>
-                    <strong>No source data</strong>
-                    <small>The current analysis did not capture citation source details.</small>
-                  </div>
-                )}
-              </DashboardCard>
-              <DashboardCard title="Accuracy issues" subtitle="Facts that still reduce trust">
-                <AccuracyIssueList issues={analysisSnapshot.accuracyIssues} />
               </DashboardCard>
             </div>
           </div>
@@ -544,10 +524,10 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
               <div className="analysis-mini-panel">
                 <span>Total queries</span>
                 <strong>{analysis.methodology.totalQueries}</strong>
-                <small>Real prompts executed across providers</small>
+                <small>Real prompts executed across AI models</small>
               </div>
               <div className="analysis-mini-panel">
-                <span>Providers</span>
+                <span>AI models</span>
                 <strong>{analysis.methodology.providers.length}</strong>
                 <small>{analysis.methodology.providers.join(", ")}</small>
               </div>
@@ -564,7 +544,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
         </div>
       )}
 
-      {dashTab === "providers" && activeReport && activeSnapshot && (
+      {dashTab === "ai-models" && activeReport && activeSnapshot && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           <div style={{ marginBottom: 4 }}>
             <DashboardNav
@@ -716,7 +696,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
 
       {dashTab === "sources" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <DashboardCard title="Cross-provider source influence" subtitle="Which sources are shaping AI recommendations the most">
+          <DashboardCard title="Cross-platform source influence" subtitle="Which sources are shaping AI recommendations the most">
             {analysis.sourceInfluences.length > 0 ? (
               <SourceInfluenceMap sourceInfluences={analysis.sourceInfluences} />
             ) : (
@@ -727,6 +707,23 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
               </div>
             )}
           </DashboardCard>
+
+          <div className="dashboard-grid">
+            <DashboardCard title="Source influence" subtitle="What AI trusts most today">
+              {analysis.sourceInfluences.length > 0 ? (
+                <SourceInfluenceMap sourceInfluences={analysis.sourceInfluences} />
+              ) : (
+                <div className="analysis-mini-panel">
+                  <span>Source influence</span>
+                  <strong>No source data</strong>
+                  <small>The current analysis did not capture citation source details.</small>
+                </div>
+              )}
+            </DashboardCard>
+            <DashboardCard title="Accuracy issues" subtitle="Facts that still reduce trust">
+              <AccuracyIssueList issues={analysisSnapshot.accuracyIssues} />
+            </DashboardCard>
+          </div>
 
           <div className="dashboard-grid-insights">
             {availableProviders.map((provider) => {
@@ -744,7 +741,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
                     <div className="analysis-mini-panel">
                       <span>{provider.name}</span>
                       <strong>No source data</strong>
-                      <small>This provider did not expose source attribution in the current result set.</small>
+                      <small>This AI model did not expose source attribution in the current result set.</small>
                     </div>
                   )}
                 </DashboardCard>

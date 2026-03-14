@@ -16,7 +16,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "32px 1fr 1fr 80px",
+          gridTemplateColumns: "28px 1fr minmax(60px, 1fr) 50px",
           gap: 8,
           padding: "8px 12px",
           borderBottom: "1px solid #e5e5e5",
@@ -46,7 +46,7 @@ export function CompetitorTable({ competitors }: CompetitorTableProps) {
             key={`${c.rank}-${c.name}`}
             style={{
               display: "grid",
-              gridTemplateColumns: "32px 1fr 1fr 80px",
+              gridTemplateColumns: "28px 1fr minmax(60px, 1fr) 50px",
               gap: 8,
               padding: "10px 12px",
               borderBottom: "1px solid #ececec",

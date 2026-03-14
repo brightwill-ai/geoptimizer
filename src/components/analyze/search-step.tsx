@@ -2,11 +2,20 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { BUSINESS_CATEGORIES } from "@/lib/agents/prompts";
+import { BUSINESS_CATEGORIES, getCategoryScope, type BusinessScope } from "@/lib/agents/prompts";
 import { ProviderLogo } from "@/components/ui/provider-logo";
 
+export interface SearchSubmitData {
+  businessName: string;
+  location: string;
+  category: string;
+  businessScope: BusinessScope;
+  productDescription?: string;
+  targetAudience?: string;
+}
+
 interface SearchStepProps {
-  onSubmit: (businessName: string, location: string, category: string) => void;
+  onSubmit: (data: SearchSubmitData) => void;
 }
 
 const DEMO_SCENARIOS = [
@@ -166,8 +175,19 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
   const [category, setCategory] = useState("restaurant");
   const [customCategory, setCustomCategory] = useState("");
   const [showCustom, setShowCustom] = useState(false);
+  const [productDescription, setProductDescription] = useState("");
+  const [targetAudience, setTargetAudience] = useState("");
+  const [customScopeOverride, setCustomScopeOverride] = useState<BusinessScope>("hybrid");
   const locationRef = useRef<HTMLDivElement>(null);
   const locationInputRef = useRef<HTMLInputElement>(null);
+
+  // Derive scope from selected category
+  const currentScope: BusinessScope = showCustom
+    ? customScopeOverride
+    : getCategoryScope(category);
+  const showLocation = currentScope === "local" || currentScope === "hybrid";
+  const locationRequired = currentScope === "local";
+  const showDigitalFields = currentScope === "digital" || currentScope === "hybrid";
   const { text: typedPrompt, lineIndex: scenarioIndex } = useTypewriter(
     DEMO_SCENARIOS.map((s) => s.query)
   );
@@ -232,9 +252,21 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const finalCategory = showCustom ? customCategory.trim() : category;
-    if (name.trim() && location.trim() && finalCategory) {
-      onSubmit(name.trim(), location.trim(), finalCategory);
-    }
+    if (!name.trim() || !finalCategory) return;
+
+    // Validate based on scope
+    if (currentScope === "local" && !location.trim()) return;
+    if (currentScope === "digital" && !productDescription.trim()) return;
+    if (currentScope === "hybrid" && !location.trim() && !productDescription.trim()) return;
+
+    onSubmit({
+      businessName: name.trim(),
+      location: showLocation ? location.trim() : "",
+      category: finalCategory,
+      businessScope: currentScope,
+      productDescription: showDigitalFields ? (productDescription.trim() || undefined) : undefined,
+      targetAudience: showDigitalFields ? (targetAudience.trim() || undefined) : undefined,
+    });
   };
 
   const handleCategoryChange = (value: string) => {
@@ -249,7 +281,12 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
     setCategory(value);
   };
 
-  const isValid = name.trim() && location.trim() && (showCustom ? customCategory.trim() : category);
+  const finalCat = showCustom ? customCategory.trim() : category;
+  const isValid = name.trim() && finalCat && (
+    currentScope === "local" ? !!location.trim() :
+    currentScope === "digital" ? !!productDescription.trim() :
+    !!(location.trim() || productDescription.trim()) // hybrid: need at least one
+  );
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -453,7 +490,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               lineHeight: 1.5,
             }}
           >
-            73% of consumers now use AI to find local businesses.{" "}
+            Millions of people now ask AI to find businesses and products.{" "}
             <span style={{ color: "#6e6e80" }}>Are you visible?</span>
           </p>
         </motion.div>
@@ -483,7 +520,7 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Hana Sushi, Peak Fitness, BrightSmile Dental"
+            placeholder="e.g. Hana Sushi, Stripe, Glossier, Peak Fitness"
             style={inputStyle}
             onFocus={(e) => {
               e.target.style.borderColor = "#171717";
@@ -556,8 +593,104 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
             )}
           </div>
 
+          {/* Scope toggle for custom/Other category */}
+          {showCustom && (
+            <div style={{ display: "flex", gap: "0.35rem", marginTop: "-0.25rem" }}>
+              {(["local", "digital", "hybrid"] as BusinessScope[]).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setCustomScopeOverride(s)}
+                  style={{
+                    flex: 1,
+                    padding: "0.4rem 0.5rem",
+                    fontSize: "0.7rem",
+                    fontWeight: customScopeOverride === s ? 600 : 400,
+                    fontFamily: "var(--font-sans)",
+                    borderRadius: 6,
+                    border: `1px solid ${customScopeOverride === s ? "#171717" : "#e5e5e5"}`,
+                    background: customScopeOverride === s ? "#171717" : "#f7f7f8",
+                    color: customScopeOverride === s ? "#ffffff" : "#6e6e80",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {s === "local" ? "Local" : s === "digital" ? "Online" : "Both"}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Digital fields: product description + target audience */}
+          <AnimatePresence>
+            {showDigitalFields && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                style={{ overflow: "hidden", display: "flex", flexDirection: "column", gap: "0.75rem" }}
+              >
+                <label style={{ fontSize: "0.72rem", color: "#6e6e80" }}>
+                  What does your business do?{currentScope === "digital" && <span style={{ color: "#dc2626" }}> *</span>}
+                </label>
+                <input
+                  type="text"
+                  value={productDescription}
+                  onChange={(e) => setProductDescription(e.target.value)}
+                  placeholder="e.g. Project management software for small teams"
+                  maxLength={500}
+                  style={inputStyle}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#171717";
+                    e.target.style.background = "#ffffff";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(23,23,23,0.06)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#e5e5e5";
+                    e.target.style.background = "#f7f7f8";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+
+                <label style={{ fontSize: "0.72rem", color: "#6e6e80" }}>
+                  Who is your target customer? <span style={{ color: "#8e8ea0" }}>(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={targetAudience}
+                  onChange={(e) => setTargetAudience(e.target.value)}
+                  placeholder="e.g. Small business owners, startup founders"
+                  maxLength={300}
+                  style={inputStyle}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#171717";
+                    e.target.style.background = "#ffffff";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(23,23,23,0.06)";
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#e5e5e5";
+                    e.target.style.background = "#f7f7f8";
+                    e.target.style.boxShadow = "none";
+                  }}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Location field — hidden for digital-only categories */}
+          <AnimatePresence>
+            {showLocation && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.2 }}
+                style={{ overflow: "hidden", display: "flex", flexDirection: "column", gap: "0.75rem" }}
+              >
           <label style={{ fontSize: "0.72rem", color: "#6e6e80", display: "flex", alignItems: "center", gap: 6 }}>
-            Location
+            Location{locationRequired && <span style={{ color: "#dc2626" }}> *</span>}
+            {!locationRequired && <span style={{ color: "#8e8ea0" }}>(optional)</span>}
             {autoDetected && !userTyping && (
               <span
                 style={{
@@ -756,6 +889,9 @@ export function SearchStep({ onSubmit }: SearchStepProps) {
               </motion.div>
             )}
           </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <button
             type="submit"

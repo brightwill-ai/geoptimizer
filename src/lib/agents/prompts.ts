@@ -5,21 +5,62 @@ export interface PromptTemplate {
   generate: (businessName: string, location: string, category: string) => string;
 }
 
+// ── Business scope types ──
+
+export type BusinessScope = "local" | "digital" | "hybrid";
+
+export interface CategoryDef {
+  id: string;
+  label: string;
+  scope: BusinessScope;
+}
+
 // Default business categories for the UI
-export const BUSINESS_CATEGORIES = [
-  { id: "restaurant", label: "Restaurant" },
-  { id: "gym", label: "Gym & Fitness" },
-  { id: "salon", label: "Salon & Spa" },
-  { id: "hvac", label: "HVAC & Home Services" },
-  { id: "dental", label: "Dental & Medical" },
-  { id: "legal", label: "Legal Services" },
-  { id: "realtor", label: "Real Estate" },
-  { id: "saas", label: "SaaS & Software" },
-  { id: "ecommerce", label: "E-commerce & Retail" },
-  { id: "agency", label: "Marketing & Agency" },
-] as const;
+export const BUSINESS_CATEGORIES: CategoryDef[] = [
+  // Local
+  { id: "restaurant", label: "Restaurant", scope: "local" },
+  { id: "gym", label: "Gym & Fitness", scope: "local" },
+  { id: "salon", label: "Salon & Spa", scope: "local" },
+  { id: "hvac", label: "HVAC & Home Services", scope: "local" },
+  { id: "dental", label: "Dental & Medical", scope: "local" },
+  { id: "legal", label: "Legal Services", scope: "local" },
+  { id: "realtor", label: "Real Estate", scope: "local" },
+  // Digital
+  { id: "saas", label: "SaaS & Software", scope: "digital" },
+  { id: "ecommerce", label: "E-commerce & DTC", scope: "digital" },
+  { id: "online_course", label: "Online Education & Courses", scope: "digital" },
+  { id: "creator", label: "Creator & Personal Brand", scope: "digital" },
+  { id: "healthcare_digital", label: "Telehealth & Digital Health", scope: "digital" },
+  // Hybrid
+  { id: "agency", label: "Marketing & Agency", scope: "hybrid" },
+  { id: "consultant", label: "Consulting & Coaching", scope: "hybrid" },
+  { id: "freelancer", label: "Freelancer & Solo", scope: "hybrid" },
+  { id: "nonprofit", label: "Nonprofit & Community", scope: "hybrid" },
+];
 
 export type BusinessCategory = (typeof BUSINESS_CATEGORIES)[number]["id"] | string;
+
+// ── Scope helpers ──
+
+const SCOPE_MAP: Record<string, BusinessScope> = Object.fromEntries(
+  BUSINESS_CATEGORIES.map((c) => [c.id, c.scope])
+);
+
+/** Get the scope for a category. Custom/unknown categories default to "hybrid". */
+export function getCategoryScope(category: string): BusinessScope {
+  return SCOPE_MAP[category] || "hybrid";
+}
+
+/** Check if a category requires a location. */
+export function categoryRequiresLocation(category: string): boolean {
+  return getCategoryScope(category) === "local";
+}
+
+/** Check if a category supports digital fields. */
+export function categorySupportsDigital(category: string): boolean {
+  const scope = getCategoryScope(category);
+  return scope === "digital" || scope === "hybrid";
+}
 
 // Helper: pluralize category for natural language
 export function categoryPlural(category: string): string {
@@ -34,6 +75,12 @@ export function categoryPlural(category: string): string {
     saas: "software companies",
     ecommerce: "online stores and retailers",
     agency: "marketing agencies",
+    consultant: "consulting firms and coaches",
+    freelancer: "freelancers and independent professionals",
+    creator: "creators and personal brands",
+    online_course: "online courses and education platforms",
+    nonprofit: "nonprofits and community organizations",
+    healthcare_digital: "telehealth and digital health platforms",
   };
   return map[category] || `${category} businesses`;
 }
@@ -51,6 +98,12 @@ export function categoryDescriptor(category: string): string {
     saas: "software solution",
     ecommerce: "online shop",
     agency: "marketing partner",
+    consultant: "consulting or coaching service",
+    freelancer: "freelance professional",
+    creator: "content creator or personal brand",
+    online_course: "online learning platform",
+    nonprofit: "nonprofit organization",
+    healthcare_digital: "digital health platform",
   };
   return map[category] || "business";
 }

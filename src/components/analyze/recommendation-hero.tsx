@@ -48,7 +48,7 @@ export function RecommendationHero({
       }}
     >
       {/* Eyebrow */}
-      <div style={{ fontSize: "1.4rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#8e8ea0" }}>Recommendation Probability</div>
+      <div style={{ fontSize: "1.4rem", fontWeight: 500, letterSpacing: "-0.02em", color: "#8e8ea0" }}>AI Visibility Score</div>
 
       {/* Score ring */}
       <div style={{ position: "relative", width: size, height: size }}>

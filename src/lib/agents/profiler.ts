@@ -20,12 +20,38 @@ export interface BusinessProfile {
 export async function profileBusiness(
   businessName: string,
   location: string,
-  category: string
+  category: string,
+  options?: { productDescription?: string; targetAudience?: string }
 ): Promise<BusinessProfile> {
   try {
     const client = getOpenAIClient();
 
-    const prompt = `Look up "${businessName}" in ${location} (category: ${category}).
+    const contextParts: string[] = [];
+    if (location) contextParts.push(`in ${location}`);
+    if (options?.productDescription) contextParts.push(`(${options.productDescription})`);
+    if (options?.targetAudience) contextParts.push(`targeting ${options.targetAudience}`);
+    const contextStr = contextParts.join(" ") || "";
+
+    const isDigital = !location && (options?.productDescription || options?.targetAudience);
+
+    const prompt = isDigital
+      ? `Look up "${businessName}" ${contextStr} (category: ${category}).
+
+Return a JSON object with these fields:
+{
+  "subcategory": "the specific type of product/service (e.g. 'Project Management SaaS' not just 'SaaS', or 'Online Yoga Classes' not just 'Online Education')",
+  "specialties": ["3-5 specific features, services, or things they are known for"],
+  "searchTerms": ["3-5 terms a real person would type to find this type of product/service"],
+  "subcategoryPlural": "natural language plural for the subcategory (e.g. 'project management tools', 'email marketing platforms', 'online yoga courses')"
+}
+
+Rules:
+- subcategory should be specific to what this product/service actually does, not the broad category
+- searchTerms should be what a real person would search for (e.g. "best project management tool", "email marketing software")
+- specialties should reflect what the product/service is specifically known for
+- If you cannot find the business, infer from the business name, category, and product description
+- Return ONLY valid JSON, no other text`
+      : `Look up "${businessName}" ${contextStr} (category: ${category}).
 
 Return a JSON object with these fields:
 {

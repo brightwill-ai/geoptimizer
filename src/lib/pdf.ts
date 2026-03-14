@@ -325,7 +325,7 @@ class PDFBuilder {
       ["AI Providers", providers],
       ["Total Queries", String(this.analysis.methodology.totalQueries)],
       ["Query Types", String(this.analysis.methodology.queryTypes.length)],
-      ["Visibility", `${Math.round(this.snap.averageProbability * 100)}% average recommendation probability`],
+      ["Visibility", `${Math.round(this.snap.averageProbability * 100)}% average AI visibility score`],
     ];
 
     this.doc.setFontSize(9);
@@ -384,7 +384,7 @@ class PDFBuilder {
     this.doc.setFontSize(10);
     this.doc.setTextColor(...C.text);
     this.doc.setFont("helvetica", "bold");
-    this.doc.text("Average Recommendation Probability", this.M + 36, this.y + 11);
+    this.doc.text("Average AI Visibility Score", this.M + 36, this.y + 11);
 
     this.doc.setFontSize(8);
     this.doc.setTextColor(...C.sub);
@@ -471,7 +471,7 @@ class PDFBuilder {
       this.doc.setTextColor(...C.text);
       this.doc.setFont("helvetica", "normal");
       this.doc.text(
-        `Recommendation probability -- ${reportSnap.visibility.label} visibility`,
+        `AI visibility score -- ${reportSnap.visibility.label} visibility`,
         this.M + 34, this.y + 10
       );
       this.doc.text(
@@ -577,7 +577,7 @@ class PDFBuilder {
 
     this.body(
       "These sources are the most frequently cited by AI providers when forming recommendations. " +
-      "Strengthening your presence on high-influence sources is one of the most effective ways to improve recommendation probability."
+      "Strengthening your presence on high-influence sources is one of the most effective ways to improve AI visibility score."
     );
 
     const sorted = [...this.analysis.sourceInfluences]
@@ -606,7 +606,7 @@ class PDFBuilder {
 
     this.body(
       "Every query sent to each AI provider, along with the outcome. " +
-      "This is the raw data behind all recommendation probability scores."
+      "This is the raw data behind all AI visibility scores."
     );
 
     const allReports = Object.values(this.analysis.reports);

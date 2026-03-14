@@ -561,6 +561,53 @@ body {
 
 /* ── RESPONSIVE ── */
 @media (max-width: 860px) {
+  /* Nav: tighter padding on mobile */
+  .main-nav {
+    padding: 0 1rem !important;
+    height: 52px !important;
+  }
+
+  /* Hide decorative bounding lines on mobile */
+  .grid-bg::before,
+  .grid-bg::after,
+  .grid-bg-inner::before,
+  .grid-bg-inner::after {
+    display: none !important;
+  }
+
+  /* Hide section divider dots on mobile */
+  .section-divider-dotted {
+    display: none !important;
+  }
+
+  /* Stats: smaller numbers, less padding */
+  .stats-wrapper {
+    padding: 2rem 1.25rem !important;
+  }
+
+  .stats-grid {
+    gap: 0 !important;
+    padding: 0 !important;
+  }
+
+  .stats-grid > div {
+    padding: 1rem 0.5rem !important;
+  }
+
+  .stats-grid > div > div:first-child {
+    font-size: clamp(1.6rem, 7vw, 2rem) !important;
+  }
+
+  /* Reduce section padding on mobile */
+  .how-section {
+    padding: 3rem 0 3.5rem !important;
+  }
+
+  .how-section-title {
+    margin-bottom: 2.5rem !important;
+    padding: 0 1.25rem !important;
+  }
+
   .analyze-grid {
     grid-template-columns: 1fr !important;
   }
@@ -571,8 +618,9 @@ body {
 
   .hero {
     grid-template-columns: 1fr !important;
-    padding: 5rem 2rem 3rem !important;
+    padding: 2rem 1.25rem 3rem !important;
     gap: 2.5rem !important;
+    min-height: auto !important;
   }
 
   .hero-right {
@@ -600,17 +648,25 @@ body {
   .how-it-works-row {
     grid-template-columns: 1fr !important;
     gap: 1.75rem !important;
+    min-height: auto !important;
+    padding: 0 1.25rem !important;
   }
 
   .how-it-works-text,
   .how-it-works-media {
     grid-column: 1 / -1 !important;
+    grid-row: auto !important;
   }
 
   .how-it-works-text {
+    order: 1 !important;
     align-items: center;
     text-align: center;
     padding-bottom: 0 !important;
+  }
+
+  .how-it-works-media {
+    order: 2 !important;
   }
 
   .how-it-works-text h3,
@@ -620,7 +676,21 @@ body {
 
   .how-it-works-stage {
     margin: 0 auto !important;
-    min-height: 25rem !important;
+    min-height: auto !important;
+    aspect-ratio: auto !important;
+    height: auto !important;
+    max-width: 100% !important;
+  }
+
+  .how-it-works-window {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 20rem;
+  }
+
+  .how-it-works-shell-body {
+    height: auto !important;
+    min-height: 16rem;
   }
 
   .feature-2col {
@@ -643,8 +713,13 @@ body {
     display: none !important;
   }
 
-  .report-showcase-grid {
-    grid-template-columns: 1fr !important;
+  .report-showcase-window {
+    width: 960px !important;
+    max-width: none !important;
+    transform: scale(0.38) !important;
+    transform-origin: top center !important;
+    margin-left: calc((100% - 960px) / 2) !important;
+    margin-bottom: -52% !important;
   }
 
   .dashboard-shell {
@@ -696,6 +771,22 @@ body {
     align-items: stretch;
     text-align: center;
     padding: 0.9rem 1rem;
+  }
+
+  .platform-bar {
+    gap: 0.75rem !important;
+    flex-wrap: wrap !important;
+    padding: 0 1rem !important;
+    justify-content: center !important;
+  }
+
+  .platform-bar > span:first-child {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  .platform-bar .platform-bar-accent {
+    display: none !important;
   }
 }
 

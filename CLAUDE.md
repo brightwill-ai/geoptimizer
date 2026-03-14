@@ -1,6 +1,6 @@
 # BrightWill
 
-GEO (Generative Engine Optimization) analysis platform for local businesses. Measures **recommendation probability** — how likely each AI engine is to recommend a business when relevant queries are asked. Three tiers: free (ChatGPT only, 5 queries, instant), Full Audit ($19, all 3 engines, 100+ queries), and Audit + Strategy ($199, full audit plus execution roadmap, monthly re-audits, strategy call).
+GEO (Generative Engine Optimization) analysis platform for businesses of all types — local, digital (SaaS, ecommerce, creators), and hybrid (agencies, consultants). Measures **AI Visibility Score** (0-100) — how likely each AI engine is to recommend a business when relevant queries are asked. Three tiers: free (ChatGPT only, 5 queries, instant), Full Audit ($19, all 3 engines, 100+ queries), and Audit + Strategy ($199, full audit plus execution roadmap, monthly re-audits, strategy call).
 
 ## Quick Start
 
@@ -18,7 +18,7 @@ npm run dev
 - **Database:** PostgreSQL (Supabase) via Prisma ORM
 - **LLM SDKs:** OpenAI (`openai`), Anthropic (`@anthropic-ai/sdk`), Google (`@google/genai`)
 - **Animations:** Framer Motion + CSS keyframes
-- **Email:** Resend SDK (`resend`) — payment confirmation + report-ready notification
+- **Email:** Resend SDK (`resend`) — 8 branded templates (payment, report, launch, free audit results, 3 drips, upsell) with shared component library
 - **Payments:** Stripe Checkout ($19 Full Audit + $199 Audit+Strategy) — `stripe` SDK, promotion codes enabled, dev bypass via NODE_ENV
 - **PDF:** Client-side export via `html2canvas` + `jspdf`
 - **Auth:** None (Stripe payment gate for full reports)
@@ -53,8 +53,10 @@ src/
 │   │   └── report/[token]/route.ts       # GET /api/report/[token] (public report data)
 │   ├── admin/
 │   │   └── page.tsx                      # Admin dashboard (password-gated, KPIs + customer/analysis tables)
+│   ├── sitemap.ts                       # XML sitemap (homepage, /analyze, /report/demo)
+│   ├── robots.ts                        # robots.txt (allow all except /api/, /admin/)
 │   ├── globals.css
-│   └── layout.tsx
+│   └── layout.tsx                       # Root layout with OG metadata, Twitter Cards, Google Fonts
 ├── components/
 │   ├── ui/                               # Base primitives (button, input, card, textarea)
 │   └── analyze/                          # Analysis feature components
@@ -86,7 +88,8 @@ src/
 └── lib/
     ├── prisma.ts                         # Prisma singleton
     ├── utils.ts                          # cn(), formatDate(), slugify()
-    ├── email.ts                          # Resend client + sendPaymentConfirmationEmail() + sendReportReadyEmail()
+    ├── email.ts                          # Resend client + 8 email templates (payment, report, launch, free audit results, 3 drips, upsell)
+    ├── email-templates.ts                # Shared HTML email component library (20+ functions: header, footer, button, score display, competitor card, etc.)
     ├── pdf.ts                            # Client-side PDF generation (html2canvas + jspdf)
     ├── mock-data.ts                      # Types + mock data generator (source of truth for LLMProvider)
     └── agents/                           # LLM analysis pipeline
@@ -136,7 +139,7 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 ### Step-by-step
 
-1. **Search step** (`search-step.tsx`): User enters business name + category + location. Location auto-detected via `GET /api/location` and has Nominatim OpenStreetMap autocomplete dropdown (debounced 280ms, deduplicated). Category dropdown with 10 presets + custom.
+1. **Search step** (`search-step.tsx`): User enters business name + category + conditional fields based on scope. Location auto-detected via `GET /api/location` and has Nominatim OpenStreetMap autocomplete dropdown (debounced 280ms, deduplicated). Category dropdown with 16 presets + custom. **Scope-adaptive form**: local categories show location (required), digital categories hide location and show product description (required) + target audience (optional), hybrid categories show all fields with location optional.
 
 2. **POST /api/analysis** (`analysis/route.ts`):
    - Cache check: reuses existing analysis if same business+location+category within 24h (fast) or 72h (comprehensive)
@@ -172,11 +175,11 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 7. **Frontend polling** (`analyze/page.tsx`): Polls every 2s. Response includes `queryProgress: { completed, total, currentQueryText }`. `total` comes from `Analysis.queryCount` (set before the query loop starts). Loading step is tier-aware: free shows ChatGPT badge only, comprehensive shows all 3 provider badges with individual status.
 
-8. **Partial report** (`partial-report.tsx`): Competitor-first dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: hero card with competitor callout ("ChatGPT recommends [competitor] over you"), "What your customers see" card (verbatim AI response showing competitor winning), snapshot blockers/wins, query patterns, competitive context, source/sentiment readout, and unlock CTA card with $19 price. Sticky CTA bar at bottom with competitor-aware messaging. Score ring glow and gradient hero background.
+8. **Partial report** (`partial-report.tsx`): Competitor-first dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: hero card with competitor callout ("ChatGPT recommends [competitor] over you"), "What your customers see" card (scrollable chat-style with verbatim AI response), snapshot blockers/wins, query patterns, competitive context, blurred full audit preview with unlock overlay, and $19 CTA. Evidence: QueryEvidence component + source/sentiment readout. Sticky CTA bar at bottom with competitor-aware messaging. Score ring glow and gradient hero background.
 
 9. **Payment gate** (`email-gate.tsx`): Shows tier selector ($19 Full Audit vs $199 Audit + Strategy) + email form → `POST /api/checkout` with `priceTier` → Stripe Checkout Session (with `allow_promotion_codes: true`) → redirects to Stripe hosted page. On success, Stripe redirects back to `/analyze?session_id={id}&analysis_id={id}`. Page detects URL params → `POST /api/analysis/[id]/claim` with `stripeSessionId` → claim route verifies payment with Stripe API, reads `priceTier` from session metadata → creates comprehensive analysis with `priceTier` field → sends payment confirmation email. Dev bypass: skips Stripe in `NODE_ENV=development`, redirects directly. Webhook (`/api/webhooks/stripe`) serves as backup reconciliation.
 
-10. **Full report** (`full-report.tsx`): Dashboard layout with sticky KPI row (avg + per-provider probabilities with mini rings) + 5 tabs. Overview: ProviderComparisonVisual + InsightCards + SourceInfluenceMap + Methodology + LLMComparisonTable. Deep Dive: provider sub-tabs → 2-column grid with hero, metrics, query breakdown, competitors, topics, accuracy, sources, sentiment, evidence. Sources: cross-platform + per-provider maps. Evidence: provider sub-tabs → QueryEvidence. Action Plan: ActionPlan or ActionItems.
+10. **Full report** (`full-report.tsx`): Dashboard layout with sticky KPI row (avg + per-provider probabilities with mini rings) + 5 tabs (Overview, AI Models, Sources, Evidence, Action Plan). Overview: ProviderComparisonVisual + InsightCards + Methodology + LLMComparisonTable. AI Models: provider sub-tabs → 2-column grid with hero, metrics, query breakdown, competitors, topics, accuracy, sentiment, evidence. Sources: cross-platform source influence + accuracy issues + per-provider source breakdowns. Evidence: provider sub-tabs → QueryEvidence. Action Plan: ActionPlan or ActionItems. All user-facing "provider" labels renamed to "AI model".
 
 11. **Public report** (`/report/[token]`): Standalone page polls `/api/report/[token]`. Shows loading during analysis, full report when complete.
 
@@ -187,18 +190,21 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 - **37+ templates per category** (5 free + 32+ comprehensive) across 9 query types, run against all 3 providers = **100+ total queries** per comprehensive audit: discovery, subcategory_discovery, direct, comparison, use_case, reviews, specifics, source_probing, verification
 - **~65% generic / ~35% direct-mention** — most queries do NOT mention the business name, mirroring real user search behavior. Only direct, reviews, specifics, source_probing, and verification queries mention `{businessName}`.
-- Templates use placeholders: `{businessName}`, `{location}`, `{categoryPlural}`, `{categoryDescriptor}`, `{subcategoryPlural}`, `{specialty}`, `{searchTerm}`
+- Templates use placeholders: `{businessName}`, `{marketContext}`, `{categoryPlural}`, `{categoryDescriptor}`, `{subcategoryPlural}`, `{specialty}`, `{searchTerm}`
+- `{marketContext}` smart placeholder replaces old `{location}` — resolves to "in Miami" (local), "for startups" (digital), or "in NYC for enterprise" (hybrid) via `buildMarketContext()`
+- Scope-filtered loading: local gets `scope IN ('local', 'all')`, digital gets `scope IN ('digital', 'all')`, hybrid gets all
+- 8 digital-only templates (alternatives, pricing, integrations, reviews) with `scope: "digital"`
 - Subcategory-aware placeholders (`{subcategoryPlural}`, `{specialty}`, `{searchTerm}`) are populated by the business profiler — e.g., a sushi restaurant gets "sushi restaurants" not "restaurants"
 - Falls back to "generic" category if no specific templates found
 - Seeded via `npx tsx prisma/seed.ts` (seeds all 10 categories + generic = 407 templates). Use `--force` flag to clear and re-seed.
 
 ### Business Profiler
-`profiler.ts` runs a quick GPT-4.1-mini call with web search before queries start (~2-4s, ~$0.002) to determine the business's subcategory, specialties, and realistic search terms. Returns a `BusinessProfile` with `subcategory`, `specialties[]`, `searchTerms[]`, `subcategoryPlural`. Falls back to generic category profile on failure — analysis never fails due to profiling.
+`profiler.ts` runs a quick GPT-4.1-mini call with web search before queries start (~2-4s, ~$0.002) to determine the business's subcategory, specialties, and realistic search terms. Accepts optional `productDescription` and `targetAudience` params — when scope is digital, adapts the GPT prompt to focus on product niche, target audience, and competitive landscape instead of location-based subcategories. Returns a `BusinessProfile` with `subcategory`, `specialties[]`, `searchTerms[]`, `subcategoryPlural`. Falls back to generic category profile on failure — analysis never fails due to profiling.
 
 ### Prompts (category-aware)
-`prompts.ts` exports `BUSINESS_CATEGORIES` and helper functions `categoryPlural()`, `categoryDescriptor()`.
+`prompts.ts` exports `BUSINESS_CATEGORIES` with scope classification, helper functions `categoryPlural()`, `categoryDescriptor()`, `getCategoryScope()`, and type `BusinessScope`.
 
-Categories: restaurant, gym, salon, hvac, dental, legal, realtor, saas, ecommerce, agency. Custom categories use raw string.
+16 categories with scope: restaurant (local), gym (local), salon (local), hvac (local), dental (local), legal (local), realtor (local), saas (digital), ecommerce (digital), agency (hybrid), consultant (hybrid), freelancer (hybrid), creator (digital), online_course (digital), nonprofit (hybrid), healthcare_digital (digital). Custom categories default to "hybrid".
 
 ### Three tiers
 - **Free Snapshot** (15-25s): ChatGPT only, 5 queries from query bank. Shows recommendation probability + query evidence. Competitor-first messaging to drive upgrades. Cache: 24h.
@@ -214,6 +220,9 @@ model User { id, email (unique), name?, createdAt, analyses[] }
 
 model Analysis {
   id, userId?, businessName, location, category, tier, status,
+  businessScope String @default("local"),     // "local" | "digital" | "hybrid"
+  productDescription String?,                  // digital businesses: "project management software"
+  targetAudience String?,                      // "small business owners"
   queryCount Int, recommendationProbability Float?, methodology String?,
   shareToken String? @unique,
   paid Boolean @default(false), priceTier String @default("free"),
@@ -231,7 +240,9 @@ model LLMJob {
 }
 
 model QueryTemplate {
-  id, category, queryType, template, tier (free|comprehensive), isActive, createdAt, updatedAt
+  id, category, queryType, template, tier (free|comprehensive), isActive,
+  scope String @default("all"),  // "local" | "digital" | "all"
+  createdAt, updatedAt
   @@index([category, tier, isActive])
 }
 

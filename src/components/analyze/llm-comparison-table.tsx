@@ -31,7 +31,7 @@ export function LLMComparisonTable({ analysis }: LLMComparisonTableProps) {
     getColor: (id: LLMProvider) => string;
   }[] = [
     {
-      label: "Recommendation Probability",
+      label: "AI Visibility Score",
       getValue: (id) => { const r = safeGet(id); return r ? `${Math.round(r.recommendations.recommendationProbability * 100)}%` : "\u2014"; },
       getColor: (id) => { const r = safeGet(id); return r ? scoreColor(r.recommendations.recommendationProbability * 100, 100) : "#8e8ea0"; },
     },

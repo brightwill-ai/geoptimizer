@@ -28,15 +28,37 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "BrightWill — Get Found by AI",
   description:
-    "Generative Engine Optimization for local businesses. Get your restaurant or business recommended by ChatGPT, Claude, and other AI assistants.",
+    "Audit how ChatGPT, Claude, and Gemini see your business. Free AI Visibility Score in 30 seconds — no signup required.",
   keywords: [
     "GEO",
     "Generative Engine Optimization",
     "AI recommendations",
-    "local business",
-    "restaurant marketing",
+    "AI visibility",
+    "ChatGPT business",
     "AI SEO",
+    "AI search optimization",
   ],
+  openGraph: {
+    title: "BrightWill — Get Found by AI",
+    description: "Audit how ChatGPT, Claude, and Gemini see your business. Free AI Visibility Score in 30 seconds.",
+    url: "https://brightwill.ai",
+    siteName: "BrightWill",
+    images: [
+      {
+        url: "https://brightwill.ai/logo.png",
+        width: 512,
+        height: 512,
+        alt: "BrightWill — AI Visibility Audit",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "BrightWill — Get Found by AI",
+    description: "Audit how ChatGPT, Claude, and Gemini see your business. Free AI Visibility Score in 30 seconds.",
+    images: ["https://brightwill.ai/logo.png"],
+  },
 };
 
 import { CursorTrail } from "@/components/ui/cursor-trail";

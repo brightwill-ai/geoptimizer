@@ -43,8 +43,8 @@ function generateRecommendations(
     items.push({
       priority: "medium",
       category: "Online Presence",
-      action: `Expand ${businessName}'s presence on niche directories and industry-specific platforms to push recommendation probability above 60%.`,
-      reason: `At ${Math.round(avgProb * 100)}% recommendation probability, there is meaningful room to grow by broadening the sources AI engines can reference.`,
+      action: `Expand ${businessName}'s presence on niche directories and industry-specific platforms to push AI visibility score above 60%.`,
+      reason: `At ${Math.round(avgProb * 100)}% AI visibility score, there is meaningful room to grow by broadening the sources AI engines can reference.`,
     });
   }
 
@@ -94,7 +94,7 @@ function generateRecommendations(
       category: "Reviews & Reputation",
       action: `Address the negative sentiment appearing in ${Math.round(avgNegative)}% of AI-generated responses about ${businessName}.${phraseSummary}`,
       reason:
-        "AI engines synthesize reviews and mentions. Persistent negative themes get amplified in recommendations, directly reducing your recommendation probability.",
+        "AI engines synthesize reviews and mentions. Persistent negative themes get amplified in recommendations, directly reducing your AI visibility score.",
     });
   } else if (avgPositive < 65) {
     items.push({
@@ -167,7 +167,7 @@ function generateRecommendations(
       priority: worstGap.rank > 4 ? "high" : "medium",
       category: "Competitive Positioning",
       action: `Study what ${worstGap.topCompetitor} does differently — they rank #1 on ${worstGap.provider} while ${businessName} ranks #${worstGap.rank}. Analyze their review volume, content strategy, and directory presence.`,
-      reason: `${businessName} is outranked on ${competitorGaps.length} of ${allReports.length} AI platform${allReports.length > 1 ? "s" : ""}. Closing this gap directly improves recommendation probability.`,
+      reason: `${businessName} is outranked on ${competitorGaps.length} of ${allReports.length} AI platform${allReports.length > 1 ? "s" : ""}. Closing this gap directly improves AI visibility score.`,
     });
   }
 

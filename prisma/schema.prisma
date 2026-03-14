@@ -32,6 +32,9 @@ model Analysis {
   businessName              String
   location                  String
   category                  String            @default("restaurant")
+  businessScope             String            @default("local")
+  productDescription        String?
+  targetAudience            String?
   tier                      String            @default("fast")
   status                    String            @default("pending")
   resultJson                String?
@@ -83,12 +86,14 @@ model QueryTemplate {
   queryType  String
   template   String
   tier       String           @default("free")
+  scope      String           @default("all")
   isActive   Boolean          @default(true)
   createdAt  DateTime         @default(now())
   updatedAt  DateTime         @updatedAt
   executions QueryExecution[]
 
   @@index([category, tier, isActive])
+  @@index([scope])
 }
 
 model QueryExecution {

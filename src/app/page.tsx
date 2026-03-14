@@ -185,11 +185,9 @@ function ProbabilityRing({
 function Nav() {
   return (
     <nav
+      className="main-nav"
       style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
+        position: "relative",
         zIndex: 100,
         display: "flex",
         alignItems: "center",
@@ -197,8 +195,6 @@ function Nav() {
         padding: "0 2.5rem",
         height: "60px",
         background: "transparent",
-        backdropFilter: "none",
-        borderBottom: "none",
       }}
     >
       <Link
@@ -416,6 +412,7 @@ function Hero() {
   return (
     <section style={{ position: "relative", overflow: "hidden", background: "#fdf8f5" }}>
       <MeshGradient mode="hero" scrollFade />
+      <Nav />
 
       <div
         className="hero"
@@ -427,7 +424,7 @@ function Hero() {
           gridTemplateColumns: "1fr 1fr",
           gap: 80,
           alignItems: "center",
-          padding: "10rem 60px 5rem",
+          padding: "5rem 60px 5rem",
           maxWidth: 1280,
           margin: "0 auto",
         }}
@@ -563,7 +560,7 @@ function Hero() {
                 gap: 8,
               }}
             >
-              <span style={{ width: 3, height: 20, borderRadius: 2, background: p.color, flexShrink: 0 }} />
+              <span className="platform-bar-accent" style={{ width: 3, height: 20, borderRadius: 2, background: p.color, flexShrink: 0 }} />
               <ProviderLogo provider={p.name.toLowerCase()} size={18} />
               <span style={{ fontSize: "0.85rem", fontWeight: 500, color: "#6e6e80" }}>
                 {p.name}
@@ -609,6 +606,7 @@ function Stats() {
       style={{ background: "#f3efe8" }}
     >
       <div
+        className="stats-wrapper"
         style={{
           maxWidth: "1280px",
           margin: "0 auto",
@@ -697,7 +695,7 @@ function ReportShowcase() {
 
         {/* Window frame */}
         <div
-          className="reveal-scale stagger-2"
+          className="reveal-scale stagger-2 report-showcase-window"
           style={{
             maxWidth: 960,
             margin: "0 auto",
@@ -1068,7 +1066,7 @@ function Features() {
                 Understand the brand sentiment and track changes in real-time.
               </p>
               <div style={{ borderRadius: 10, border: "1px solid #e5e5e5", overflow: "hidden", flex: 1 }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 90px", padding: "8px 14px", background: "#f7f7f8", fontSize: "0.62rem", color: "#8e8ea0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "8px", padding: "8px 14px", background: "#f7f7f8", fontSize: "0.62rem", color: "#8e8ea0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                   <span>Theme</span>
                   <span>Sentiment</span>
                   <span style={{ textAlign: "right" }}>Occurrences</span>
@@ -1078,8 +1076,8 @@ function Features() {
                   { theme: "Expensive", sentiment: "Negative", count: 148, change: "+1", sentColor: "#dc2626" },
                   { theme: "Seamless integration", sentiment: "Positive", count: 125, change: "+12", sentColor: "#16a34a" },
                 ].map((row, i) => (
-                  <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 80px 90px", padding: "10px 14px", borderTop: "1px solid #ececec", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.78rem", color: "#171717", fontWeight: 500 }}>{row.theme}</span>
+                  <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr auto auto", gap: "8px", padding: "10px 14px", borderTop: "1px solid #ececec", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.78rem", color: "#171717", fontWeight: 500, minWidth: 0 }}>{row.theme}</span>
                     <span style={{ fontSize: "0.7rem", fontWeight: 500, color: row.sentColor }}>{row.sentiment}</span>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
                       <span style={{ fontSize: "0.78rem", color: "#6e6e80" }}>{row.count}</span>
@@ -1173,7 +1171,7 @@ function MockupWindow({
       className="how-it-works-window"
       style={{
         width: "min(100%, 20.75rem)",
-        height: "clamp(23rem, 27.75vw, 27.5rem)",
+        height: "clamp(25rem, 30vw, 31rem)",
         borderRadius: 10,
         overflow: "hidden",
         border: "1px solid rgba(220, 213, 207, 0.95)",
@@ -1211,10 +1209,10 @@ function MockupWindow({
         className="how-it-works-shell-body"
         style={{
           height: "calc(100% - 42px)",
-          padding: "0.85rem 0.9rem 0.82rem",
+          padding: "0.72rem 0.9rem 0.68rem",
           display: "flex",
           flexDirection: "column",
-          gap: "0.58rem",
+          gap: "0.46rem",
           background:
             "linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(250,248,246,0.96) 100%)",
         }}
@@ -1593,7 +1591,7 @@ function StepMockupReport() {
       <div
         style={{
           display: "grid",
-          gap: 8,
+          gap: 5,
           padding: "0.05rem 0",
         }}
       >
@@ -1604,7 +1602,7 @@ function StepMockupReport() {
               borderRadius: 8,
               border: "1px solid #ebe2db",
               background: "#faf7f4",
-              padding: "0.58rem 0.72rem",
+              padding: "0.45rem 0.65rem",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
@@ -1935,10 +1933,11 @@ function HowItWorks() {
   ];
 
   return (
-    <div id="how" style={{ padding: "6rem 0 7rem" }}>
+    <div id="how" className="how-section" style={{ padding: "6rem 0 7rem" }}>
       {/* Section title — not sticky */}
       <div
         ref={titleRef}
+        className="how-section-title"
         style={{
           textAlign: "center",
           maxWidth: 900,
@@ -2460,7 +2459,6 @@ function CTAFooter() {
 export default function Home() {
   return (
     <div className="grid-bg" style={{ background: "#f3efe8" }}>
-      <Nav />
       <Hero />
       <div className="section-divider-dotted" />
       <Stats />

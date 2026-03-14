@@ -54,3 +54,6 @@ prisma/dev.db
 
 # claude settings (contains server credentials)
 .claude/settings.json
+
+# playwright mcp logs
+.playwright-mcp/
