@@ -28,7 +28,7 @@ const ITEMS_PER_PAGE = 7;
 
 /** Format raw LLM response text into structured React elements */
 function formatResponseText(text: string): React.ReactNode[] {
-  let cleaned = text
+  const cleaned = text
     .replace(/\[([^\]]*)\]\(([^)]*)\)/g, "$1")
     .replace(/^#{1,6}\s+/gm, "")
     .replace(/`([^`]+)`/g, "$1")

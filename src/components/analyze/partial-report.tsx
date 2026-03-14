@@ -42,7 +42,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 /** Format raw LLM response text into structured React elements */
 function formatResponseText(text: string): React.ReactNode[] {
   // Clean markdown artifacts first
-  let cleaned = text
+  const cleaned = text
     .replace(/\[([^\]]*)\]\(([^)]*)\)/g, "$1") // [text](url) → text
     .replace(/^#{1,6}\s+/gm, "")               // Remove headers
     .replace(/`([^`]+)`/g, "$1")                // Remove inline code
