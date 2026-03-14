@@ -83,62 +83,47 @@ export async function POST(
       data: { userId: user.id },
     });
 
-    // Check for existing comprehensive report
-    const existingComprehensive = await prisma.analysis.findFirst({
-      where: {
+    // Every payment gets a fresh comprehensive audit (no cache/dedup)
+    // Paid reports never expire (expiresAt: null) so share links work forever
+    const comprehensive = await prisma.analysis.create({
+      data: {
+        userId: user.id,
         businessName: analysis.businessName,
         location: analysis.location,
+        category: analysis.category,
         tier: "comprehensive",
-        status: { in: ["pending", "running", "complete"] },
-        expiresAt: { gt: new Date() },
+        status: "pending",
+        paid: !!stripeSessionId || process.env.NODE_ENV === "development",
+        priceTier: resolvedPriceTier,
+        stripeSessionId: stripeSessionId || null,
+        paidAt: stripeSessionId ? new Date() : null,
+        expiresAt: null,
+        llmJobs: {
+          create: LLM_PROVIDERS.map((p) => ({
+            provider: p.id,
+            status: "pending",
+          })),
+        },
       },
     });
 
-    let comprehensiveAnalysisId = existingComprehensive?.id;
+    const comprehensiveAnalysisId = comprehensive.id;
 
-    // Kick off comprehensive report if none exists
-    if (!existingComprehensive) {
-      const expiresAt = new Date(Date.now() + 72 * 60 * 60 * 1000);
-      const comprehensive = await prisma.analysis.create({
-        data: {
-          userId: user.id,
-          businessName: analysis.businessName,
-          location: analysis.location,
-          category: analysis.category,
-          tier: "comprehensive",
-          status: "pending",
-          paid: !!stripeSessionId || process.env.NODE_ENV === "development",
-          priceTier: resolvedPriceTier,
-          stripeSessionId: stripeSessionId || null,
-          paidAt: stripeSessionId ? new Date() : null,
-          expiresAt,
-          llmJobs: {
-            create: LLM_PROVIDERS.map((p) => ({
-              provider: p.id,
-              status: "pending",
-            })),
-          },
-        },
-      });
-
-      comprehensiveAnalysisId = comprehensive.id;
-
-      // Fire and forget
-      runComprehensiveAudit(
-        comprehensive.id,
-        analysis.businessName,
-        analysis.location,
-        analysis.category
-      ).catch((err: unknown) => {
-        console.error(`Comprehensive analysis ${comprehensive.id} failed:`, err);
-        prisma.analysis
-          .update({
-            where: { id: comprehensive.id },
-            data: { status: "failed", errorMessage: String(err) },
-          })
-          .catch(console.error);
-      });
-    }
+    // Fire and forget
+    runComprehensiveAudit(
+      comprehensive.id,
+      analysis.businessName,
+      analysis.location,
+      analysis.category
+    ).catch((err: unknown) => {
+      console.error(`Comprehensive analysis ${comprehensive.id} failed:`, err);
+      prisma.analysis
+        .update({
+          where: { id: comprehensive.id },
+          data: { status: "failed", errorMessage: String(err) },
+        })
+        .catch(console.error);
+    });
 
     // Send payment confirmation email (fire and forget)
     sendPaymentConfirmationEmail({

@@ -144,7 +144,7 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 1. **Search step** (`search-step.tsx`): User enters business name + category + conditional fields based on scope. Location auto-detected via `GET /api/location` and has Nominatim OpenStreetMap autocomplete dropdown (debounced 280ms, deduplicated). Category dropdown with 16 presets + custom. **Scope-adaptive form**: local categories show location (required), digital categories hide location and show product description (required) + target audience (optional), hybrid categories show all fields with location optional.
 
 2. **POST /api/analysis** (`analysis/route.ts`):
-   - Cache check: reuses existing analysis if same business+location+category within 24h (fast) or 72h (comprehensive)
+   - Cache check: reuses existing free analysis if same business+location+category within 24h. Paid audits always run fresh (no cache).
    - Rate limit: 5 per IP per hour
    - **Free tier**: Creates 1 `Analysis` + 1 `LLMJob` (ChatGPT only) → calls `runFreeAudit()` fire-and-forget
    - **Comprehensive tier**: Creates 1 `Analysis` + 3 `LLMJob` rows → calls `runComprehensiveAudit()` fire-and-forget
@@ -210,7 +210,7 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 ### Three tiers
 - **Free Snapshot** (15-25s): ChatGPT only, 5 queries from query bank. Shows recommendation probability + query evidence. Competitor-first messaging to drive upgrades. Cache: 24h.
-- **Full Audit — $19** (5-15min): 3 providers, 37+ queries each (100+ total). Full methodology, source influence, verification, 80-step action plan, PDF export. Gated by Stripe Checkout (dev bypass in development). Generates shareToken. Cache: 72h.
+- **Full Audit — $19** (5-15min): 3 providers, 37+ queries each (100+ total). Full methodology, source influence, verification, 80-step action plan, PDF export. Gated by Stripe Checkout (dev bypass in development). Generates shareToken. Every payment runs a fresh audit (no cache). Report link never expires.
 - **Audit + Strategy — $199**: Everything in Full Audit plus dedicated execution roadmap, monthly re-audit, 3 competitor monitoring dashboards, custom GEO strategy call (30 min), priority email support. Payment works (separate Stripe Price ID via `STRIPE_PRICE_ID_STRATEGY`), stored as `priceTier: "audit_strategy"` on Analysis. Strategy extras (call scheduling, re-audits, competitor monitoring) are delivered manually by founder — no backend automation yet.
 
 ## Data Model
@@ -230,7 +230,7 @@ model Analysis {
   paid Boolean @default(false), priceTier String @default("free"),
   stripeSessionId String?, paidAt DateTime?, email String?,
   actionPlanJson String?, actionPlanStatus String @default("pending"),
-  resultJson?, errorMessage?, startedAt, completedAt?, expiresAt, createdAt,
+  resultJson?, errorMessage?, startedAt, completedAt?, expiresAt?, createdAt,
   llmJobs[], queryExecutions[], sourceInfluences[], actionPlanItems[]
   @@index([businessName, location, tier])
 }

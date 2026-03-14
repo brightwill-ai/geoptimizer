@@ -63,30 +63,32 @@ export async function POST(request: Request) {
     const normalizedLocation = location.trim().toLowerCase();
     const normalizedCategory = category.trim().toLowerCase();
 
-    // Cache check: recent completed analysis for same business+location+category+tier
-    const cached = await prisma.analysis.findFirst({
-      where: {
-        businessName: normalizedName,
-        location: normalizedLocation,
-        category: normalizedCategory,
-        tier,
-        status: "complete",
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (cached) {
-      return NextResponse.json({
-        id: cached.id,
-        status: "complete",
-        result: cached.resultJson ? JSON.parse(cached.resultJson) : null,
+    // Cache check: only for free tier (24h). Paid audits always run fresh via /claim.
+    if (tier === "fast") {
+      const cached = await prisma.analysis.findFirst({
+        where: {
+          businessName: normalizedName,
+          location: normalizedLocation,
+          category: normalizedCategory,
+          tier: "fast",
+          status: "complete",
+          expiresAt: { gt: new Date() },
+        },
+        orderBy: { createdAt: "desc" },
       });
+
+      if (cached) {
+        return NextResponse.json({
+          id: cached.id,
+          status: "complete",
+          result: cached.resultJson ? JSON.parse(cached.resultJson) : null,
+        });
+      }
     }
 
-    // Calculate cache expiry
-    const ttlHours = tier === "fast" ? 24 : 72;
-    const expiresAt = new Date(Date.now() + ttlHours * 60 * 60 * 1000);
+    // Free audits expire after 24h. Comprehensive audits created here are unpaid
+    // (paid ones go through /claim with expiresAt: null).
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     // Create analysis and LLM jobs
     // Free tier: 1 job (ChatGPT only). Comprehensive: 3 jobs (all providers).
