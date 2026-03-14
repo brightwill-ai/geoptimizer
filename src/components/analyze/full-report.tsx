@@ -147,6 +147,7 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
   const [dashTab, setDashTab] = useState<DashboardTab>("overview");
   const [providerTab, setProviderTab] = useState<LLMProvider>(availableProviders[0]?.id ?? "chatgpt");
   const [evidenceProvider, setEvidenceProvider] = useState<LLMProvider>(availableProviders[0]?.id ?? "chatgpt");
+  const [sourceTab, setSourceTab] = useState<"all" | LLMProvider>("all");
   const activeReport = analysis.reports[providerTab];
   const activeSnapshot = activeReport ? getReportSnapshot(activeReport) : null;
   const evidenceReport = analysis.reports[evidenceProvider];
@@ -753,45 +754,51 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
 
       {dashTab === "sources" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          <DashboardCard title="Cross-platform source influence" subtitle="Which sources are shaping AI recommendations the most">
-            {analysis.sourceInfluences.length > 0 ? (
-              <SourceInfluenceMap sourceInfluences={analysis.sourceInfluences} />
-            ) : (
-              <div className="analysis-mini-panel">
-                <span>Source influence</span>
-                <strong>No source data</strong>
-                <small>The current analysis did not capture source overlap details.</small>
-              </div>
-            )}
+          <DashboardCard title="Source influence" subtitle="Which sources are shaping AI recommendations">
+            <DashboardNav
+              tabs={[
+                { id: "all", label: "All platforms", count: analysis.sourceInfluences.length },
+                ...availableProviders.map((p) => ({
+                  id: p.id,
+                  label: p.name,
+                  count: analysis.reports[p.id]?.sources?.length ?? 0,
+                  color: p.color,
+                })),
+              ]}
+              activeTab={sourceTab}
+              onTabChange={(id) => setSourceTab(id as "all" | LLMProvider)}
+              layoutId="source-provider"
+            />
+            <div style={{ marginTop: 16 }}>
+              {sourceTab === "all" ? (
+                analysis.sourceInfluences.length > 0 ? (
+                  <SourceInfluenceMap sourceInfluences={analysis.sourceInfluences} />
+                ) : (
+                  <div className="analysis-mini-panel">
+                    <span>Source influence</span>
+                    <strong>No source data</strong>
+                    <small>The current analysis did not capture source overlap details.</small>
+                  </div>
+                )
+              ) : (() => {
+                const report = analysis.reports[sourceTab];
+                const provider = availableProviders.find((p) => p.id === sourceTab);
+                return (report?.sources?.length ?? 0) > 0 ? (
+                  <SourceInfluenceMap sources={report.sources} providerName={provider?.name} />
+                ) : (
+                  <div className="analysis-mini-panel">
+                    <span>{provider?.name}</span>
+                    <strong>No source data</strong>
+                    <small>This AI model did not expose source attribution in the current result set.</small>
+                  </div>
+                );
+              })()}
+            </div>
           </DashboardCard>
 
           <DashboardCard title="Accuracy issues" subtitle="Facts that still reduce trust">
             <AccuracyIssueList issues={analysisSnapshot.accuracyIssues} />
           </DashboardCard>
-
-          <div className="dashboard-grid-insights">
-            {availableProviders.map((provider) => {
-              const report = analysis.reports[provider.id];
-              return (
-                <DashboardCard
-                  key={provider.id}
-                  title={`${provider.name} sources`}
-                  icon={<ProviderLogo provider={provider.id} size={14} />}
-                  accentColor={provider.color}
-                >
-                  {(report.sources?.length ?? 0) > 0 ? (
-                    <SourceInfluenceMap sources={report.sources} providerName={provider.name} />
-                  ) : (
-                    <div className="analysis-mini-panel">
-                      <span>{provider.name}</span>
-                      <strong>No source data</strong>
-                      <small>This AI model did not expose source attribution in the current result set.</small>
-                    </div>
-                  )}
-                </DashboardCard>
-              );
-            })}
-          </div>
         </div>
       )}
 
