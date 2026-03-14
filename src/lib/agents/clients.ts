@@ -36,8 +36,8 @@ export type LLMTier = "fast" | "comprehensive";
 
 export const MODEL_CONFIG = {
   chatgpt: {
-    fast: "GPT 4.1 Mini",
-    comprehensive: "GPT 4.1",
+    fast: "gpt-4.1-mini",
+    comprehensive: "gpt-4.1",
   },
   claude: {
     fast: "claude-haiku-4-5-20251001",
@@ -48,5 +48,5 @@ export const MODEL_CONFIG = {
     comprehensive: "gemini-2.5-flash",
   },
   // Parser model (always cheap)
-  parser: "GPT 4.1 Mini",
+  parser: "gpt-4.1-mini",
 } as const;
