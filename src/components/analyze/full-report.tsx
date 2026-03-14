@@ -765,22 +765,9 @@ export function FullReport({ analysis, analysisId, actionPlan, actionPlanStatus 
             )}
           </DashboardCard>
 
-          <div className="dashboard-grid">
-            <DashboardCard title="Source influence" subtitle="What AI trusts most today">
-              {analysis.sourceInfluences.length > 0 ? (
-                <SourceInfluenceMap sourceInfluences={analysis.sourceInfluences} />
-              ) : (
-                <div className="analysis-mini-panel">
-                  <span>Source influence</span>
-                  <strong>No source data</strong>
-                  <small>The current analysis did not capture citation source details.</small>
-                </div>
-              )}
-            </DashboardCard>
-            <DashboardCard title="Accuracy issues" subtitle="Facts that still reduce trust">
-              <AccuracyIssueList issues={analysisSnapshot.accuracyIssues} />
-            </DashboardCard>
-          </div>
+          <DashboardCard title="Accuracy issues" subtitle="Facts that still reduce trust">
+            <AccuracyIssueList issues={analysisSnapshot.accuracyIssues} />
+          </DashboardCard>
 
           <div className="dashboard-grid-insights">
             {availableProviders.map((provider) => {
