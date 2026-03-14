@@ -344,6 +344,7 @@ function AnalyzePageInner() {
             <PartialReport
               key="partial"
               analysis={analysis}
+              analysisId={analysisId ?? undefined}
               onUnlock={() => setStep("email-gate")}
             />
           )}

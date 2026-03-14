@@ -274,10 +274,10 @@ function Nav() {
 // ── Hero Report Mockup ──
 function HeroReportMockup() {
   const queries = [
-    { text: "Best sushi in Miami", mentioned: true },
-    { text: "Where to get omakase near downtown Miami", mentioned: true },
-    { text: "Top Japanese restaurants Brickell", mentioned: false },
-    { text: "Romantic dinner spots Miami Beach", mentioned: true },
+    { text: "Best sushi near downtown Miami", mentioned: true },
+    { text: "Best project management tool for startups", mentioned: false },
+    { text: "Top-rated dentists in Raleigh NC", mentioned: false },
+    { text: "Best skincare brands for sensitive skin", mentioned: true },
   ];
   const { lineIndex, typedText } = useTypewriter(queries.map((query) => query.text));
   const activeQuery = queries[lineIndex % queries.length] ?? queries[0];
@@ -1270,7 +1270,7 @@ function MockupField({
 
 // ── Step Mockup: Search Form ──
 function StepMockupSearch() {
-  const typedBusiness = useTypewriter(["Hana Sushi Miami"]).typedText;
+  const typedBusiness = useTypewriter(["Hana Sushi Miami", "Stripe", "Glossier", "Peak Fitness"]).typedText;
 
   return (
     <MockupWindow path="brightwill.ai/analyze">
@@ -2447,7 +2447,7 @@ function CTAFooter() {
           BrightWill
         </span>
         <p style={{ fontSize: "0.78rem", color: "#8e8ea0" }}>
-          &copy; 2026 BrightWill. Generative Engine Optimization for local businesses.
+          &copy; 2026 BrightWill. Generative Engine Optimization for every business.
         </p>
         <p style={{ fontSize: "0.78rem", color: "#8e8ea0" }}>support@brightwill.ai</p>
       </footer>

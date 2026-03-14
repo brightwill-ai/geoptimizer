@@ -17,6 +17,7 @@ import { getReportSnapshot } from "@/lib/report-insights";
 
 interface PartialReportProps {
   analysis: GEOAnalysis;
+  analysisId?: string;
   onUnlock: () => void;
 }
 
@@ -169,10 +170,16 @@ function FindingBlock({
   );
 }
 
-export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
+export function PartialReport({ analysis, analysisId, onUnlock }: PartialReportProps) {
   const chatgpt = analysis.reports.chatgpt;
   const snapshot = getReportSnapshot(chatgpt);
   const [activeTab, setActiveTab] = useState<PartialTab>("overview");
+  const [emailValue, setEmailValue] = useState("");
+  const [nameValue, setNameValue] = useState("");
+  const [emailSubmitting, setEmailSubmitting] = useState(false);
+  const [emailSaved, setEmailSaved] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [linkCopied, setLinkCopied] = useState(false);
   const lockedProviders = LLM_PROVIDERS.filter((provider) => provider.id !== "chatgpt");
   const probability = Math.round(chatgpt.recommendations.recommendationProbability * 100);
   const visibilityRatio = `${chatgpt.recommendations.mentionCount}/${chatgpt.recommendations.totalQueries} prompts`;
@@ -248,14 +255,58 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
     </div>
   );
 
+  const handleShareLinkedIn = () => {
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    window.open(
+      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  };
+
+  const handleCopyLink = async () => {
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+    }
+  };
+
+  const shareButtonStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    padding: "6px 12px",
+    borderRadius: 8,
+    background: "#ffffff",
+    border: "1px solid #e5e5e5",
+    color: "#6e6e80",
+    fontSize: "0.76rem",
+    fontWeight: 500,
+    fontFamily: "var(--font-sans)",
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  };
+
   const headerRight = (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end", alignItems: "center" }}>
       {lockedProviders.map((provider) => (
         <span key={provider.id} className="analysis-provider-pill">
           <ProviderLogo provider={provider.id} size={12} />
           {provider.name}
         </span>
       ))}
+      <button onClick={handleShareLinkedIn} style={shareButtonStyle}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        Share
+      </button>
+      <button onClick={handleCopyLink} style={shareButtonStyle}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        {linkCopied ? "Copied!" : "Copy link"}
+      </button>
     </div>
   );
 
@@ -496,6 +547,229 @@ export function PartialReport({ analysis, onUnlock }: PartialReportProps) {
                 </div>
               </DashboardCard>
             )}
+
+            {/* Email capture — save your results */}
+            {analysisId && !emailSaved && (
+              <DashboardCard
+                accentColor="#16a34a"
+                style={{ background: "#ffffff", border: "1px solid #e5e5e5" }}
+              >
+                <div style={{ fontSize: "1rem", fontWeight: 600, color: "#171717", marginBottom: 4 }}>
+                  Save your results
+                </div>
+                <p style={{ margin: "0 0 14px", fontSize: "0.82rem", color: "#6e6e80", lineHeight: 1.5 }}>
+                  Get notified when your AI visibility changes. We&apos;ll check monthly.
+                </p>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!emailValue.trim()) return;
+                    setEmailSubmitting(true);
+                    setEmailError("");
+                    try {
+                      const res = await fetch(`/api/analysis/${analysisId}/email-capture`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: emailValue.trim(), name: nameValue.trim() || undefined }),
+                      });
+                      if (!res.ok) throw new Error("Failed to save");
+                      setEmailSaved(true);
+                    } catch {
+                      setEmailError("Something went wrong. Please try again.");
+                    } finally {
+                      setEmailSubmitting(false);
+                    }
+                  }}
+                  style={{ display: "flex", gap: 8, flexWrap: "wrap" }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Name (optional)"
+                    value={nameValue}
+                    onChange={(e) => setNameValue(e.target.value)}
+                    style={{
+                      flex: "0 1 160px",
+                      padding: "10px 12px",
+                      fontSize: "0.84rem",
+                      fontFamily: "var(--font-sans)",
+                      borderRadius: 8,
+                      border: "1px solid #e5e5e5",
+                      background: "#f7f7f8",
+                      color: "#171717",
+                      outline: "none",
+                    }}
+                  />
+                  <input
+                    type="email"
+                    placeholder="you@example.com"
+                    required
+                    value={emailValue}
+                    onChange={(e) => setEmailValue(e.target.value)}
+                    style={{
+                      flex: "1 1 200px",
+                      padding: "10px 12px",
+                      fontSize: "0.84rem",
+                      fontFamily: "var(--font-sans)",
+                      borderRadius: 8,
+                      border: "1px solid #e5e5e5",
+                      background: "#f7f7f8",
+                      color: "#171717",
+                      outline: "none",
+                    }}
+                  />
+                  <button
+                    type="submit"
+                    disabled={emailSubmitting}
+                    style={{
+                      padding: "10px 20px",
+                      fontSize: "0.84rem",
+                      fontWeight: 600,
+                      fontFamily: "var(--font-sans)",
+                      borderRadius: 8,
+                      border: "none",
+                      background: "#171717",
+                      color: "#ffffff",
+                      cursor: emailSubmitting ? "not-allowed" : "pointer",
+                      opacity: emailSubmitting ? 0.6 : 1,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {emailSubmitting ? "Saving..." : "Save"}
+                  </button>
+                </form>
+                {emailError && (
+                  <div style={{ marginTop: 8, fontSize: "0.78rem", color: "#dc2626" }}>{emailError}</div>
+                )}
+              </DashboardCard>
+            )}
+
+            {/* Email saved success state */}
+            {emailSaved && (
+              <DashboardCard
+                accentColor="#16a34a"
+                style={{ background: "#ffffff", borderLeft: "3px solid #16a34a", border: "1px solid #e5e5e5", borderLeftWidth: 3, borderLeftColor: "#16a34a" }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  <div>
+                    <div style={{ fontSize: "0.88rem", fontWeight: 600, color: "#171717" }}>Saved!</div>
+                    <div style={{ fontSize: "0.78rem", color: "#6e6e80" }}>We&apos;ll email you monthly updates on your AI visibility.</div>
+                  </div>
+                </div>
+              </DashboardCard>
+            )}
+
+            {/* Quick Wins — rule-based action items from audit data */}
+            <DashboardCard title="3 quick wins to start now" accentColor="#171717">
+              <div style={{ display: "grid", gap: 10 }}>
+                {(() => {
+                  const wins: { icon: string; title: string; detail: string }[] = [];
+                  const notMentioned = chatgpt.recommendations.notMentionedCount > 0;
+                  const hasCompetitors = (chatgpt.competitors?.length ?? 0) > 0;
+                  const sentimentScore = chatgpt.sentiment?.positive ?? 0;
+                  const weakSentiment = sentimentScore < 60;
+                  const topSource = snapshot.topSource;
+
+                  if (notMentioned) {
+                    const platform = topSource?.name ?? "Google Business Profile";
+                    wins.push({
+                      icon: "1",
+                      title: `Claim and optimize your ${platform} listing`,
+                      detail: `AI models pull from review platforms and directories. ${platform} was the most cited source — make sure your profile is complete with hours, photos, and descriptions.`,
+                    });
+                  } else {
+                    wins.push({
+                      icon: "1",
+                      title: "Keep your directory listings up to date",
+                      detail: "AI models cross-reference multiple sources. Ensure your Google Business, Yelp, and industry listings have consistent, current information.",
+                    });
+                  }
+
+                  if (hasCompetitors && topCompetitor) {
+                    wins.push({
+                      icon: "2",
+                      title: "Add structured data (Schema.org) to your website",
+                      detail: `${topCompetitor} is currently recommended ahead of you. Schema markup helps AI models understand what your business does and improves your chances of being cited.`,
+                    });
+                  } else {
+                    wins.push({
+                      icon: "2",
+                      title: "Add structured data (Schema.org) to your website",
+                      detail: "Schema markup helps AI models understand your business type, location, and services — making it easier for them to recommend you in relevant queries.",
+                    });
+                  }
+
+                  if (weakSentiment) {
+                    wins.push({
+                      icon: "3",
+                      title: "Respond to recent reviews on Google and Yelp",
+                      detail: "Your sentiment signal is weaker than it should be. AI models factor in review tone — responding to reviews (especially negative ones) shows engagement and can shift sentiment.",
+                    });
+                  } else {
+                    wins.push({
+                      icon: "3",
+                      title: "Collect more customer reviews",
+                      detail: "Review volume strongly predicts AI recommendations. Businesses with 100+ reviews are 3x more likely to be recommended. Ask satisfied customers to leave a review.",
+                    });
+                  }
+
+                  return wins.map((win) => (
+                    <div
+                      key={win.icon}
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        alignItems: "flex-start",
+                        padding: "14px 16px",
+                        borderRadius: 12,
+                        background: "#f7f7f8",
+                        border: "1px solid #e5e5e5",
+                      }}
+                    >
+                      <span style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: 6,
+                        background: "#171717",
+                        color: "#ffffff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "0.72rem",
+                        fontWeight: 700,
+                        flexShrink: 0,
+                        marginTop: 1,
+                      }}>{win.icon}</span>
+                      <div>
+                        <div style={{ fontSize: "0.86rem", fontWeight: 600, color: "#171717", marginBottom: 4 }}>
+                          {win.title}
+                        </div>
+                        <div style={{ fontSize: "0.78rem", color: "#6e6e80", lineHeight: 1.5 }}>
+                          {win.detail}
+                        </div>
+                      </div>
+                    </div>
+                  ));
+                })()}
+                <button
+                  onClick={onUnlock}
+                  style={{
+                    width: "100%",
+                    padding: "12px",
+                    borderRadius: 8,
+                    border: "1px dashed #e5e5e5",
+                    background: "transparent",
+                    color: "#6e6e80",
+                    fontSize: "0.82rem",
+                    fontFamily: "var(--font-sans)",
+                    cursor: "pointer",
+                    textAlign: "center",
+                  }}
+                >
+                  Run the full audit for your complete 80-step action plan
+                </button>
+              </div>
+            </DashboardCard>
 
             <div>
               <SectionLabel>Snapshot</SectionLabel>

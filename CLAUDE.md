@@ -33,6 +33,7 @@ src/
 │   ├── signup/page.tsx                   # Business signup form
 │   ├── analyze/page.tsx                  # GEO analysis orchestrator (step state machine)
 │   ├── report/[token]/page.tsx           # Public shareable report page
+│   ├── report/[token]/opengraph-image.tsx # Dynamic OG image (1200x630) for social sharing
 │   ├── api/
 │   │   ├── signups/route.ts              # POST /api/signups
 │   │   ├── location/route.ts             # GET /api/location (IP geolocation)
@@ -43,6 +44,7 @@ src/
 │   │   ├── analysis/[id]/
 │   │   │   ├── route.ts                  # GET /api/analysis/[id] (poll status + query progress + actionPlan)
 │   │   │   ├── claim/route.ts            # POST /api/analysis/[id]/claim (payment verification + comprehensive audit)
+│   │   │   ├── email-capture/route.ts   # POST /api/analysis/[id]/email-capture (save email for follow-up)
 │   │   │   └── action-plan/
 │   │   │       ├── route.ts              # GET (live plan) + POST (regenerate)
 │   │   │       └── [itemId]/route.ts     # PATCH (toggle completion, notes)
@@ -175,13 +177,13 @@ Public report page /report/[token] polls /api/report/[token] ─┘
 
 7. **Frontend polling** (`analyze/page.tsx`): Polls every 2s. Response includes `queryProgress: { completed, total, currentQueryText }`. `total` comes from `Analysis.queryCount` (set before the query loop starts). Loading step is tier-aware: free shows ChatGPT badge only, comprehensive shows all 3 provider badges with individual status.
 
-8. **Partial report** (`partial-report.tsx`): Competitor-first dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: hero card with competitor callout ("ChatGPT recommends [competitor] over you"), "What your customers see" card (scrollable chat-style with verbatim AI response), snapshot blockers/wins, query patterns, competitive context, blurred full audit preview with unlock overlay, and $19 CTA. Evidence: QueryEvidence component + source/sentiment readout. Sticky CTA bar at bottom with competitor-aware messaging. Score ring glow and gradient hero background.
+8. **Partial report** (`partial-report.tsx`): Competitor-first dashboard layout with sticky KPI row + 2 tabs (Overview, Evidence). Overview: hero card with competitor callout ("ChatGPT recommends [competitor] over you"), "What your customers see" card (scrollable chat-style with verbatim AI response), email capture card ("Save your results" — optional, non-blocking, creates Signup record), "3 quick wins" card (rule-based action items from audit data referencing actual findings), snapshot blockers/wins, query patterns, competitive context, blurred full audit preview with unlock overlay, and $19 CTA. Evidence: QueryEvidence component + source/sentiment readout. Sticky CTA bar at bottom with competitor-aware messaging. Share buttons (LinkedIn + Copy Link) in header. Score ring glow and gradient hero background.
 
 9. **Payment gate** (`email-gate.tsx`): Shows tier selector ($19 Full Audit vs $199 Audit + Strategy) + email form → `POST /api/checkout` with `priceTier` → Stripe Checkout Session (with `allow_promotion_codes: true`) → redirects to Stripe hosted page. On success, Stripe redirects back to `/analyze?session_id={id}&analysis_id={id}`. Page detects URL params → `POST /api/analysis/[id]/claim` with `stripeSessionId` → claim route verifies payment with Stripe API, reads `priceTier` from session metadata → creates comprehensive analysis with `priceTier` field → sends payment confirmation email. Dev bypass: skips Stripe in `NODE_ENV=development`, redirects directly. Webhook (`/api/webhooks/stripe`) serves as backup reconciliation.
 
-10. **Full report** (`full-report.tsx`): Dashboard layout with sticky KPI row (avg + per-provider probabilities with mini rings) + 5 tabs (Overview, AI Models, Sources, Evidence, Action Plan). Overview: ProviderComparisonVisual + InsightCards + Methodology + LLMComparisonTable. AI Models: provider sub-tabs → 2-column grid with hero, metrics, query breakdown, competitors, topics, accuracy, sentiment, evidence. Sources: cross-platform source influence + accuracy issues + per-provider source breakdowns. Evidence: provider sub-tabs → QueryEvidence. Action Plan: ActionPlan or ActionItems. All user-facing "provider" labels renamed to "AI model".
+10. **Full report** (`full-report.tsx`): Dashboard layout with sticky KPI row (avg + per-provider probabilities with mini rings) + 5 tabs (Overview, AI Models, Sources, Evidence, Action Plan). Overview: ProviderComparisonVisual + InsightCards + Methodology + LLMComparisonTable. AI Models: provider sub-tabs → 2-column grid with hero, metrics, query breakdown, competitors, topics, accuracy, sentiment, evidence. Sources: cross-platform source influence + accuracy issues + per-provider source breakdowns. Evidence: provider sub-tabs → QueryEvidence. Action Plan: ActionPlan or ActionItems. All user-facing "provider" labels renamed to "AI model". Share buttons (LinkedIn + Copy Link) and PDF download in header.
 
-11. **Public report** (`/report/[token]`): Standalone page polls `/api/report/[token]`. Shows loading during analysis, full report when complete.
+11. **Public report** (`/report/[token]`): Standalone page polls `/api/report/[token]`. Shows loading during analysis, full report when complete. Dynamic OG image (`opengraph-image.tsx`) generates 1200x630 preview with business name, AI Visibility Score (color-coded), provider badges, and BrightWill branding on warm beige background.
 
 12. **Action plan generation** (`action-plan-generator.ts`): After comprehensive analysis completes, GPT-4.1 generates a personalized GEO optimization action plan (80-120 items across 10 categories). Uses the full GEOAnalysis data as context — every item references specific findings (competitor names, probability %, sentiment phrases, failed queries, source gaps). Categories: Entity Trust, Technical AI Crawlability, Schema.org, Content Structure, Citation Authority, Source Presence, Competitor Strategy, Content Marketing, Reputation & Sentiment, Monitoring. Items stored as `ActionPlanItem` DB records for progress tracking (checkbox completion persists). Non-blocking on failure — analysis completes even if action plan generation fails. Retry via `POST /api/analysis/[id]/action-plan`.
 
@@ -226,7 +228,7 @@ model Analysis {
   queryCount Int, recommendationProbability Float?, methodology String?,
   shareToken String? @unique,
   paid Boolean @default(false), priceTier String @default("free"),
-  stripeSessionId String?, paidAt DateTime?,
+  stripeSessionId String?, paidAt DateTime?, email String?,
   actionPlanJson String?, actionPlanStatus String @default("pending"),
   resultJson?, errorMessage?, startedAt, completedAt?, expiresAt, createdAt,
   llmJobs[], queryExecutions[], sourceInfluences[], actionPlanItems[]
@@ -372,6 +374,7 @@ Clean light dashboard (Linear/Notion-inspired) on warm beige page:
 | POST | `/api/analysis` | Create analysis + start audit (free or comprehensive) |
 | GET | `/api/analysis/[id]` | Poll status + query progress + results |
 | POST | `/api/analysis/[id]/claim` | Verify Stripe payment → kick off comprehensive audit |
+| POST | `/api/analysis/[id]/email-capture` | Save email + name to Analysis + create Signup (free report) |
 | POST | `/api/checkout` | Create Stripe Checkout Session (supports priceTier, promotion codes, dev bypass) |
 | POST | `/api/webhooks/stripe` | Stripe webhook handler (backup payment reconciliation) |
 | GET | `/api/health` | DB health check (for UptimeRobot monitoring) |
