@@ -273,14 +273,20 @@ function Nav() {
 
 // ── Hero Report Mockup ──
 function HeroReportMockup() {
-  const queries = [
+  // Typewriter cycles through these (top row only)
+  const typewriterQueries = [
     { text: "Best sushi near downtown Miami", mentioned: true },
+    { text: "Where should I eat tonight in Brickell", mentioned: false },
+    { text: "Best omakase in South Florida", mentioned: true },
+  ];
+  // Static rows below the typewriter
+  const staticQueries = [
     { text: "Best project management tool for startups", mentioned: false },
     { text: "Top-rated dentists in Raleigh NC", mentioned: false },
     { text: "Best skincare brands for sensitive skin", mentioned: true },
   ];
-  const { lineIndex, typedText } = useTypewriter(queries.map((query) => query.text));
-  const activeQuery = queries[lineIndex % queries.length] ?? queries[0];
+  const { lineIndex, typedText } = useTypewriter(typewriterQueries.map((q) => q.text));
+  const activeQuery = typewriterQueries[lineIndex % typewriterQueries.length] ?? typewriterQueries[0];
 
   return (
     <div
@@ -358,7 +364,7 @@ function HeroReportMockup() {
           </span>
         </div>
 
-        {queries.slice(1).map((item, i) => (
+        {staticQueries.map((item, i) => (
           <div
             key={i}
             style={{
