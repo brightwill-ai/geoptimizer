@@ -258,8 +258,50 @@ Go to **Campaigns** tab > **Create Campaign**.
 The **Dashboard** tab shows:
 - **KPIs:** Total contacts, sent today, sent this week, active campaigns, bounced, unsubscribed
 - **Account Health:** Per-account cards showing warmup progress, sends today vs. daily limit, and error status
-- **Recent Sends:** Last 20 emails sent with status and details
+- **Recent Sends:** Last 50 emails sent with status and details
 - **Run Send Cycle:** Manual trigger button (useful for testing — normally the cron handles this)
+
+### Account Management
+
+Beyond initial setup, accounts support these operations:
+
+- **Test** — sends a real email to verify SMTP credentials work
+- **Pause / Resume** — manually pause an account; resuming clears all error counters (`consecutiveErrors`, `lastError`) so the account gets a fresh start
+- **Remove** — soft-delete (keeps historical send data, but account is excluded from future sends)
+- **Edit** — update label, from name, from email, reply-to, daily limit, or warmup toggle via the API (`PATCH /api/admin/outreach/accounts/[id]`). Re-encrypts password if changed.
+
+**Account status values:**
+| Status | Meaning |
+|--------|---------|
+| `active` | Ready to send |
+| `paused` | Manually paused by user |
+| `error` | Auto-set at 5 consecutive send errors (must be manually resumed) |
+| `disabled` | Permanently disabled |
+
+### Contact Management
+
+**Filtering:** Use the status, city, category, and list dropdowns to filter the contacts table. Pagination defaults to 50 per page (API supports 1-200 via `limit` parameter).
+
+**Contact status values:**
+| Status | Meaning |
+|--------|---------|
+| `pending` | Imported, not yet sent |
+| `sent` | At least one email sent |
+| `bounced` | Email bounced (excluded from future sends) |
+| `replied` | Contact replied (manual status) |
+| `unsubscribed` | Clicked unsubscribe link (permanent, excluded from all campaigns) |
+| `failed` | Send failed |
+
+**Deleting contacts:** Hard-deletes the contact and cascades to all list memberships and send records. Use with caution.
+
+**Custom fields:** Any CSV columns that don't map to known fields are stored as JSON in the contact's `customFields` — accessible via the API but not currently shown in the UI.
+
+### Template Management
+
+- **Auto-detected variables:** When you create or edit a template, the system auto-scans for `{variable}` patterns and stores them — no manual variable list needed
+- **Preview:** Renders the template with sample contact data. The preview API also accepts custom sample data for testing specific scenarios
+- **Test Send:** Sends a real email through one of your SMTP accounts with sample data rendered in
+- **Delete:** Removes the template (cannot delete templates actively used in campaigns)
 
 ### Unsubscribe Handling
 
@@ -268,17 +310,21 @@ Every email automatically includes an `{unsubscribeUrl}` that links to `/api/uns
 2. The user is redirected to a branded confirmation page at `/unsubscribe/{token}`
 3. The contact is permanently excluded from all future campaigns
 
-Each contact gets a unique unsubscribe token (auto-generated on import).
+Each contact gets a unique unsubscribe token (auto-generated via CUID on import).
 
 ### Safety Features
 
 - **Duplicate prevention:** `@@unique([campaignId, contactId])` constraint on sends + application-level cross-campaign dedup
-- **Auto-pause on errors:** Account pauses at 3 consecutive errors, disables at 5
-- **Send window enforcement:** Emails only sent during configured hours (in the campaign's timezone)
-- **Weekend skip:** Optional per-campaign
+- **Auto-pause on errors:** Warmup pauses at 3 consecutive errors; account auto-sets to `error` status at 5 errors
+- **Send window enforcement:** Emails only sent during configured hours — timezone-aware (falls back to UTC if timezone is invalid)
+- **Weekend skip:** Optional per-campaign, uses timezone-aware day detection
 - **In-memory lock:** Prevents overlapping send cycles if the cron fires while a cycle is still running
-- **Daily reset:** Account send counters reset automatically each day
+- **Resilient DB updates:** Send cycle uses `Promise.allSettled` so one DB update failure (e.g., contact deleted mid-cycle) doesn't crash the entire cycle
+- **Daily reset:** Account send counters reset automatically each day; warmup phase advances on reset
 - **Encrypted credentials:** SMTP passwords stored with AES-256-GCM encryption
+- **Load balancing:** SMTP account with fewest sends today is picked first (least-loaded strategy)
+- **Draft-only deletion:** Campaigns can only be deleted in draft status — active/paused/complete campaigns are preserved
+- **Campaign timestamps:** `startedAt`, `pausedAt`, `completedAt` are tracked automatically on status transitions
 
 ### Migrating Existing Data
 

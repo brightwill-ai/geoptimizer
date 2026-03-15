@@ -140,13 +140,47 @@ export function ContactsView({ lists, onRefresh }: Props) {
 
   const ourFields = ["email", "businessName", "firstName", "category", "city", "cuisineType", "website", "phone", "address", "zipCode", "source"];
 
+  const downloadTemplate = () => {
+    const headers = ["Email", "Business Name", "First Name", "Category", "City", "Cuisine/Type", "Website", "Phone", "Full Address", "Zip Code", "Source"];
+    const sampleRow = [
+      "contact@example.com",
+      "Joe's Coffee Shop",
+      "Joe",
+      "restaurant",
+      "Raleigh",
+      "Coffee",
+      "https://joescoffee.com",
+      "(919) 555-0123",
+      "123 Main St, Raleigh, NC",
+      "27601",
+      "Google Maps",
+    ];
+    const csv = [headers.join(","), sampleRow.map((v) => `"${v}"`).join(",")].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "outreach-contacts-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const totalPages = Math.ceil(total / 50);
 
   return (
     <div>
       {/* CSV Upload Zone */}
       <div style={{ background: "#ffffff", border: "1px solid #e5e5e5", borderRadius: 12, padding: "1.25rem", marginBottom: "1.5rem" }}>
-        <h3 style={{ fontSize: "0.9rem", fontWeight: 600, color: "#171717", margin: "0 0 12px 0" }}>Import Contacts</h3>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <h3 style={{ fontSize: "0.9rem", fontWeight: 600, color: "#171717", margin: 0 }}>Import Contacts</h3>
+          <button
+            onClick={downloadTemplate}
+            style={{ padding: "5px 12px", fontSize: "0.75rem", fontWeight: 500, borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", color: "#171717", cursor: "pointer", display: "flex", alignItems: "center", gap: 4 }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download CSV Template
+          </button>
+        </div>
 
         {!detectPhase && (
           <div

@@ -560,10 +560,10 @@ Public: GET /api/unsubscribe/[token] → marks contact unsubscribed → redirect
 
 | Module | Purpose | Key exports |
 |--------|---------|-------------|
-| `encryption.ts` | AES-256-GCM encrypt/decrypt for SMTP passwords | `encrypt(plaintext)`, `decrypt(ciphertext)` — stores as `iv:authTag:ciphertext` hex-encoded. Key from `OUTREACH_ENCRYPTION_KEY` env (32-byte hex). |
+| `encryption.ts` | AES-256-GCM encrypt/decrypt for SMTP passwords | `encrypt(plaintext)`, `decrypt(ciphertext)` — stores as `iv:authTag:ciphertext` hex-encoded. Key from `OUTREACH_ENCRYPTION_KEY` env (32-byte hex). Validates key length (64 hex chars = 32 bytes) and encrypted format (3 colon-separated parts). |
 | `warmup.ts` | 5-phase warmup schedule over ~3 weeks | `advanceWarmup(state)` → returns new phase/limit/day. `getWarmupInfo(phase)` → label/limit for UI display. Pauses if `consecutiveErrors >= 3`. |
 | `renderer.ts` | Template `{variable}` replacement | `renderTemplate(template, contactData)` — replaces all `{var}` placeholders with contact data + computed vars (`{categoryNoun}`, `{searchExample}`, `{unsubscribeUrl}`). `extractVariables(template)` — regex extraction for auto-detecting used vars. `SAMPLE_CONTACT` — mock data for previews. `CATEGORY_NOUN_MAP` — 16-entry map for category → noun conversion. |
-| `smtp.ts` | Nodemailer transport factory | `createTransport(account)` — decrypts `smtpPass`, creates nodemailer transport. `sendEmail(transporter, options)` — sends and returns `messageId`. |
+| `smtp.ts` | Nodemailer transport factory | `createTransport(account)` — decrypts `smtpPass`, creates nodemailer transport with timeouts (connection: 10s, socket: 15s, greeting: 10s). `sendEmail(transporter, options)` — sends and returns `messageId`. |
 | `csv-parser.ts` | CSV parsing with column auto-detection | `detectColumns(headers)` — maps CSV headers to our fields via `AUTO_MAP` aliases. `parseCSV(content, columnMapping)` — returns `{ contacts, errors, duplicates, headers }`. Handles BOM, semicolon-separated emails, unmapped columns as `customFields` JSON. |
 | `send-engine.ts` | Core cron-triggered send cycle | `runSendCycle()` — stateless, in-memory lock (`let sendCycleRunning = false`), processes all active campaigns. Returns `SendCycleResult { sent, failed, campaignsProcessed, details[] }`. |
 
@@ -583,8 +583,9 @@ Public: GET /api/unsubscribe/[token] → marks contact unsubscribed → redirect
    - **Render** — `renderTemplate()` for subject, htmlBody, plainTextBody
    - **Create OutreachSend** — status "pending", catches unique constraint violations for dedup
    - **Send via nodemailer** — `createTransport(account)` + `sendEmail()`
-   - **Update records** — on success: send→"sent", account sentToday++/totalSent++/consecutiveErrors=0, contact→"sent", campaign sentCount++/lastSendAt. On failure: send→"failed" with error, account consecutiveErrors++, auto-disable at 5 errors
-4. **Campaign completion** — if no eligible contacts remain and all have been sent, campaign status → "complete"
+   - **Update records** — uses `Promise.allSettled` so one DB failure doesn't crash the cycle. On success: send→"sent", account sentToday++/totalSent++/consecutiveErrors=0, contact→"sent", campaign sentCount++/lastSendAt. On failure: send→"failed" with error, account consecutiveErrors++, auto-set status to "error" at 5 consecutive errors
+4. **Campaign completion** — if no eligible contacts remain and all have been sent, campaign status → "complete" with `completedAt` timestamp
+5. **Timezone helpers** — `getHourInTimezone(date, tz)` and `getDayInTimezone(date, tz)` handle send window and weekend checks. Falls back to UTC if timezone conversion fails.
 
 ### API Routes (`src/app/api/admin/outreach/`)
 
@@ -593,20 +594,20 @@ All outreach API routes (except unsubscribe) are admin-protected via `requireAdm
 | Route file | Methods | Key implementation notes |
 |-----------|---------|------------------------|
 | `accounts/route.ts` | GET, POST | POST encrypts `smtpPass` via `encrypt()` before storing. Sets initial warmup state based on `warmupEnabled`. |
-| `accounts/[id]/route.ts` | PATCH, DELETE, POST | DELETE is soft-delete (`isActive: false`). POST sends a test email via the account's SMTP. PATCH can update any field; if `smtpPass` is provided, re-encrypts. |
-| `contacts/route.ts` | GET | Paginated (50/page), filterable by `status`, `city`, `listId`. Includes `listMemberships` with list names. |
+| `accounts/[id]/route.ts` | PATCH, DELETE, POST | DELETE is soft-delete (`isActive: false`). POST sends a test email via the account's SMTP. PATCH can update any field; if `smtpPass` is provided, re-encrypts. Resuming (status→"active") resets `consecutiveErrors=0` and clears `lastError`. |
+| `contacts/route.ts` | GET | Paginated (default 50/page, `limit` param 1-200), filterable by `status`, `city`, `category`, `listId`. Includes `listMemberships` with list names. |
 | `contacts/[id]/route.ts` | PATCH, DELETE | DELETE is hard delete (cascades list memberships + sends). |
 | `contacts/upload/route.ts` | POST | Two-phase: first call with just file returns `{ headers, autoMapping }`. Second call with file + `columnMapping` JSON + optional `listName`/`listId` does the import. Creates contacts with `upsert` (skip existing emails), auto-generates `unsubscribeToken` (nanoid). Creates/reuses list, creates `OutreachListMember` entries, updates list `contactCount`. |
 | `lists/route.ts` | GET, POST | GET includes `contactCount`. POST creates empty list. |
 | `lists/[id]/route.ts` | PATCH, DELETE | DELETE cascades members. |
 | `templates/route.ts` | GET, POST | POST auto-extracts variables from subject+htmlBody+plainTextBody via `extractVariables()`, stores as JSON array. |
 | `templates/[id]/route.ts` | PATCH, DELETE | PATCH re-extracts variables on update. |
-| `templates/[id]/preview/route.ts` | POST | Renders template with `SAMPLE_CONTACT` data from renderer.ts. Returns `{ subject, html }`. |
+| `templates/[id]/preview/route.ts` | POST | Renders template with `SAMPLE_CONTACT` data from renderer.ts (or custom `sampleData` from request body). Returns `{ subject, html }`. |
 | `templates/[id]/test-send/route.ts` | POST | Accepts `{ testEmail, accountId }`. Renders with sample data, sends real email via specified account. |
 | `campaigns/route.ts` | GET, POST | GET includes list details + template details. POST creates with status "draft", creates `OutreachCampaignTemplate` join records with weights. |
-| `campaigns/[id]/route.ts` | GET, PATCH, DELETE | GET returns send log with contact/template/account details. PATCH handles start (→"active") / pause (→"paused") status transitions + field updates. DELETE only allowed for "draft" campaigns. |
+| `campaigns/[id]/route.ts` | GET, PATCH, DELETE | GET returns paginated send log (page/limit params) with contact/template/account details. PATCH handles start (→"active", sets `startedAt`) / pause (→"paused", sets `pausedAt`) status transitions + field updates. DELETE only allowed for "draft" campaigns. |
 | `send/route.ts` | POST | Dual auth: admin cookie OR `Authorization: Bearer CRON_SECRET`. Calls `runSendCycle()` and returns result JSON. |
-| `stats/route.ts` | GET | Aggregates: totalContacts, totalSent, sentToday, sentThisWeek, activeCampaigns, totalBounced, totalUnsubscribed, accounts (summary), recentSends (last 20). |
+| `stats/route.ts` | GET | Aggregates: totalContacts, totalSent, sentToday, sentThisWeek, activeCampaigns, totalBounced, totalUnsubscribed, accounts (summary), recentSends (last 50 with contact/template/account joins). |
 
 ### Unsubscribe Flow
 
@@ -635,7 +636,17 @@ All outreach API routes (except unsubscribe) are admin-protected via `requireAdm
 | phase_5 | 17-21 | 40 | Near-max volume |
 | complete | 22+ | 50 | Fully warmed |
 
-Implemented in `warmup.ts` as `PHASES` array. `advanceWarmup()` increments `warmupDay` and looks up the phase for that day. Auto-pauses if `consecutiveErrors >= 3`. Account auto-disabled at 5 errors (set in `send-engine.ts` failure handler).
+Implemented in `warmup.ts` as `PHASES` array. `advanceWarmup()` increments `warmupDay` and looks up the phase for that day. Auto-pauses if `consecutiveErrors >= 3`. Account auto-set to "error" status at 5 errors (set in `send-engine.ts` failure handler).
+
+### Status Values
+
+**Account statuses:** `active` (ready to send), `paused` (manually paused), `error` (auto-set at 5 consecutive errors, must manually resume), `disabled` (permanently off).
+
+**Contact statuses:** `pending` (imported, not yet sent), `sent` (email delivered), `bounced` (email bounced, excluded from sends), `replied` (manual status), `unsubscribed` (permanent, excluded from all campaigns), `failed` (send failed).
+
+**Campaign statuses:** `draft` (can edit/delete), `active` (cron processes it), `paused` (temporarily stopped), `complete` (auto-set when all eligible contacts sent). Status transitions set timestamps: `startedAt`, `pausedAt`, `completedAt`.
+
+**Send statuses:** `pending` (created pre-send), `sent` (delivered), `failed` (error occurred), `bounced` (delivery bounced).
 
 ### Template Variables
 
