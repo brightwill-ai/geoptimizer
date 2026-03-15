@@ -76,6 +76,16 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
   const [error, setError] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sendLogs, setSendLogs] = useState<Record<string, SendLog[]>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    templateIds: [] as { id: string; weight: number }[],
+    delayMinutes: 4,
+    sendWindowStart: 9,
+    sendWindowEnd: 17,
+    skipWeekends: false,
+  });
+  const [editSaving, setEditSaving] = useState(false);
 
   const handleCreate = async () => {
     setSaving(true);
@@ -124,6 +134,49 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
       const data = await res.json();
       setSendLogs((prev) => ({ ...prev, [id]: data.sends }));
     } catch { /* ignore */ }
+  };
+
+  const startEdit = (c: Campaign) => {
+    setEditingId(c.id);
+    setExpandedId(c.id);
+    setEditForm({
+      name: c.name,
+      templateIds: c.templates.map((t) => ({ id: t.template.id, weight: t.weight })),
+      delayMinutes: c.delayMinutes,
+      sendWindowStart: c.sendWindowStart,
+      sendWindowEnd: c.sendWindowEnd,
+      skipWeekends: c.skipWeekends,
+    });
+  };
+
+  const handleEditSave = async () => {
+    if (!editingId) return;
+    setEditSaving(true);
+    try {
+      await fetch(`/api/admin/outreach/campaigns/${editingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm),
+      });
+      setEditingId(null);
+      onRefresh();
+    } catch { /* ignore */ }
+    setEditSaving(false);
+  };
+
+  const toggleEditTemplate = (templateId: string) => {
+    setEditForm((prev) => {
+      const exists = prev.templateIds.find((t) => t.id === templateId);
+      if (exists) return { ...prev, templateIds: prev.templateIds.filter((t) => t.id !== templateId) };
+      return { ...prev, templateIds: [...prev.templateIds, { id: templateId, weight: 1 }] };
+    });
+  };
+
+  const updateEditWeight = (templateId: string, weight: number) => {
+    setEditForm((prev) => ({
+      ...prev,
+      templateIds: prev.templateIds.map((t) => t.id === templateId ? { ...t, weight } : t),
+    }));
   };
 
   const toggleTemplate = (templateId: string) => {
@@ -282,6 +335,11 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                           Pause
                         </button>
                       )}
+                      {c.status !== "complete" && (
+                        <button onClick={(e) => { e.stopPropagation(); startEdit(c); }} style={{ padding: "2px 8px", fontSize: "0.7rem", borderRadius: 6, border: "1px solid #4285f4", background: "rgba(66,133,244,0.1)", color: "#4285f4", cursor: "pointer" }}>
+                          Edit
+                        </button>
+                      )}
                       {c.status === "draft" && (
                         <button onClick={(e) => { e.stopPropagation(); deleteCampaign(c.id); }} style={{ padding: "2px 8px", fontSize: "0.7rem", borderRadius: 6, border: "1px solid #dc2626", background: "rgba(220,38,38,0.1)", color: "#dc2626", cursor: "pointer" }}>
                           Delete
@@ -293,34 +351,86 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                 {expandedId === c.id && (
                   <tr>
                     <td colSpan={7} style={{ padding: "12px 14px", background: "#fafafa", borderBottom: "1px solid #f0f0f0" }}>
-                      <div style={{ fontSize: "0.75rem", color: "#6e6e80", marginBottom: 8 }}>
-                        <strong>Templates:</strong> {c.templates.map((t) => `${t.template.name} (w:${t.weight})`).join(", ") || "None"}
-                        &nbsp;&middot;&nbsp;
-                        <strong>Delay:</strong> {c.delayMinutes}min
-                        &nbsp;&middot;&nbsp;
-                        <strong>Window:</strong> {c.sendWindowStart}:00-{c.sendWindowEnd}:00 {c.timezone}
-                        {c.skipWeekends && " · Skip weekends"}
-                      </div>
-                      {sendLogs[c.id] && (
+                      {editingId === c.id ? (
                         <div>
-                          <strong style={{ fontSize: "0.7rem", color: "#8e8ea0" }}>Recent sends:</strong>
-                          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 4 }}>
-                            <tbody>
-                              {sendLogs[c.id].map((s) => (
-                                <tr key={s.id}>
-                                  <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem" }}>{s.contact.email}</td>
-                                  <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", color: "#6e6e80" }}>{s.contact.businessName}</td>
-                                  <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", color: "#6e6e80" }}>{s.template.name}</td>
-                                  <td style={{ ...cellStyle, padding: "4px 8px" }}>{statusBadge(s.status)}</td>
-                                  <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.7rem", color: "#6e6e80" }}>{formatDate(s.sentAt)}</td>
-                                </tr>
-                              ))}
-                              {sendLogs[c.id].length === 0 && (
-                                <tr><td colSpan={5} style={{ padding: "8px", fontSize: "0.72rem", color: "#8e8ea0" }}>No sends yet</td></tr>
-                              )}
-                            </tbody>
-                          </table>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Name</label>
+                              <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={{ width: "100%", padding: "5px 8px", fontSize: "0.78rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", boxSizing: "border-box" }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Delay (min)</label>
+                              <input type="number" value={editForm.delayMinutes} onChange={(e) => setEditForm({ ...editForm, delayMinutes: parseInt(e.target.value) || 4 })} style={{ width: "100%", padding: "5px 8px", fontSize: "0.78rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", boxSizing: "border-box" }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Window Start</label>
+                              <input type="number" value={editForm.sendWindowStart} onChange={(e) => setEditForm({ ...editForm, sendWindowStart: parseInt(e.target.value) })} style={{ width: "100%", padding: "5px 8px", fontSize: "0.78rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", boxSizing: "border-box" }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Window End</label>
+                              <input type="number" value={editForm.sendWindowEnd} onChange={(e) => setEditForm({ ...editForm, sendWindowEnd: parseInt(e.target.value) })} style={{ width: "100%", padding: "5px 8px", fontSize: "0.78rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", boxSizing: "border-box" }} />
+                            </div>
+                          </div>
+                          <div style={{ marginBottom: 10 }}>
+                            <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Templates</label>
+                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                              {templates.map((t) => {
+                                const selected = editForm.templateIds.find((ft) => ft.id === t.id);
+                                return (
+                                  <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 6, border: `1px solid ${selected ? "#171717" : "#e5e5e5"}`, background: selected ? "#f0f0f0" : "#ffffff", cursor: "pointer", fontSize: "0.72rem" }} onClick={() => toggleEditTemplate(t.id)}>
+                                    {t.name}
+                                    {selected && (
+                                      <input type="number" min={1} value={selected.weight} onClick={(e) => e.stopPropagation()} onChange={(e) => updateEditWeight(t.id, parseInt(e.target.value) || 1)} style={{ width: 30, padding: "1px 3px", fontSize: "0.65rem", borderRadius: 4, border: "1px solid #e5e5e5", textAlign: "center" }} />
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <label style={{ fontSize: "0.75rem", color: "#171717", display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}>
+                              <input type="checkbox" checked={editForm.skipWeekends} onChange={(e) => setEditForm({ ...editForm, skipWeekends: e.target.checked })} />
+                              Skip weekends
+                            </label>
+                            <div style={{ flex: 1 }} />
+                            <button onClick={() => setEditingId(null)} style={{ padding: "4px 12px", fontSize: "0.72rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", color: "#171717", cursor: "pointer" }}>Cancel</button>
+                            <button onClick={handleEditSave} disabled={editSaving || !editForm.name || editForm.templateIds.length === 0} style={{ padding: "4px 12px", fontSize: "0.72rem", fontWeight: 500, borderRadius: 6, border: "none", background: "#171717", color: "#ffffff", cursor: editSaving ? "not-allowed" : "pointer", opacity: editSaving ? 0.6 : 1 }}>
+                              {editSaving ? "Saving..." : "Save Changes"}
+                            </button>
+                          </div>
                         </div>
+                      ) : (
+                        <>
+                          <div style={{ fontSize: "0.75rem", color: "#6e6e80", marginBottom: 8 }}>
+                            <strong>Templates:</strong> {c.templates.map((t) => `${t.template.name} (w:${t.weight})`).join(", ") || "None"}
+                            &nbsp;&middot;&nbsp;
+                            <strong>Delay:</strong> {c.delayMinutes}min
+                            &nbsp;&middot;&nbsp;
+                            <strong>Window:</strong> {c.sendWindowStart}:00-{c.sendWindowEnd}:00 {c.timezone}
+                            {c.skipWeekends && " · Skip weekends"}
+                          </div>
+                          {sendLogs[c.id] && (
+                            <div>
+                              <strong style={{ fontSize: "0.7rem", color: "#8e8ea0" }}>Recent sends:</strong>
+                              <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 4 }}>
+                                <tbody>
+                                  {sendLogs[c.id].map((s) => (
+                                    <tr key={s.id}>
+                                      <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem" }}>{s.contact.email}</td>
+                                      <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", color: "#6e6e80" }}>{s.contact.businessName}</td>
+                                      <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", color: "#6e6e80" }}>{s.template.name}</td>
+                                      <td style={{ ...cellStyle, padding: "4px 8px" }}>{statusBadge(s.status)}</td>
+                                      <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.7rem", color: "#6e6e80" }}>{formatDate(s.sentAt)}</td>
+                                    </tr>
+                                  ))}
+                                  {sendLogs[c.id].length === 0 && (
+                                    <tr><td colSpan={5} style={{ padding: "8px", fontSize: "0.72rem", color: "#8e8ea0" }}>No sends yet</td></tr>
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+                          )}
+                        </>
                       )}
                     </td>
                   </tr>

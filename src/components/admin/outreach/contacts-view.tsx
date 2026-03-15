@@ -100,6 +100,11 @@ export function ContactsView({ lists, onRefresh }: Props) {
     setUploadFile(file);
     setUploadResult(null);
     setDetectPhase(true);
+    // Auto-populate list name from filename (e.g., "nc_outreach_contacts.csv" → "nc outreach contacts")
+    if (!uploadListName && !uploadListId) {
+      const name = file.name.replace(/\.csv$/i, "").replace(/[_-]/g, " ").trim();
+      setUploadListName(name);
+    }
 
     // Send file to detect columns
     const formData = new FormData();
@@ -260,8 +265,8 @@ export function ContactsView({ lists, onRefresh }: Props) {
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 onClick={handleUpload}
-                disabled={uploading || !columnMapping.email || !columnMapping.businessName}
-                style={{ padding: "8px 20px", fontSize: "0.8rem", fontWeight: 500, borderRadius: 8, border: "none", background: "#171717", color: "#ffffff", cursor: uploading ? "not-allowed" : "pointer", opacity: uploading || !columnMapping.email ? 0.6 : 1 }}
+                disabled={uploading || !columnMapping.email || !columnMapping.businessName || (!uploadListId && !uploadListName.trim())}
+                style={{ padding: "8px 20px", fontSize: "0.8rem", fontWeight: 500, borderRadius: 8, border: "none", background: "#171717", color: "#ffffff", cursor: uploading ? "not-allowed" : "pointer", opacity: uploading || !columnMapping.email || (!uploadListId && !uploadListName.trim()) ? 0.6 : 1 }}
               >
                 {uploading ? "Importing..." : "Import"}
               </button>

@@ -64,6 +64,20 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (body.timezone !== undefined) data.timezone = body.timezone;
   if (body.allowResendDays !== undefined) data.allowResendDays = body.allowResendDays;
 
+  // Update templates if provided
+  if (body.templateIds && Array.isArray(body.templateIds)) {
+    await prisma.outreachCampaignTemplate.deleteMany({ where: { campaignId: id } });
+    if (body.templateIds.length > 0) {
+      await prisma.outreachCampaignTemplate.createMany({
+        data: body.templateIds.map((t: { id: string; weight: number }) => ({
+          campaignId: id,
+          templateId: t.id,
+          weight: t.weight || 1,
+        })),
+      });
+    }
+  }
+
   const campaign = await prisma.outreachCampaign.update({ where: { id }, data });
   return NextResponse.json(campaign);
 }
