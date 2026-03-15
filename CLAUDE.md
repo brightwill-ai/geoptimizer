@@ -51,16 +51,41 @@ src/
 │   │   ├── admin/
 │   │   │   ├── auth.ts                   # Admin cookie auth helpers
 │   │   │   ├── login/route.ts            # POST /api/admin/login (password → cookie)
-│   │   │   └── stats/route.ts            # GET /api/admin/stats (KPIs + recent data)
+│   │   │   ├── stats/route.ts            # GET /api/admin/stats (KPIs + recent data)
+│   │   │   └── outreach/                 # Outreach system API (all admin-protected)
+│   │   │       ├── accounts/route.ts     # GET + POST (SMTP accounts)
+│   │   │       ├── accounts/[id]/route.ts # PATCH + DELETE + POST (test send)
+│   │   │       ├── contacts/route.ts     # GET (paginated, filterable)
+│   │   │       ├── contacts/[id]/route.ts # PATCH + DELETE
+│   │   │       ├── contacts/upload/route.ts # POST (CSV upload with column mapping)
+│   │   │       ├── lists/route.ts        # GET + POST
+│   │   │       ├── lists/[id]/route.ts   # PATCH + DELETE
+│   │   │       ├── templates/route.ts    # GET + POST
+│   │   │       ├── templates/[id]/route.ts # PATCH + DELETE
+│   │   │       ├── templates/[id]/preview/route.ts # POST (render preview)
+│   │   │       ├── templates/[id]/test-send/route.ts # POST (send test email)
+│   │   │       ├── campaigns/route.ts    # GET + POST
+│   │   │       ├── campaigns/[id]/route.ts # GET (sends) + PATCH (start/pause) + DELETE
+│   │   │       ├── send/route.ts         # POST (cron-triggered send cycle)
+│   │   │       └── stats/route.ts        # GET (outreach KPIs)
+│   │   ├── unsubscribe/[token]/route.ts  # GET (public, no auth — marks unsubscribed, redirects)
 │   │   └── report/[token]/route.ts       # GET /api/report/[token] (public report data)
 │   ├── admin/
-│   │   └── page.tsx                      # Admin dashboard (password-gated, KPIs + customer/analysis tables)
+│   │   └── page.tsx                      # Admin dashboard (Overview/Outreach toggle, KPIs + tables)
+│   ├── unsubscribe/[token]/page.tsx      # Public branded unsubscribe confirmation page
 │   ├── sitemap.ts                       # XML sitemap (homepage, /analyze, /report/demo)
 │   ├── robots.ts                        # robots.txt (allow all except /api/, /admin/)
 │   ├── globals.css
 │   └── layout.tsx                       # Root layout with OG metadata, Twitter Cards, Google Fonts
 ├── components/
 │   ├── ui/                               # Base primitives (button, input, card, textarea)
+│   ├── admin/outreach/                   # Outreach system UI (6 components)
+│   │   ├── outreach-section.tsx          # Container: data fetching, sub-tab nav (Dashboard/Campaigns/Contacts/Templates/Accounts)
+│   │   ├── dashboard-view.tsx            # KPIs + account health cards + recent send log + "Run Send Cycle" button
+│   │   ├── campaigns-view.tsx            # Campaign table + create form + expandable send detail
+│   │   ├── contacts-view.tsx             # Contact table + filters + CSV upload + column mapper
+│   │   ├── templates-view.tsx            # Template cards + create/edit + preview + CSV guide + test send
+│   │   └── accounts-view.tsx             # Account cards + add form + warmup progress bars
 │   └── analyze/                          # Analysis feature components
 │       ├── search-step.tsx               # Business name + location (Nominatim autocomplete) + category form
 │       ├── loading-step.tsx              # Provider badges + query progress (tier-aware)
@@ -94,6 +119,13 @@ src/
     ├── email-templates.ts                # Shared HTML email component library (20+ functions: header, footer, button, score display, competitor card, etc.)
     ├── pdf.ts                            # Client-side PDF generation (html2canvas + jspdf)
     ├── mock-data.ts                      # Types + mock data generator (source of truth for LLMProvider)
+    ├── outreach/                         # Email outreach system backend
+    │   ├── encryption.ts                 # AES-256-GCM encrypt/decrypt for SMTP passwords
+    │   ├── warmup.ts                     # Warmup phase schedule (5 phases → 50/day in ~3 weeks)
+    │   ├── renderer.ts                   # Template {variable} replacement + computed vars
+    │   ├── smtp.ts                       # Nodemailer transport factory + sendEmail()
+    │   ├── csv-parser.ts                 # CSV parsing, column detection, contact extraction
+    │   └── send-engine.ts               # Core send cycle (cron-triggered, stateless)
     └── agents/                           # LLM analysis pipeline
         ├── clients.ts                    # SDK singletons + MODEL_CONFIG
         ├── prompts.ts                    # Prompt templates + BUSINESS_CATEGORIES
@@ -269,6 +301,54 @@ model ActionPlanItem {
   @@index([analysisId, categoryKey])
   @@index([analysisId, completed])
 }
+// ─── Outreach System ─────────────────────────────────────────────────
+
+model EmailAccount {
+  id, label, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass (encrypted AES-256-GCM),
+  fromName @default("William"), fromEmail @unique, replyTo?,
+  warmupEnabled, warmupStartDate, warmupDay, warmupPhase, dailyLimit, sentToday, sentTodayDate,
+  status (active|paused|error|disabled), lastErrorAt?, lastError?, consecutiveErrors, totalSent,
+  isActive, createdAt, updatedAt, sends[]
+  @@index([isActive, status])
+}
+
+model OutreachContact {
+  id, email @unique, businessName, firstName?, category, city, cuisineType?, website?, phone?,
+  address?, zipCode?, source?, customFields? (JSON),
+  status (pending|sent|bounced|replied|unsubscribed|failed), unsubscribedAt?, unsubscribeToken @unique,
+  createdAt, updatedAt, sends[], listMemberships[]
+  @@index([status]) @@index([email]) @@index([city, category])
+}
+
+model OutreachList { id, name, description?, contactCount, createdAt, updatedAt, members[], campaigns[] }
+
+model OutreachListMember { id, listId, contactId, addedAt @@unique([listId, contactId]) }
+
+model OutreachTemplate {
+  id, name, subject, htmlBody, plainTextBody, description?, variables (JSON array),
+  isActive, createdAt, updatedAt, sends[], campaignTemplates[]
+}
+
+model OutreachCampaign {
+  id, name, listId, status (draft|active|paused|complete),
+  delayMinutes @default(4), jitterSeconds @default(30), skipWeekends @default(false),
+  sendWindowStart @default(9), sendWindowEnd @default(17), timezone, allowResendDays @default(0),
+  totalContacts, sentCount, failedCount,
+  startedAt?, pausedAt?, completedAt?, lastSendAt?,
+  createdAt, updatedAt, templates[], sends[]
+  @@index([status])
+}
+
+model OutreachCampaignTemplate { id, campaignId, templateId, weight @default(1) @@unique([campaignId, templateId]) }
+
+model OutreachSend {
+  id, campaignId, contactId, templateId, accountId,
+  renderedSubject, renderedHtml?,
+  status (pending|sent|failed|bounced), errorMessage?, sentAt?, messageId?,
+  createdAt
+  @@unique([campaignId, contactId])
+  @@index([campaignId, status]) @@index([contactId]) @@index([accountId, sentAt]) @@index([sentAt])
+}
 ```
 
 Status values: `pending` → `running` → `complete` | `failed`
@@ -384,6 +464,33 @@ Clean light dashboard (Linear/Notion-inspired) on warm beige page:
 | PATCH | `/api/analysis/[id]/action-plan/[itemId]` | Toggle item completion / update notes |
 | POST | `/api/admin/login` | Admin login (password → cookie) |
 | GET | `/api/admin/stats` | Admin KPIs + recent analyses/signups (cookie-protected) |
+| GET | `/api/admin/outreach/accounts` | List all SMTP accounts |
+| POST | `/api/admin/outreach/accounts` | Create SMTP account (password encrypted) |
+| PATCH | `/api/admin/outreach/accounts/[id]` | Update / pause / resume account |
+| DELETE | `/api/admin/outreach/accounts/[id]` | Soft-delete account |
+| POST | `/api/admin/outreach/accounts/[id]` | Send test email via account |
+| GET | `/api/admin/outreach/templates` | List all templates |
+| POST | `/api/admin/outreach/templates` | Create template |
+| PATCH | `/api/admin/outreach/templates/[id]` | Update template |
+| DELETE | `/api/admin/outreach/templates/[id]` | Delete template |
+| POST | `/api/admin/outreach/templates/[id]/preview` | Preview template with sample data |
+| POST | `/api/admin/outreach/templates/[id]/test-send` | Send test email with rendered template |
+| GET | `/api/admin/outreach/contacts` | List contacts (paginated, filterable by status/city/list) |
+| PATCH | `/api/admin/outreach/contacts/[id]` | Update contact |
+| DELETE | `/api/admin/outreach/contacts/[id]` | Delete contact |
+| POST | `/api/admin/outreach/contacts/upload` | CSV upload with column mapping |
+| GET | `/api/admin/outreach/lists` | List all contact lists |
+| POST | `/api/admin/outreach/lists` | Create list |
+| PATCH | `/api/admin/outreach/lists/[id]` | Rename list |
+| DELETE | `/api/admin/outreach/lists/[id]` | Delete list |
+| GET | `/api/admin/outreach/campaigns` | List all campaigns |
+| POST | `/api/admin/outreach/campaigns` | Create campaign |
+| GET | `/api/admin/outreach/campaigns/[id]` | Get campaign send log |
+| PATCH | `/api/admin/outreach/campaigns/[id]` | Update / start / pause campaign |
+| DELETE | `/api/admin/outreach/campaigns/[id]` | Delete campaign (draft only) |
+| POST | `/api/admin/outreach/send` | Cron-triggered send cycle (admin cookie or Bearer CRON_SECRET) |
+| GET | `/api/admin/outreach/stats` | Outreach KPIs + account health + recent sends |
+| GET | `/api/unsubscribe/[token]` | Public unsubscribe (marks contact, redirects to confirmation) |
 
 ## Environment Variables
 
@@ -402,6 +509,8 @@ STRIPE_WEBHOOK_SECRET=whsec_...      # Stripe webhook signing secret
 STRIPE_PRICE_ID=price_...            # Stripe Price ID for $19 Full Audit
 STRIPE_PRICE_ID_STRATEGY=price_...   # Stripe Price ID for $199 Audit + Strategy
 ADMIN_PASSWORD=...                   # Password for /admin dashboard
+OUTREACH_ENCRYPTION_KEY=...          # 32-byte hex for AES-256-GCM SMTP password encryption
+CRON_SECRET=...                      # Secret for cron job auth (POST /api/admin/outreach/send)
 ```
 
 ## Key Commands
@@ -426,11 +535,72 @@ Requires GitHub secret: `SERVER_PASSWORD`
 - Docker container `brightwill` maps port 3003 → 3000 internal
 - `--restart unless-stopped`
 - Env vars loaded from `~/geoptimizer/.env` via `--env-file`
+- **Outreach cron**: `*/2 * * * * curl -s -X POST http://localhost:3003/api/admin/outreach/send -H "Authorization: Bearer $CRON_SECRET" > /dev/null 2>&1`
 
 ### Admin Dashboard
 - `/admin` — password-gated (env var `ADMIN_PASSWORD`)
 - Cookie-based session (7-day expiry)
-- Shows: KPIs (revenue, paid count, conversion rate), paid customer table, free analyses, signups
+- **Overview tab**: KPIs (revenue, paid count, conversion rate), paid customer table, free analyses, signups
+- **Outreach tab**: Full email marketing platform (see Outreach System below)
+
+## Outreach System
+
+Proprietary email marketing platform inside the admin dashboard (`/admin` → Outreach tab). Manages cold email outreach to local businesses via SMTP accounts with warmup protocol.
+
+### Architecture
+```
+Admin UI → API routes (admin-protected) → Library layer → PostgreSQL + SMTP (nodemailer)
+                                                              ↑
+Cron (every 2min) → POST /api/admin/outreach/send → send-engine.ts → emails via Zoho SMTP
+```
+
+### Warmup Protocol
+| Phase | Days | Daily Limit | Rationale |
+|-------|------|-------------|-----------|
+| phase_1 | 1-3 | 5 | Establish sender reputation |
+| phase_2 | 4-7 | 10 | Gentle ramp |
+| phase_3 | 8-11 | 20 | Doubling, monitor bounces |
+| phase_4 | 12-16 | 30 | Nearing full capacity |
+| phase_5 | 17-21 | 40 | Near-max volume |
+| complete | 22+ | 50 | Fully warmed |
+
+Auto-pauses if 3+ consecutive errors. Account auto-disabled at 5 errors.
+
+### Send Engine Flow
+Cron fires every 2 minutes → in-memory lock prevents overlap → daily reset + warmup advancement → for each active campaign: check send window → check weekend skip → check delay → find next eligible contact (not sent, not unsubscribed, dedup check) → pick least-loaded account → weighted random template → render variables → send via nodemailer → update records.
+
+Duplicate prevention: `@@unique([campaignId, contactId])` on OutreachSend + application-level cross-campaign dedup via `allowResendDays`.
+
+### Template Variables
+| Variable | Source | Fallback |
+|----------|--------|----------|
+| `{businessName}` | contact.businessName | (required) |
+| `{city}` | contact.city | "" |
+| `{category}` | contact.category | "" |
+| `{cuisineType}` | contact.cuisineType | category |
+| `{firstName}` | contact.firstName | "there" |
+| `{email}` | contact.email | (required) |
+| `{categoryNoun}` | computed from category | "business" |
+| `{searchExample}` | computed from cuisineType+city | "best business in your area" |
+| `{unsubscribeUrl}` | auto-injected per contact | (always set) |
+
+### Admin UI Sub-Tabs
+- **Dashboard**: KPIs (contacts, sent today/week, campaigns, unsubscribed) + account health cards + recent send log + manual "Run Send Cycle" button
+- **Campaigns**: Table with start/pause controls + create form (name, list, templates with weights, delay, window) + expandable send log
+- **Contacts**: Paginated table + status/city/list filters + CSV upload with column auto-mapping
+- **Templates**: Cards with edit/preview/test-send + create form + variable guide
+- **Accounts**: Cards with warmup progress bars + add form (SMTP credentials, from name, warmup toggle) + test/pause/remove
+
+### Cron Setup (VPC)
+```bash
+*/2 * * * * curl -s -X POST http://localhost:3003/api/admin/outreach/send -H "Authorization: Bearer $CRON_SECRET" > /dev/null 2>&1
+```
+
+### Key Commands
+```bash
+npx tsx scripts/outreach/seed-templates.ts   # Seed 3 initial email templates
+npx tsx scripts/outreach/migrate-to-db.ts    # Migrate sent-log.json contacts to DB
+```
 
 ## Local Development
 

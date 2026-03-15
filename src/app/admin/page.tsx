@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
+
+const OutreachSection = lazy(() => import("@/components/admin/outreach/outreach-section").then((m) => ({ default: m.OutreachSection })));
+
+type TopTab = "overview" | "outreach";
 
 interface KPIs {
   totalAnalyses: number;
@@ -59,6 +63,7 @@ export default function AdminPage() {
   const [recentSignups, setRecentSignups] = useState<SignupEntry[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>("paid");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [topTab, setTopTab] = useState<TopTab>("overview");
 
   const initialized = useRef(false);
 
@@ -288,7 +293,7 @@ export default function AdminPage() {
     >
       <div style={{ maxWidth: 1100, margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ marginBottom: "2rem" }}>
+        <div style={{ marginBottom: "1.5rem" }}>
           <h1 style={{ fontSize: "1.4rem", fontWeight: 600, color: "#171717", margin: "0 0 4px 0" }}>
             BrightWill Admin
           </h1>
@@ -297,6 +302,36 @@ export default function AdminPage() {
           </p>
         </div>
 
+        {/* Top-level toggle */}
+        <div style={{ display: "flex", gap: 0, marginBottom: "1.5rem" }}>
+          {(["overview", "outreach"] as TopTab[]).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setTopTab(tab)}
+              style={{
+                padding: "8px 20px",
+                fontSize: "0.8rem",
+                fontWeight: topTab === tab ? 600 : 400,
+                color: topTab === tab ? "#ffffff" : "#6e6e80",
+                background: topTab === tab ? "#171717" : "#f7f7f8",
+                border: "1px solid #e5e5e5",
+                borderRadius: tab === "overview" ? "8px 0 0 8px" : "0 8px 8px 0",
+                cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              {tab === "overview" ? "Overview" : "Outreach"}
+            </button>
+          ))}
+        </div>
+
+        {topTab === "outreach" && (
+          <Suspense fallback={<div style={{ padding: "2rem 0", textAlign: "center", color: "#8e8ea0" }}>Loading outreach...</div>}>
+            <OutreachSection />
+          </Suspense>
+        )}
+
+        {topTab === "overview" && <>
         {/* KPI Row */}
         {kpis && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: "2rem" }}>
@@ -512,6 +547,7 @@ export default function AdminPage() {
             </table>
           )}
         </div>
+        </>}
       </div>
     </div>
   );

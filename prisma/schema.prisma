@@ -158,3 +158,188 @@ model ActionPlanItem {
   @@index([analysisId, categoryKey])
   @@index([analysisId, completed])
 }
+
+// ─── Outreach System ─────────────────────────────────────────────────────────
+
+model EmailAccount {
+  id              String   @id @default(cuid())
+  label           String
+  smtpHost        String   @default("smtp.zoho.com")
+  smtpPort        Int      @default(465)
+  smtpSecure      Boolean  @default(true)
+  smtpUser        String
+  smtpPass        String
+  fromName        String   @default("William")
+  fromEmail       String   @unique
+  replyTo         String?
+
+  warmupEnabled   Boolean  @default(true)
+  warmupStartDate DateTime @default(now())
+  warmupDay       Int      @default(0)
+  warmupPhase     String   @default("phase_1")
+  dailyLimit      Int      @default(5)
+  sentToday       Int      @default(0)
+  sentTodayDate   String   @default("")
+
+  status            String   @default("active")
+  lastErrorAt       DateTime?
+  lastError         String?
+  consecutiveErrors Int      @default(0)
+  totalSent         Int      @default(0)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sends OutreachSend[]
+
+  @@index([isActive, status])
+}
+
+model OutreachContact {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  businessName     String
+  firstName        String?
+  category         String    @default("")
+  city             String    @default("")
+  cuisineType      String?
+  website          String?
+  phone            String?
+  address          String?
+  zipCode          String?
+  source           String?
+  customFields     String?
+
+  status           String    @default("pending")
+  unsubscribedAt   DateTime?
+  unsubscribeToken String    @unique @default(cuid())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sends           OutreachSend[]
+  listMemberships OutreachListMember[]
+
+  @@index([status])
+  @@index([email])
+  @@index([city, category])
+}
+
+model OutreachList {
+  id           String   @id @default(cuid())
+  name         String
+  description  String?
+  contactCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  members   OutreachListMember[]
+  campaigns OutreachCampaign[]
+
+  @@index([name])
+}
+
+model OutreachListMember {
+  id        String          @id @default(cuid())
+  listId    String
+  list      OutreachList    @relation(fields: [listId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   OutreachContact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  addedAt   DateTime        @default(now())
+
+  @@unique([listId, contactId])
+  @@index([listId])
+  @@index([contactId])
+}
+
+model OutreachTemplate {
+  id            String  @id @default(cuid())
+  name          String
+  subject       String
+  htmlBody      String
+  plainTextBody String
+  description   String?
+  variables     String  @default("[]")
+  isActive      Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sends             OutreachSend[]
+  campaignTemplates OutreachCampaignTemplate[]
+}
+
+model OutreachCampaign {
+  id              String       @id @default(cuid())
+  name            String
+  listId          String
+  list            OutreachList @relation(fields: [listId], references: [id])
+
+  status          String  @default("draft")
+  delayMinutes    Int     @default(4)
+  jitterSeconds   Int     @default(30)
+  skipWeekends    Boolean @default(false)
+  sendWindowStart Int     @default(9)
+  sendWindowEnd   Int     @default(17)
+  timezone        String  @default("America/New_York")
+  allowResendDays Int     @default(0)
+
+  totalContacts Int @default(0)
+  sentCount     Int @default(0)
+  failedCount   Int @default(0)
+
+  startedAt   DateTime?
+  pausedAt    DateTime?
+  completedAt DateTime?
+  lastSendAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  templates OutreachCampaignTemplate[]
+  sends     OutreachSend[]
+
+  @@index([status])
+  @@index([listId])
+}
+
+model OutreachCampaignTemplate {
+  id         String           @id @default(cuid())
+  campaignId String
+  campaign   OutreachCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  templateId String
+  template   OutreachTemplate @relation(fields: [templateId], references: [id])
+  weight     Int              @default(1)
+
+  @@unique([campaignId, templateId])
+  @@index([campaignId])
+}
+
+model OutreachSend {
+  id              String           @id @default(cuid())
+  campaignId      String
+  campaign        OutreachCampaign @relation(fields: [campaignId], references: [id])
+  contactId       String
+  contact         OutreachContact  @relation(fields: [contactId], references: [id])
+  templateId      String
+  template        OutreachTemplate @relation(fields: [templateId], references: [id])
+  accountId       String
+  account         EmailAccount     @relation(fields: [accountId], references: [id])
+
+  renderedSubject String
+  renderedHtml    String?
+
+  status       String   @default("pending")
+  errorMessage String?
+  sentAt       DateTime?
+  messageId    String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([campaignId, contactId])
+  @@index([campaignId, status])
+  @@index([contactId])
+  @@index([accountId, sentAt])
+  @@index([sentAt])
+}
