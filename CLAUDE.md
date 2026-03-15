@@ -549,12 +549,83 @@ Proprietary email marketing platform inside the admin dashboard (`/admin` → Ou
 
 ### Architecture
 ```
-Admin UI → API routes (admin-protected) → Library layer → PostgreSQL + SMTP (nodemailer)
-                                                              ↑
-Cron (every 2min) → POST /api/admin/outreach/send → send-engine.ts → emails via Zoho SMTP
+Admin UI (6 React components) → 15 API routes (admin-protected) → 6 library modules → PostgreSQL + SMTP
+                                                                                           ↑
+Cron (every 2min) → POST /api/admin/outreach/send (Bearer CRON_SECRET) → send-engine.ts → nodemailer → Zoho SMTP
+                                                                                           ↓
+Public: GET /api/unsubscribe/[token] → marks contact unsubscribed → redirects to /unsubscribe/[token] page
 ```
 
+### Library Layer (`src/lib/outreach/`)
+
+| Module | Purpose | Key exports |
+|--------|---------|-------------|
+| `encryption.ts` | AES-256-GCM encrypt/decrypt for SMTP passwords | `encrypt(plaintext)`, `decrypt(ciphertext)` — stores as `iv:authTag:ciphertext` hex-encoded. Key from `OUTREACH_ENCRYPTION_KEY` env (32-byte hex). |
+| `warmup.ts` | 5-phase warmup schedule over ~3 weeks | `advanceWarmup(state)` → returns new phase/limit/day. `getWarmupInfo(phase)` → label/limit for UI display. Pauses if `consecutiveErrors >= 3`. |
+| `renderer.ts` | Template `{variable}` replacement | `renderTemplate(template, contactData)` — replaces all `{var}` placeholders with contact data + computed vars (`{categoryNoun}`, `{searchExample}`, `{unsubscribeUrl}`). `extractVariables(template)` — regex extraction for auto-detecting used vars. `SAMPLE_CONTACT` — mock data for previews. `CATEGORY_NOUN_MAP` — 16-entry map for category → noun conversion. |
+| `smtp.ts` | Nodemailer transport factory | `createTransport(account)` — decrypts `smtpPass`, creates nodemailer transport. `sendEmail(transporter, options)` — sends and returns `messageId`. |
+| `csv-parser.ts` | CSV parsing with column auto-detection | `detectColumns(headers)` — maps CSV headers to our fields via `AUTO_MAP` aliases. `parseCSV(content, columnMapping)` — returns `{ contacts, errors, duplicates, headers }`. Handles BOM, semicolon-separated emails, unmapped columns as `customFields` JSON. |
+| `send-engine.ts` | Core cron-triggered send cycle | `runSendCycle()` — stateless, in-memory lock (`let sendCycleRunning = false`), processes all active campaigns. Returns `SendCycleResult { sent, failed, campaignsProcessed, details[] }`. |
+
+### Send Engine Flow (detailed)
+
+`runSendCycle()` in `send-engine.ts` is the core loop, triggered every 2 min by cron:
+
+1. **In-memory lock** — `sendCycleRunning` flag prevents overlapping cycles
+2. **Daily reset** — for each active account: if `sentTodayDate !== today`, reset `sentToday = 0` and advance warmup via `advanceWarmup()`
+3. **Campaign loop** — for each campaign with `status: "active"`:
+   - **Send window check** — `getHourInTimezone(now, campaign.timezone)` must be within `sendWindowStart..sendWindowEnd`
+   - **Weekend check** — if `skipWeekends`, skip Saturday/Sunday (in campaign timezone)
+   - **Delay check** — `elapsed since lastSendAt` must exceed `delayMinutes * 60s + random(0..jitterSeconds)s`
+   - **Find eligible contact** — query list members, exclude: already sent in this campaign (`OutreachSend` records), cross-campaign dedup (all sent contacts if `allowResendDays=0`, or recent if >0), unsubscribed/bounced contacts
+   - **Pick account** — least `sentToday` first, must be under `dailyLimit`
+   - **Select template** — weighted random from campaign's assigned templates
+   - **Render** — `renderTemplate()` for subject, htmlBody, plainTextBody
+   - **Create OutreachSend** — status "pending", catches unique constraint violations for dedup
+   - **Send via nodemailer** — `createTransport(account)` + `sendEmail()`
+   - **Update records** — on success: send→"sent", account sentToday++/totalSent++/consecutiveErrors=0, contact→"sent", campaign sentCount++/lastSendAt. On failure: send→"failed" with error, account consecutiveErrors++, auto-disable at 5 errors
+4. **Campaign completion** — if no eligible contacts remain and all have been sent, campaign status → "complete"
+
+### API Routes (`src/app/api/admin/outreach/`)
+
+All outreach API routes (except unsubscribe) are admin-protected via `requireAdmin()` from `src/app/api/admin/auth.ts` (cookie-based). The `send/route.ts` also accepts `Bearer CRON_SECRET` for cron authentication.
+
+| Route file | Methods | Key implementation notes |
+|-----------|---------|------------------------|
+| `accounts/route.ts` | GET, POST | POST encrypts `smtpPass` via `encrypt()` before storing. Sets initial warmup state based on `warmupEnabled`. |
+| `accounts/[id]/route.ts` | PATCH, DELETE, POST | DELETE is soft-delete (`isActive: false`). POST sends a test email via the account's SMTP. PATCH can update any field; if `smtpPass` is provided, re-encrypts. |
+| `contacts/route.ts` | GET | Paginated (50/page), filterable by `status`, `city`, `listId`. Includes `listMemberships` with list names. |
+| `contacts/[id]/route.ts` | PATCH, DELETE | DELETE is hard delete (cascades list memberships + sends). |
+| `contacts/upload/route.ts` | POST | Two-phase: first call with just file returns `{ headers, autoMapping }`. Second call with file + `columnMapping` JSON + optional `listName`/`listId` does the import. Creates contacts with `upsert` (skip existing emails), auto-generates `unsubscribeToken` (nanoid). Creates/reuses list, creates `OutreachListMember` entries, updates list `contactCount`. |
+| `lists/route.ts` | GET, POST | GET includes `contactCount`. POST creates empty list. |
+| `lists/[id]/route.ts` | PATCH, DELETE | DELETE cascades members. |
+| `templates/route.ts` | GET, POST | POST auto-extracts variables from subject+htmlBody+plainTextBody via `extractVariables()`, stores as JSON array. |
+| `templates/[id]/route.ts` | PATCH, DELETE | PATCH re-extracts variables on update. |
+| `templates/[id]/preview/route.ts` | POST | Renders template with `SAMPLE_CONTACT` data from renderer.ts. Returns `{ subject, html }`. |
+| `templates/[id]/test-send/route.ts` | POST | Accepts `{ testEmail, accountId }`. Renders with sample data, sends real email via specified account. |
+| `campaigns/route.ts` | GET, POST | GET includes list details + template details. POST creates with status "draft", creates `OutreachCampaignTemplate` join records with weights. |
+| `campaigns/[id]/route.ts` | GET, PATCH, DELETE | GET returns send log with contact/template/account details. PATCH handles start (→"active") / pause (→"paused") status transitions + field updates. DELETE only allowed for "draft" campaigns. |
+| `send/route.ts` | POST | Dual auth: admin cookie OR `Authorization: Bearer CRON_SECRET`. Calls `runSendCycle()` and returns result JSON. |
+| `stats/route.ts` | GET | Aggregates: totalContacts, totalSent, sentToday, sentThisWeek, activeCampaigns, totalBounced, totalUnsubscribed, accounts (summary), recentSends (last 20). |
+
+### Unsubscribe Flow
+
+1. `GET /api/unsubscribe/[token]` — public route, no auth. Finds contact by `unsubscribeToken`, sets `status: "unsubscribed"` + `unsubscribedAt`. Redirects (302) to `/unsubscribe/[token]`.
+2. `/unsubscribe/[token]/page.tsx` — server component. Queries contact to show business name. Renders branded confirmation page ("You've been unsubscribed" with BrightWill branding on warm beige background).
+
+### Admin UI Components (`src/components/admin/outreach/`)
+
+| Component | Role | Key patterns |
+|-----------|------|-------------|
+| `outreach-section.tsx` | Container — fetches all data (stats, templates, lists, campaigns, accounts) via `Promise.all`, manages sub-tab state, passes data to child views. Lazy-loaded in admin page via `React.lazy()`. Exports shared TypeScript interfaces (`Account`, `RecentSend`, `OutreachTemplate`, `OutreachList`, `Campaign`, `AccountFull`). |
+| `dashboard-view.tsx` | KPI cards + account health cards (warmup progress bars) + recent send log table + "Run Send Cycle" button that POSTs to `/api/admin/outreach/send`. |
+| `campaigns-view.tsx` | Campaign table with status badges + start/pause buttons. Create form: name, list selector, template multi-select with weight inputs, delay/jitter/window config. Expandable send log per campaign (fetches `GET /api/admin/outreach/campaigns/[id]`). |
+| `contacts-view.tsx` | CSV drag-drop upload zone with two-phase flow (detect → map → import). Contact table with pagination (50/page) + status/city/list filters. Uses `eslint-disable` for `react-hooks/set-state-in-effect`. |
+| `templates-view.tsx` | Template cards with edit/preview/test-send/delete buttons. Create/edit form with name, subject, HTML body (monospace textarea), plain text body, description. Collapsible "Template Variables Guide". Preview rendered in iframe-like panel. Test send prompts for email address, uses first available account. |
+| `accounts-view.tsx` | Account cards showing SMTP host, warmup phase/progress bar, sends today vs limit, status, error info. Add form: all SMTP fields + warmup toggle. Test/pause/remove actions per account. |
+
 ### Warmup Protocol
+
 | Phase | Days | Daily Limit | Rationale |
 |-------|------|-------------|-----------|
 | phase_1 | 1-3 | 5 | Establish sender reputation |
@@ -564,14 +635,12 @@ Cron (every 2min) → POST /api/admin/outreach/send → send-engine.ts → email
 | phase_5 | 17-21 | 40 | Near-max volume |
 | complete | 22+ | 50 | Fully warmed |
 
-Auto-pauses if 3+ consecutive errors. Account auto-disabled at 5 errors.
-
-### Send Engine Flow
-Cron fires every 2 minutes → in-memory lock prevents overlap → daily reset + warmup advancement → for each active campaign: check send window → check weekend skip → check delay → find next eligible contact (not sent, not unsubscribed, dedup check) → pick least-loaded account → weighted random template → render variables → send via nodemailer → update records.
-
-Duplicate prevention: `@@unique([campaignId, contactId])` on OutreachSend + application-level cross-campaign dedup via `allowResendDays`.
+Implemented in `warmup.ts` as `PHASES` array. `advanceWarmup()` increments `warmupDay` and looks up the phase for that day. Auto-pauses if `consecutiveErrors >= 3`. Account auto-disabled at 5 errors (set in `send-engine.ts` failure handler).
 
 ### Template Variables
+
+Implemented in `renderer.ts`. `renderTemplate()` builds a vars map and does `string.replace(regex)` for each key.
+
 | Variable | Source | Fallback |
 |----------|--------|----------|
 | `{businessName}` | contact.businessName | (required) |
@@ -580,16 +649,28 @@ Duplicate prevention: `@@unique([campaignId, contactId])` on OutreachSend + appl
 | `{cuisineType}` | contact.cuisineType | category |
 | `{firstName}` | contact.firstName | "there" |
 | `{email}` | contact.email | (required) |
-| `{categoryNoun}` | computed from category | "business" |
-| `{searchExample}` | computed from cuisineType+city | "best business in your area" |
-| `{unsubscribeUrl}` | auto-injected per contact | (always set) |
+| `{website}` | contact.website | "" |
+| `{phone}` | contact.phone | "" |
+| `{address}` | contact.address | "" |
+| `{zipCode}` | contact.zipCode | "" |
+| `{categoryNoun}` | computed via `CATEGORY_NOUN_MAP` (16 categories → nouns) | "business" |
+| `{searchExample}` | computed from cuisineType/category + city | "best business in your area" |
+| `{unsubscribeUrl}` | `${APP_URL}/api/unsubscribe/${contact.unsubscribeToken}` | (always set) |
 
-### Admin UI Sub-Tabs
-- **Dashboard**: KPIs (contacts, sent today/week, campaigns, unsubscribed) + account health cards + recent send log + manual "Run Send Cycle" button
-- **Campaigns**: Table with start/pause controls + create form (name, list, templates with weights, delay, window) + expandable send log
-- **Contacts**: Paginated table + status/city/list filters + CSV upload with column auto-mapping
-- **Templates**: Cards with edit/preview/test-send + create form + variable guide
-- **Accounts**: Cards with warmup progress bars + add form (SMTP credentials, from name, warmup toggle) + test/pause/remove
+### Duplicate Prevention
+
+Two layers:
+1. **Database constraint** — `@@unique([campaignId, contactId])` on `OutreachSend`. The send engine catches unique constraint violations gracefully.
+2. **Application-level cross-campaign dedup** — `allowResendDays` on campaign. If 0 (default), queries ALL previously sent contacts across all campaigns. If >0, only deduplicates within that time window.
+
+### Seed Templates
+
+`scripts/outreach/seed-templates.ts` seeds 3 templates:
+1. **Curiosity** — personal cold email asking "Is ChatGPT recommending {businessName}?"
+2. **Competitor** — frames it as competitive intelligence: "{businessName} vs. your competitors on ChatGPT"
+3. **Branded** — full HTML email with BrightWill styling, card layout, CTA button
+
+All templates include `{unsubscribeUrl}` in footer. Run via `npx tsx scripts/outreach/seed-templates.ts` (skips existing by name).
 
 ### Cron Setup (VPC)
 ```bash

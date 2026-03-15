@@ -162,7 +162,7 @@ export function DashboardView({ stats, onRefresh }: Props) {
                   height: 6,
                   borderRadius: 3,
                   background: account.sentToday >= account.dailyLimit ? "#d97706" : "#16a34a",
-                  width: `${Math.min((account.sentToday / account.dailyLimit) * 100, 100)}%`,
+                  width: `${Math.min((account.sentToday / Math.max(account.dailyLimit, 1)) * 100, 100)}%`,
                   transition: "width 0.3s",
                 }} />
               </div>

@@ -23,6 +23,9 @@ export function createTransport(account: AccountConfig): Transporter {
       user: account.smtpUser,
       pass: password,
     },
+    connectionTimeout: 10000,
+    socketTimeout: 15000,
+    greetingTimeout: 10000,
   });
 }
 

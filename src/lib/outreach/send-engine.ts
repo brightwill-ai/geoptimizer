@@ -256,8 +256,8 @@ export async function runSendCycle(): Promise<SendCycleResult> {
           replyTo: account.replyTo || account.fromEmail,
         });
 
-        // j. Update records — success
-        await Promise.all([
+        // j. Update records — success (use allSettled so one DB failure doesn't crash the cycle)
+        await Promise.allSettled([
           prisma.outreachSend.update({
             where: { id: send.id },
             data: { status: "sent", sentAt: now, messageId },
@@ -288,8 +288,8 @@ export async function runSendCycle(): Promise<SendCycleResult> {
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : String(err);
 
-        // Update records — failure
-        await Promise.all([
+        // Update records — failure (use allSettled so one DB failure doesn't crash the cycle)
+        await Promise.allSettled([
           prisma.outreachSend.update({
             where: { id: send.id },
             data: { status: "failed", errorMessage: errMsg },

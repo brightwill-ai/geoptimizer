@@ -191,7 +191,8 @@ export function TemplatesView({ templates, accounts, onRefresh }: Props) {
       {/* Template cards */}
       <div style={{ display: "grid", gap: 12 }}>
         {templates.map((t) => {
-          const vars: string[] = JSON.parse(t.variables || "[]");
+          let vars: string[] = [];
+          try { vars = JSON.parse(t.variables || "[]"); } catch { /* malformed */ }
           return (
             <div key={t.id} style={{ background: "#ffffff", border: "1px solid #e5e5e5", borderRadius: 12, padding: "1rem 1.2rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>

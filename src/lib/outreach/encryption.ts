@@ -5,7 +5,7 @@ const IV_LENGTH = 12;
 
 function getKey(): Buffer {
   const key = process.env.OUTREACH_ENCRYPTION_KEY;
-  if (!key) throw new Error("OUTREACH_ENCRYPTION_KEY env var is required");
+  if (!key || key.length !== 64) throw new Error("OUTREACH_ENCRYPTION_KEY must be a 64-character hex string (32 bytes)");
   return Buffer.from(key, "hex");
 }
 
@@ -21,7 +21,9 @@ export function encrypt(plaintext: string): string {
 
 export function decrypt(ciphertext: string): string {
   const key = getKey();
-  const [ivHex, authTagHex, encryptedHex] = ciphertext.split(":");
+  const parts = ciphertext.split(":");
+  if (parts.length !== 3) throw new Error("Invalid encrypted format (expected iv:authTag:ciphertext)");
+  const [ivHex, authTagHex, encryptedHex] = parts;
   const iv = Buffer.from(ivHex, "hex");
   const authTag = Buffer.from(authTagHex, "hex");
   const encrypted = Buffer.from(encryptedHex, "hex");

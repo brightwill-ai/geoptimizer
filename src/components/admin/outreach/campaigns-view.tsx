@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import type { Campaign, OutreachList, OutreachTemplate } from "./outreach-section";
 
 interface Props {
@@ -262,8 +262,8 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
               <tr><td colSpan={7} style={{ ...cellStyle, textAlign: "center", color: "#8e8ea0", padding: "2rem" }}>No campaigns yet</td></tr>
             )}
             {campaigns.map((c) => (
-              <>
-                <tr key={c.id} onClick={() => loadSendLog(c.id)} style={{ cursor: "pointer", background: expandedId === c.id ? "#fafafa" : undefined }}>
+              <React.Fragment key={c.id}>
+                <tr onClick={() => loadSendLog(c.id)} style={{ cursor: "pointer", background: expandedId === c.id ? "#fafafa" : undefined }}>
                   <td style={{ ...cellStyle, fontWeight: 500 }}>{c.name}</td>
                   <td style={{ ...cellStyle, color: "#6e6e80" }}>{c.list.name} ({c.list.contactCount})</td>
                   <td style={cellStyle}>{statusBadge(c.status)}</td>
@@ -291,7 +291,7 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                   </td>
                 </tr>
                 {expandedId === c.id && (
-                  <tr key={`${c.id}-detail`}>
+                  <tr>
                     <td colSpan={7} style={{ padding: "12px 14px", background: "#fafafa", borderBottom: "1px solid #f0f0f0" }}>
                       <div style={{ fontSize: "0.75rem", color: "#6e6e80", marginBottom: 8 }}>
                         <strong>Templates:</strong> {c.templates.map((t) => `${t.template.name} (w:${t.weight})`).join(", ") || "None"}
@@ -325,7 +325,7 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                     </td>
                   </tr>
                 )}
-              </>
+              </React.Fragment>
             ))}
           </tbody>
         </table>

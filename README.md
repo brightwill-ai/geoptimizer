@@ -75,6 +75,223 @@ npx tsx prisma/seed.ts          # Seed query templates
 npx tsx prisma/seed.ts --force  # Clear and re-seed
 ```
 
+## Email Outreach System
+
+A full email marketing platform built into the admin dashboard for cold outreach to local businesses. Manages SMTP accounts, contact lists, email templates, and automated drip campaigns — all from `/admin` > **Outreach** tab.
+
+### Getting Started
+
+#### 1. Environment Setup
+
+Add these to your `.env`:
+
+```bash
+# Generate encryption key (required for storing SMTP passwords securely):
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+OUTREACH_ENCRYPTION_KEY="your-64-char-hex-string"
+
+# Generate cron secret (required for automated sending):
+# node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
+CRON_SECRET="your-cron-secret"
+```
+
+#### 2. Seed Templates (Optional)
+
+Seed 3 starter email templates (Curiosity, Competitor, Branded):
+
+```bash
+npx tsx scripts/outreach/seed-templates.ts
+```
+
+Or create templates manually in the admin UI.
+
+#### 3. Cron Job (Production)
+
+Set up the send cycle cron on your server:
+
+```bash
+# Runs every 2 minutes — processes active campaigns and sends emails
+crontab -e
+# Add this line:
+*/2 * * * * curl -s -X POST http://localhost:3003/api/admin/outreach/send -H "Authorization: Bearer YOUR_CRON_SECRET" > /dev/null 2>&1
+```
+
+### How to Use
+
+Access the outreach platform at `/admin` (login with `ADMIN_PASSWORD`), then click the **Outreach** pill toggle.
+
+#### Step 1: Add SMTP Accounts
+
+Go to **Accounts** tab > **Add Account**.
+
+| Field | Example | Notes |
+|-------|---------|-------|
+| Label | `zoho-main` | Friendly name for the account |
+| SMTP Host | `smtp.zoho.com` | Your email provider's SMTP server |
+| SMTP Port | `465` | Usually 465 (SSL) or 587 (TLS) |
+| Secure | Yes | Enable for port 465 |
+| SMTP User | `outreach@yourdomain.com` | Login username |
+| SMTP Password | `your-app-password` | Stored encrypted (AES-256-GCM) |
+| From Name | `William` | Name recipients see |
+| From Email | `outreach@yourdomain.com` | Must match SMTP user for most providers |
+| Reply-To | *(optional)* | If different from From Email |
+| Enable Warmup | Yes (recommended) | Gradually ramps sending volume |
+
+**Warmup Protocol:** New accounts start at 5 emails/day and ramp up over 3 weeks:
+
+| Phase | Days | Daily Limit |
+|-------|------|-------------|
+| Phase 1 | 1-3 | 5/day |
+| Phase 2 | 4-7 | 10/day |
+| Phase 3 | 8-11 | 20/day |
+| Phase 4 | 12-16 | 30/day |
+| Phase 5 | 17-21 | 40/day |
+| Complete | 22+ | 50/day |
+
+The warmup advances automatically each day. If an account hits 3+ consecutive send errors, warmup pauses until errors clear. At 5 errors, the account auto-disables.
+
+**Testing:** Use the **Test** button on each account card to send a test email and verify SMTP credentials work.
+
+#### Step 2: Create Email Templates
+
+Go to **Templates** tab > **New Template**.
+
+Each template has:
+- **Name** — internal identifier (e.g., "Curiosity v2")
+- **Subject** — email subject line (supports variables)
+- **HTML Body** — rich HTML email (supports variables)
+- **Plain Text Body** — fallback for email clients that don't render HTML
+
+**Available variables** (click "Template Variables Guide" for the full list):
+
+| Variable | Replaced With | Fallback |
+|----------|---------------|----------|
+| `{businessName}` | Contact's business name | *(required)* |
+| `{firstName}` | Contact's first name | `"there"` |
+| `{city}` | Contact's city | `""` |
+| `{category}` | Contact's category | `""` |
+| `{cuisineType}` | Cuisine type (restaurants) | Falls back to category |
+| `{categoryNoun}` | Computed noun from category | `"business"` |
+| `{searchExample}` | Computed search query | `"best business in your area"` |
+| `{email}` | Contact's email | *(required)* |
+| `{website}` | Contact's website | `""` |
+| `{phone}` | Contact's phone | `""` |
+| `{unsubscribeUrl}` | Auto-generated per contact | *(always set)* |
+
+**Tips:**
+- **Cold outreach:** Use minimal HTML that looks like a personal email (no big headers, no heavy styling). The "Curiosity" and "Competitor" seed templates are good examples.
+- **Warm leads/follow-ups:** Use the "Branded" template style with BrightWill styling.
+- **Always include `{unsubscribeUrl}`** in every template — it's legally required and auto-generated per contact.
+- Use **Preview** to see how the template renders with sample data.
+- Use **Send Test** to send a real test email to yourself via one of your SMTP accounts.
+
+#### Step 3: Import Contacts
+
+Go to **Contacts** tab. Use the drag-and-drop CSV upload zone at the top.
+
+**CSV format:** Any CSV works. The system auto-detects common column names:
+
+| Our Field | Auto-detected Column Names |
+|-----------|---------------------------|
+| email | `Email`, `email`, `Email (Website)`, `E-mail` |
+| businessName | `Business Name`, `Name`, `Company` |
+| firstName | `First Name`, `Contact Name`, `Owner` |
+| category | `Category`, `Type`, `Business Type` |
+| city | `City` |
+| cuisineType | `Cuisine/Type`, `Cuisine`, `Subcategory` |
+| website | `Website`, `URL`, `Web` |
+| phone | `Phone`, `Phone Number` |
+| address | `Full Address`, `Address`, `Street` |
+| zipCode | `Zip Code`, `Zip`, `Postal Code` |
+
+**Upload flow:**
+1. Drop or select your CSV file
+2. Review the auto-detected column mapping — adjust if needed
+3. Select an existing list or create a new one (e.g., "Raleigh Restaurants")
+4. Click **Import**
+
+The system handles:
+- **Duplicate detection** — contacts with the same email are skipped
+- **Semicolon-separated emails** — takes the first valid one
+- **Invalid rows** — skipped with error count
+- **Unmapped columns** — stored as custom fields (JSON)
+
+**Filtering:** Use the status, city, and list dropdowns to filter the contacts table. Pagination at 50 per page.
+
+#### Step 4: Create & Run Campaigns
+
+Go to **Campaigns** tab > **Create Campaign**.
+
+| Field | What it does | Default |
+|-------|-------------|---------|
+| Name | Campaign identifier | — |
+| Contact List | Which list to send to | — |
+| Templates | Select 1+ templates (with weights for A/B testing) | — |
+| Delay (minutes) | Minimum time between sends | 4 min |
+| Jitter (seconds) | Random additional delay (humanizes timing) | 30 sec |
+| Skip Weekends | Don't send on Saturday/Sunday | Off |
+| Send Window | Hours during which sending is allowed | 9 AM - 5 PM |
+| Timezone | Timezone for the send window | America/New_York |
+| Allow Resend (days) | Cross-campaign dedup (0 = never resend) | 0 |
+
+**Template weights:** If you assign multiple templates, the system picks one randomly per send, weighted by the numbers you set. E.g., Template A (weight 2) + Template B (weight 1) = A gets picked ~67% of the time. This is your A/B testing mechanism.
+
+**Campaign lifecycle:**
+1. **Draft** — created but not started. You can edit, delete, or add templates.
+2. **Active** — click **Start** to begin. The cron job picks up active campaigns every 2 minutes.
+3. **Paused** — click **Pause** to temporarily stop. Resume anytime with **Start**.
+4. **Complete** — auto-set when all eligible contacts in the list have been sent.
+
+**How sending works (per cron cycle):**
+1. Checks if the current time is within the campaign's send window
+2. Checks if the minimum delay since last send has elapsed (+ random jitter)
+3. Finds the next eligible contact (not yet sent, not unsubscribed, not bounced)
+4. Picks the SMTP account with the fewest sends today (load balancing)
+5. Selects a template by weighted random
+6. Renders variables and sends via nodemailer
+7. Updates all records (send log, account counters, contact status, campaign counters)
+
+**Viewing sends:** Click on a campaign row to expand its send log — shows each email sent with status, template used, account used, and timestamp.
+
+#### Step 5: Monitor from Dashboard
+
+The **Dashboard** tab shows:
+- **KPIs:** Total contacts, sent today, sent this week, active campaigns, bounced, unsubscribed
+- **Account Health:** Per-account cards showing warmup progress, sends today vs. daily limit, and error status
+- **Recent Sends:** Last 20 emails sent with status and details
+- **Run Send Cycle:** Manual trigger button (useful for testing — normally the cron handles this)
+
+### Unsubscribe Handling
+
+Every email automatically includes an `{unsubscribeUrl}` that links to `/api/unsubscribe/{token}`. When clicked:
+1. The contact's status is set to `unsubscribed` with a timestamp
+2. The user is redirected to a branded confirmation page at `/unsubscribe/{token}`
+3. The contact is permanently excluded from all future campaigns
+
+Each contact gets a unique unsubscribe token (auto-generated on import).
+
+### Safety Features
+
+- **Duplicate prevention:** `@@unique([campaignId, contactId])` constraint on sends + application-level cross-campaign dedup
+- **Auto-pause on errors:** Account pauses at 3 consecutive errors, disables at 5
+- **Send window enforcement:** Emails only sent during configured hours (in the campaign's timezone)
+- **Weekend skip:** Optional per-campaign
+- **In-memory lock:** Prevents overlapping send cycles if the cron fires while a cycle is still running
+- **Daily reset:** Account send counters reset automatically each day
+- **Encrypted credentials:** SMTP passwords stored with AES-256-GCM encryption
+
+### Migrating Existing Data
+
+If you have an existing `sent-log.json` from the old file-based outreach system:
+
+```bash
+npx tsx scripts/outreach/migrate-to-db.ts
+```
+
+This imports contacts from the sent log into the database.
+
+---
+
 ## Environment Variables
 
 ```bash
@@ -101,6 +318,10 @@ STRIPE_PRICE_ID_STRATEGY="price_..."  # $199 Audit + Strategy
 
 # Admin
 ADMIN_PASSWORD="your-password"       # For /admin dashboard
+
+# Outreach System
+OUTREACH_ENCRYPTION_KEY="..."        # 32-byte hex for SMTP password encryption (generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
+CRON_SECRET="..."                    # Secret for cron job auth (generate: node -e "console.log(require('crypto').randomBytes(24).toString('hex'))")
 ```
 
 ## Deployment
