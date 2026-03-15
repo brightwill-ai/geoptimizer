@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { advanceWarmup } from "./warmup";
 import { renderTemplate } from "./renderer";
 import { createTransport, sendEmail } from "./smtp";
+import { classifySmtpError } from "./bounce-classifier";
 
 let sendCycleRunning = false;
 
@@ -292,23 +293,35 @@ export async function runSendCycle(): Promise<SendCycleResult> {
         result.details.push(`${campaign.name}: sent to ${contact.email} via ${account.label}`);
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : String(err);
+        const classification = classifySmtpError(err);
+        const isBounce = classification === "permanent_bounce";
 
-        // Update records — failure (use allSettled so one DB failure doesn't crash the cycle)
+        // Update records — failure/bounce (use allSettled so one DB failure doesn't crash the cycle)
         await Promise.allSettled([
           prisma.outreachSend.update({
             where: { id: send.id },
-            data: { status: "failed", errorMessage: errMsg },
+            data: { status: isBounce ? "bounced" : "failed", errorMessage: errMsg },
           }),
-          prisma.emailAccount.update({
-            where: { id: account.id },
-            data: {
-              consecutiveErrors: { increment: 1 },
-              lastError: errMsg,
-              lastErrorAt: now,
-              // Auto-pause at 5 consecutive errors
-              ...(account.consecutiveErrors + 1 >= 5 ? { status: "error" } : {}),
-            },
-          }),
+          // Bounces are recipient-level problems — don't penalize the account
+          ...(!isBounce ? [
+            prisma.emailAccount.update({
+              where: { id: account.id },
+              data: {
+                consecutiveErrors: { increment: 1 },
+                lastError: errMsg,
+                lastErrorAt: now,
+                // Auto-pause at 5 consecutive errors
+                ...(account.consecutiveErrors + 1 >= 5 ? { status: "error" } : {}),
+              },
+            }),
+          ] : []),
+          // Mark contact as bounced so they're excluded from all future sends
+          ...(isBounce ? [
+            prisma.outreachContact.update({
+              where: { id: contact.id },
+              data: { status: "bounced" },
+            }),
+          ] : []),
           prisma.outreachCampaign.update({
             where: { id: campaign.id },
             data: {
@@ -319,7 +332,7 @@ export async function runSendCycle(): Promise<SendCycleResult> {
         ]);
 
         result.failed++;
-        result.details.push(`${campaign.name}: FAILED ${contact.email} — ${errMsg}`);
+        result.details.push(`${campaign.name}: ${isBounce ? "BOUNCED" : "FAILED"} ${contact.email} — ${errMsg}`);
       }
     }
 

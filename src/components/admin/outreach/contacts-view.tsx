@@ -398,15 +398,47 @@ export function ContactsView({ lists, onRefresh }: Props) {
                   <tr>
                     <td colSpan={7} style={{ padding: "14px 16px", background: "#fafafa", borderBottom: "1px solid #f0f0f0" }}>
                       {/* Contact details */}
-                      <div style={{ fontSize: "0.75rem", color: "#6e6e80", marginBottom: 10 }}>
-                        {c.website && <><strong>Website:</strong> {c.website} &nbsp;&middot;&nbsp;</>}
-                        {c.phone && <><strong>Phone:</strong> {c.phone} &nbsp;&middot;&nbsp;</>}
-                        {c.firstName && <><strong>First Name:</strong> {c.firstName} &nbsp;&middot;&nbsp;</>}
-                        <strong>Added:</strong> {formatDate(c.createdAt)}
-                        {c.unsubscribedAt && (
-                          <span style={{ color: "#dc2626", marginLeft: 12 }}>
-                            <strong>Unsubscribed:</strong> {formatDate(c.unsubscribedAt)}
-                          </span>
+                      <div style={{ fontSize: "0.75rem", color: "#6e6e80", marginBottom: 10, display: "flex", alignItems: "center", flexWrap: "wrap", gap: 4 }}>
+                        <span>
+                          {c.website && <><strong>Website:</strong> {c.website} &nbsp;&middot;&nbsp;</>}
+                          {c.phone && <><strong>Phone:</strong> {c.phone} &nbsp;&middot;&nbsp;</>}
+                          {c.firstName && <><strong>First Name:</strong> {c.firstName} &nbsp;&middot;&nbsp;</>}
+                          <strong>Added:</strong> {formatDate(c.createdAt)}
+                          {c.unsubscribedAt && (
+                            <span style={{ color: "#dc2626", marginLeft: 12 }}>
+                              <strong>Unsubscribed:</strong> {formatDate(c.unsubscribedAt)}
+                            </span>
+                          )}
+                        </span>
+                        {c.status !== "bounced" && c.status !== "unsubscribed" && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (!confirm(`Mark ${c.email} as bounced? They'll be excluded from all future campaigns.`)) return;
+                              try {
+                                await fetch(`/api/admin/outreach/contacts/${c.id}`, {
+                                  method: "PATCH",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ status: "bounced" }),
+                                });
+                                fetchContacts();
+                                onRefresh();
+                              } catch { /* ignore */ }
+                            }}
+                            style={{
+                              padding: "2px 8px",
+                              fontSize: "0.68rem",
+                              fontWeight: 500,
+                              borderRadius: 4,
+                              border: "1px solid rgba(220,38,38,0.3)",
+                              background: "transparent",
+                              color: "#dc2626",
+                              cursor: "pointer",
+                              marginLeft: 8,
+                            }}
+                          >
+                            Mark Bounced
+                          </button>
                         )}
                       </div>
 

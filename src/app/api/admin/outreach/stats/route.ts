@@ -13,6 +13,10 @@ export async function GET() {
   weekAgo.setDate(weekAgo.getDate() - 7);
   weekAgo.setHours(0, 0, 0, 0);
 
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  thirtyDaysAgo.setHours(0, 0, 0, 0);
+
   const [
     totalContacts,
     totalSent,
@@ -23,6 +27,10 @@ export async function GET() {
     totalUnsubscribed,
     accounts,
     recentSends,
+    totalFailed,
+    totalBouncedSends,
+    totalAttempted30d,
+    activeCampaignDetails,
   ] = await Promise.all([
     prisma.outreachContact.count(),
     prisma.outreachSend.count({ where: { status: "sent" } }),
@@ -53,6 +61,7 @@ export async function GET() {
         id: true,
         status: true,
         sentAt: true,
+        errorMessage: true,
         renderedSubject: true,
         renderedHtml: true,
         renderedText: true,
@@ -61,7 +70,39 @@ export async function GET() {
         account: { select: { label: true } },
       },
     }),
+    prisma.outreachSend.count({ where: { status: "failed" } }),
+    prisma.outreachSend.count({ where: { status: "bounced" } }),
+    prisma.outreachSend.count({
+      where: {
+        status: { in: ["sent", "bounced", "failed"] },
+        createdAt: { gte: thirtyDaysAgo },
+      },
+    }),
+    prisma.outreachCampaign.findMany({
+      where: { status: { in: ["active", "paused"] } },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        sentCount: true,
+        failedCount: true,
+        totalContacts: true,
+        lastSendAt: true,
+        list: { select: { name: true, contactCount: true } },
+      },
+      orderBy: { lastSendAt: "desc" },
+      take: 5,
+    }),
   ]);
+
+  // Compute delivery metrics (last 30 days)
+  const totalDelivered30d = totalAttempted30d - totalBouncedSends - totalFailed;
+  const deliveryMetrics = {
+    totalAttempted: totalAttempted30d,
+    bounceRate: totalAttempted30d > 0 ? totalBouncedSends / totalAttempted30d : 0,
+    failRate: totalAttempted30d > 0 ? totalFailed / totalAttempted30d : 0,
+    deliveryRate: totalAttempted30d > 0 ? Math.max(0, totalDelivered30d) / totalAttempted30d : 1,
+  };
 
   return NextResponse.json({
     totalContacts,
@@ -80,9 +121,23 @@ export async function GET() {
       accountLabel: s.account.label,
       status: s.status,
       sentAt: s.sentAt,
+      errorMessage: s.errorMessage,
       renderedSubject: s.renderedSubject,
       renderedHtml: s.renderedHtml,
       renderedText: s.renderedText,
+    })),
+    totalFailed,
+    totalBouncedSends,
+    deliveryMetrics,
+    activeCampaignDetails: activeCampaignDetails.map((c) => ({
+      id: c.id,
+      name: c.name,
+      status: c.status,
+      sentCount: c.sentCount,
+      failedCount: c.failedCount,
+      totalContacts: c.totalContacts,
+      lastSendAt: c.lastSendAt,
+      listName: c.list.name,
     })),
   });
 }

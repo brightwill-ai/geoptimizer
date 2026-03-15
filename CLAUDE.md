@@ -40,6 +40,7 @@ src/
 │   │   ├── analysis/route.ts             # POST /api/analysis (create + fire-and-forget)
 │   │   ├── checkout/route.ts              # POST /api/checkout (Stripe Checkout Session)
 │   │   ├── webhooks/stripe/route.ts      # POST /api/webhooks/stripe (Stripe webhook handler)
+│   │   ├── webhooks/bounce/route.ts      # POST /api/webhooks/bounce (bounce detection — marks contacts bounced)
 │   │   ├── health/route.ts               # GET /api/health (DB health check)
 │   │   ├── analysis/[id]/
 │   │   │   ├── route.ts                  # GET /api/analysis/[id] (poll status + query progress + actionPlan)
@@ -125,7 +126,8 @@ src/
     │   ├── renderer.ts                   # Template {variable} replacement + computed vars
     │   ├── smtp.ts                       # Nodemailer transport factory + sendEmail()
     │   ├── csv-parser.ts                 # CSV parsing, column detection, contact extraction
-    │   └── send-engine.ts               # Core send cycle (cron-triggered, stateless)
+    │   ├── bounce-classifier.ts          # SMTP error classification (permanent bounce vs transient failure)
+    │   └── send-engine.ts               # Core send cycle (cron-triggered, stateless, bounce-aware)
     └── agents/                           # LLM analysis pipeline
         ├── clients.ts                    # SDK singletons + MODEL_CONFIG
         ├── prompts.ts                    # Prompt templates + BUSINESS_CATEGORIES
@@ -491,7 +493,8 @@ Clean light dashboard (Linear/Notion-inspired) on warm beige page:
 | PATCH | `/api/admin/outreach/campaigns/[id]` | Update / start / pause campaign |
 | DELETE | `/api/admin/outreach/campaigns/[id]` | Delete campaign (draft only) |
 | POST | `/api/admin/outreach/send` | Cron-triggered send cycle (admin cookie or Bearer CRON_SECRET) |
-| GET | `/api/admin/outreach/stats` | Outreach KPIs + account health + recent sends |
+| GET | `/api/admin/outreach/stats` | Outreach KPIs + delivery metrics + campaign progress + recent sends |
+| POST | `/api/webhooks/bounce` | Mark contacts as bounced (admin cookie or Bearer CRON_SECRET) |
 | GET | `/api/unsubscribe/[token]` | Public unsubscribe (marks contact, redirects to confirmation) |
 
 ## Environment Variables
@@ -567,7 +570,8 @@ Public: GET /api/unsubscribe/[token] → marks contact unsubscribed → redirect
 | `renderer.ts` | Template `{variable}` replacement | `renderTemplate(template, contactData)` — replaces all `{var}` placeholders with contact data + computed vars (`{categoryNoun}`, `{searchExample}`, `{unsubscribeUrl}`). `extractVariables(template)` — regex extraction for auto-detecting used vars. `SAMPLE_CONTACT` — mock data for previews. `CATEGORY_NOUN_MAP` — 16-entry map for category → noun conversion. |
 | `smtp.ts` | Nodemailer transport factory | `createTransport(account)` — decrypts `smtpPass`, creates nodemailer transport with timeouts (connection: 10s, socket: 15s, greeting: 10s). `sendEmail(transporter, options)` — sends and returns `messageId`. |
 | `csv-parser.ts` | CSV parsing with column auto-detection | `detectColumns(headers)` — maps CSV headers to our fields via `AUTO_MAP` aliases. `parseCSV(content, columnMapping)` — returns `{ contacts, errors, duplicates, headers }`. Handles BOM, semicolon-separated emails, unmapped columns as `customFields` JSON. |
-| `send-engine.ts` | Core cron-triggered send cycle | `runSendCycle()` — stateless, in-memory lock (`let sendCycleRunning = false`), processes all active campaigns. Returns `SendCycleResult { sent, failed, campaignsProcessed, details[] }`. |
+| `bounce-classifier.ts` | SMTP error classification | `classifySmtpError(error)` → `"permanent_bounce"` (550-554, "address not found", etc.), `"transient_failure"` (421-452), or `"unknown_error"`. Used by send-engine to differentiate bounces from failures. |
+| `send-engine.ts` | Core cron-triggered send cycle | `runSendCycle()` — stateless, in-memory lock (`let sendCycleRunning = false`), processes all active campaigns. Classifies SMTP errors: permanent bounces mark contact+send as "bounced" (no account penalty), transient failures mark as "failed" (increments account errors). Returns `SendCycleResult { sent, failed, campaignsProcessed, details[] }`. |
 
 ### Send Engine Flow (detailed)
 
@@ -585,7 +589,7 @@ Public: GET /api/unsubscribe/[token] → marks contact unsubscribed → redirect
    - **Render** — `renderTemplate()` for subject, htmlBody, plainTextBody
    - **Create OutreachSend** — status "pending", catches unique constraint violations for dedup
    - **Send via nodemailer** — `createTransport(account)` + `sendEmail()`
-   - **Update records** — uses `Promise.allSettled` so one DB failure doesn't crash the cycle. On success: send→"sent", account sentToday++/totalSent++/consecutiveErrors=0, contact→"sent", campaign sentCount++/lastSendAt. On failure: send→"failed" with error, account consecutiveErrors++, auto-set status to "error" at 5 consecutive errors
+   - **Update records** — uses `Promise.allSettled` so one DB failure doesn't crash the cycle. On success: send→"sent", account sentToday++/totalSent++/consecutiveErrors=0, contact→"sent", campaign sentCount++/lastSendAt. On failure: classifies error via `classifySmtpError()` — permanent bounces (550 codes, "address not found" patterns) mark send+contact as "bounced" without penalizing account; transient/unknown failures mark send as "failed" with account consecutiveErrors++, auto-set status to "error" at 5 consecutive errors
 4. **Campaign completion** — if no eligible contacts remain and all have been sent, campaign status → "complete" with `completedAt` timestamp
 5. **Timezone helpers** — `getHourInTimezone(date, tz)` and `getDayInTimezone(date, tz)` handle send window and weekend checks. Falls back to UTC if timezone conversion fails.
 
@@ -609,7 +613,14 @@ All outreach API routes (except unsubscribe) are admin-protected via `requireAdm
 | `campaigns/route.ts` | GET, POST | GET includes list details + template details. POST creates with status "draft", creates `OutreachCampaignTemplate` join records with weights. |
 | `campaigns/[id]/route.ts` | GET, PATCH, DELETE | GET returns paginated send log (page/limit params) with contact/template/account details + renderedSubject/renderedHtml. PATCH handles start (→"active", sets `startedAt`) / pause (→"paused", sets `pausedAt`) status transitions + field updates (including `templateIds` for template reassignment, `categoryFilter`). DELETE only allowed for "draft" campaigns. |
 | `send/route.ts` | POST | Dual auth: admin cookie OR `Authorization: Bearer CRON_SECRET`. Calls `runSendCycle()` and returns result JSON. |
-| `stats/route.ts` | GET | Aggregates: totalContacts, totalSent, sentToday, sentThisWeek, activeCampaigns, totalBounced, totalUnsubscribed, accounts (summary), recentSends (last 50 with contact/template/account joins). |
+| `stats/route.ts` | GET | Aggregates: totalContacts, totalSent, sentToday, sentThisWeek, activeCampaigns, totalBounced, totalUnsubscribed, totalFailed, totalBouncedSends, deliveryMetrics (bounceRate/failRate/deliveryRate last 30d), activeCampaignDetails (progress), accounts (summary), recentSends (last 50 with contact/template/account joins + errorMessage). |
+
+### Bounce Detection
+
+Three layers of bounce detection:
+1. **SMTP-level** (`send-engine.ts`): When nodemailer throws, `classifySmtpError()` checks for permanent bounce codes (550-554) and patterns ("address not found", "user unknown"). Permanent bounces mark contact+send as "bounced"; transient failures mark send as "failed" with account error tracking.
+2. **Webhook** (`POST /api/webhooks/bounce`): Accepts `{ email }`, `{ emails: [] }`, or `{ messageId }`. Marks contact + associated sends as "bounced". Dual auth: admin cookie or Bearer CRON_SECRET. Useful for manual marking, curl scripts, or future email service provider webhooks.
+3. **Admin UI**: "Mark Bounced" buttons in contacts expanded view and "Bounce" buttons in dashboard recent sends table.
 
 ### Unsubscribe Flow
 
@@ -621,7 +632,7 @@ All outreach API routes (except unsubscribe) are admin-protected via `requireAdm
 | Component | Role | Key patterns |
 |-----------|------|-------------|
 | `outreach-section.tsx` | Container — fetches all data (stats, templates, lists, campaigns, accounts) via `Promise.all`, manages sub-tab state, passes data to child views. Lazy-loaded in admin page via `React.lazy()`. Exports shared TypeScript interfaces (`Account`, `RecentSend`, `OutreachTemplate`, `OutreachList`, `Campaign`, `AccountFull`). |
-| `dashboard-view.tsx` | KPI cards + account health cards (warmup progress bars) + recent send log table + "Run Send Cycle" button that POSTs to `/api/admin/outreach/send`. Click any send row to open email preview modal (rendered subject + HTML body in sandboxed iframe). |
+| `dashboard-view.tsx` | 5-section layout: (1) Delivery Health row — 3 cards with color-coded delivery/bounce/fail rates (green/amber/red thresholds), (2) Activity KPIs row — 6 cards (total sent, sent today, sent this week, active campaigns, bounced, unsubscribed), (3) Campaign Progress — compact progress bars for active/paused campaigns with sent/total counts, (4) Account health cards with warmup progress bars, (5) Recent send log table with "Bounce" quick-action buttons on sent/failed rows + email preview modal. "Run Send Cycle" button POSTs to `/api/admin/outreach/send`. |
 | `campaigns-view.tsx` | Campaign table with status badges + start/pause/edit buttons. Create form: name, list selector, category filter (optional), template multi-select with weight inputs, delay/jitter/window config. Inline edit form for active/paused campaigns. Expandable send log per campaign (fetches `GET /api/admin/outreach/campaigns/[id]`). Click any send to open email preview modal (rendered HTML in iframe). |
 | `contacts-view.tsx` | CSV drag-drop upload zone with two-phase flow (detect → map → import). Contact table with pagination (50/page) + status/city/list filters. Uses `eslint-disable` for `react-hooks/set-state-in-effect`. |
 | `templates-view.tsx` | Template cards with edit/preview/test-send/delete buttons. Create/edit form with name, subject, HTML body (monospace textarea), plain text body, description. Collapsible "Template Variables Guide". Preview rendered in iframe-like panel. Test send prompts for email address, uses first available account. |
