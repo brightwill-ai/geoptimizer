@@ -41,6 +41,8 @@ export interface RecentSend {
   accountLabel: string;
   status: string;
   sentAt: string | null;
+  renderedSubject: string;
+  renderedHtml: string | null;
 }
 
 export interface OutreachTemplate {
@@ -76,6 +78,7 @@ export interface Campaign {
   sendWindowEnd: number;
   timezone: string;
   allowResendDays: number;
+  categoryFilter: string | null;
   totalContacts: number;
   sentCount: number;
   failedCount: number;
@@ -153,6 +156,12 @@ export function OutreachSection() {
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchAll(); }, [fetchAll]);
+
+  // Auto-refresh every 30s
+  useEffect(() => {
+    const interval = setInterval(fetchAll, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchAll]);
 
   if (loading) {
     return (

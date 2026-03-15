@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   if (!(await verifyAdmin())) return unauthorizedResponse();
 
   const body = await req.json();
-  const { name, listId, templateIds, delayMinutes, jitterSeconds, skipWeekends, sendWindowStart, sendWindowEnd, timezone, allowResendDays } = body;
+  const { name, listId, templateIds, delayMinutes, jitterSeconds, skipWeekends, sendWindowStart, sendWindowEnd, timezone, allowResendDays, categoryFilter } = body;
 
   if (!name || !listId) {
     return NextResponse.json({ error: "name and listId are required" }, { status: 400 });
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
       sendWindowEnd: sendWindowEnd ?? 17,
       timezone: timezone || "America/New_York",
       allowResendDays: allowResendDays ?? 0,
+      categoryFilter: categoryFilter || null,
       totalContacts: list.contactCount,
     },
   });

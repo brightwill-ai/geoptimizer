@@ -56,6 +56,8 @@ interface SendLog {
   id: string;
   status: string;
   sentAt: string | null;
+  renderedSubject: string;
+  renderedHtml: string | null;
   contact: { email: string; businessName: string };
   template: { name: string };
   account: { label: string };
@@ -71,6 +73,7 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
     sendWindowStart: 9,
     sendWindowEnd: 17,
     skipWeekends: false,
+    categoryFilter: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -84,8 +87,10 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
     sendWindowStart: 9,
     sendWindowEnd: 17,
     skipWeekends: false,
+    categoryFilter: "",
   });
   const [editSaving, setEditSaving] = useState(false);
+  const [previewSend, setPreviewSend] = useState<SendLog | null>(null);
 
   const handleCreate = async () => {
     setSaving(true);
@@ -103,7 +108,7 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
         return;
       }
       setShowForm(false);
-      setForm({ name: "", listId: "", templateIds: [], delayMinutes: 4, sendWindowStart: 9, sendWindowEnd: 17, skipWeekends: false });
+      setForm({ name: "", listId: "", templateIds: [], delayMinutes: 4, sendWindowStart: 9, sendWindowEnd: 17, skipWeekends: false, categoryFilter: "" });
       onRefresh();
     } catch { setError("Network error"); }
     setSaving(false);
@@ -146,6 +151,7 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
       sendWindowStart: c.sendWindowStart,
       sendWindowEnd: c.sendWindowEnd,
       skipWeekends: c.skipWeekends,
+      categoryFilter: c.categoryFilter || "",
     });
   };
 
@@ -232,6 +238,15 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                   <option key={l.id} value={l.id}>{l.name} ({l.contactCount})</option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label style={{ fontSize: "0.7rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 4 }}>Category Filter <span style={{ fontWeight: 400, color: "#b0b0b0" }}>(optional)</span></label>
+              <input
+                value={form.categoryFilter}
+                onChange={(e) => setForm({ ...form, categoryFilter: e.target.value })}
+                placeholder="e.g., restaurant, salon, hvac"
+                style={{ width: "100%", padding: "0.6rem 0.8rem", fontSize: "0.8rem", borderRadius: 8, border: "1px solid #e5e5e5", background: "#f7f7f8", boxSizing: "border-box" }}
+              />
             </div>
             <div>
               <label style={{ fontSize: "0.7rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 4 }}>Delay (minutes)</label>
@@ -353,10 +368,14 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                     <td colSpan={7} style={{ padding: "12px 14px", background: "#fafafa", borderBottom: "1px solid #f0f0f0" }}>
                       {editingId === c.id ? (
                         <div>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
                             <div>
                               <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Name</label>
                               <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} style={{ width: "100%", padding: "5px 8px", fontSize: "0.78rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", boxSizing: "border-box" }} />
+                            </div>
+                            <div>
+                              <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Category</label>
+                              <input value={editForm.categoryFilter} onChange={(e) => setEditForm({ ...editForm, categoryFilter: e.target.value })} placeholder="all" style={{ width: "100%", padding: "5px 8px", fontSize: "0.78rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", boxSizing: "border-box" }} />
                             </div>
                             <div>
                               <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Delay (min)</label>
@@ -407,6 +426,7 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                             <strong>Delay:</strong> {c.delayMinutes}min
                             &nbsp;&middot;&nbsp;
                             <strong>Window:</strong> {c.sendWindowStart}:00-{c.sendWindowEnd}:00 {c.timezone}
+                            {c.categoryFilter && <>&nbsp;&middot;&nbsp;<strong>Category:</strong> {c.categoryFilter}</>}
                             {c.skipWeekends && " · Skip weekends"}
                           </div>
                           {sendLogs[c.id] && (
@@ -415,12 +435,15 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                               <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 4 }}>
                                 <tbody>
                                   {sendLogs[c.id].map((s) => (
-                                    <tr key={s.id}>
+                                    <tr key={s.id} onClick={() => setPreviewSend(s)} style={{ cursor: "pointer" }}>
                                       <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem" }}>{s.contact.email}</td>
                                       <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", color: "#6e6e80" }}>{s.contact.businessName}</td>
                                       <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", color: "#6e6e80" }}>{s.template.name}</td>
                                       <td style={{ ...cellStyle, padding: "4px 8px" }}>{statusBadge(s.status)}</td>
                                       <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.7rem", color: "#6e6e80" }}>{formatDate(s.sentAt)}</td>
+                                      <td style={{ ...cellStyle, padding: "4px 8px" }}>
+                                        <span style={{ fontSize: "0.65rem", color: "#4285f4", textDecoration: "underline" }}>View</span>
+                                      </td>
                                     </tr>
                                   ))}
                                   {sendLogs[c.id].length === 0 && (
@@ -440,6 +463,55 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
           </tbody>
         </table>
       </div>
+
+      {/* Email Preview Modal */}
+      {previewSend && (
+        <div
+          onClick={() => setPreviewSend(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "#ffffff", borderRadius: 12, width: "100%", maxWidth: 700, maxHeight: "85vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
+          >
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5", flexShrink: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "#171717", marginBottom: 4 }}>
+                    {previewSend.renderedSubject}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#6e6e80" }}>
+                    To: {previewSend.contact.email} ({previewSend.contact.businessName})
+                    &nbsp;&middot;&nbsp;{previewSend.template.name}
+                    &nbsp;&middot;&nbsp;{formatDate(previewSend.sentAt)}
+                    &nbsp;&middot;&nbsp;{statusBadge(previewSend.status)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setPreviewSend(null)}
+                  style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#8e8ea0", cursor: "pointer", padding: "0 4px", lineHeight: 1 }}
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflow: "auto", padding: 0 }}>
+              {previewSend.renderedHtml ? (
+                <iframe
+                  srcDoc={previewSend.renderedHtml}
+                  style={{ width: "100%", height: "100%", minHeight: 400, border: "none" }}
+                  sandbox="allow-same-origin"
+                  title="Email preview"
+                />
+              ) : (
+                <div style={{ padding: 20, fontSize: "0.85rem", color: "#8e8ea0" }}>
+                  No HTML content available for this send.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

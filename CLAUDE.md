@@ -331,6 +331,7 @@ model OutreachTemplate {
 
 model OutreachCampaign {
   id, name, listId, status (draft|active|paused|complete),
+  categoryFilter String?,  // Optional: only send to contacts matching this category
   delayMinutes @default(4), jitterSeconds @default(30), skipWeekends @default(false),
   sendWindowStart @default(9), sendWindowEnd @default(17), timezone, allowResendDays @default(0),
   totalContacts, sentCount, failedCount,
@@ -348,6 +349,7 @@ model OutreachSend {
   createdAt
   @@unique([campaignId, contactId])
   @@index([campaignId, status]) @@index([contactId]) @@index([accountId, sentAt]) @@index([sentAt])
+  @@index([status, contactId]) @@index([status, sentAt]) @@index([createdAt])
 }
 ```
 
@@ -577,7 +579,7 @@ Public: GET /api/unsubscribe/[token] → marks contact unsubscribed → redirect
    - **Send window check** — `getHourInTimezone(now, campaign.timezone)` must be within `sendWindowStart..sendWindowEnd`
    - **Weekend check** — if `skipWeekends`, skip Saturday/Sunday (in campaign timezone)
    - **Delay check** — `elapsed since lastSendAt` must exceed `delayMinutes * 60s + random(0..jitterSeconds)s`
-   - **Find eligible contact** — query list members, exclude: already sent in this campaign (`OutreachSend` records), cross-campaign dedup (all sent contacts if `allowResendDays=0`, or recent if >0), unsubscribed/bounced contacts
+   - **Find eligible contact** — query list members, exclude: already sent in this campaign (`OutreachSend` records), cross-campaign dedup (all sent contacts if `allowResendDays=0`, or recent if >0), unsubscribed/bounced contacts, category mismatch (if `categoryFilter` set on campaign)
    - **Pick account** — least `sentToday` first, must be under `dailyLimit`
    - **Select template** — weighted random from campaign's assigned templates
    - **Render** — `renderTemplate()` for subject, htmlBody, plainTextBody
@@ -605,7 +607,7 @@ All outreach API routes (except unsubscribe) are admin-protected via `requireAdm
 | `templates/[id]/preview/route.ts` | POST | Renders template with `SAMPLE_CONTACT` data from renderer.ts (or custom `sampleData` from request body). Returns `{ subject, html }`. |
 | `templates/[id]/test-send/route.ts` | POST | Accepts `{ testEmail, accountId }`. Renders with sample data, sends real email via specified account. |
 | `campaigns/route.ts` | GET, POST | GET includes list details + template details. POST creates with status "draft", creates `OutreachCampaignTemplate` join records with weights. |
-| `campaigns/[id]/route.ts` | GET, PATCH, DELETE | GET returns paginated send log (page/limit params) with contact/template/account details. PATCH handles start (→"active", sets `startedAt`) / pause (→"paused", sets `pausedAt`) status transitions + field updates. DELETE only allowed for "draft" campaigns. |
+| `campaigns/[id]/route.ts` | GET, PATCH, DELETE | GET returns paginated send log (page/limit params) with contact/template/account details + renderedSubject/renderedHtml. PATCH handles start (→"active", sets `startedAt`) / pause (→"paused", sets `pausedAt`) status transitions + field updates (including `templateIds` for template reassignment, `categoryFilter`). DELETE only allowed for "draft" campaigns. |
 | `send/route.ts` | POST | Dual auth: admin cookie OR `Authorization: Bearer CRON_SECRET`. Calls `runSendCycle()` and returns result JSON. |
 | `stats/route.ts` | GET | Aggregates: totalContacts, totalSent, sentToday, sentThisWeek, activeCampaigns, totalBounced, totalUnsubscribed, accounts (summary), recentSends (last 50 with contact/template/account joins). |
 
@@ -619,8 +621,8 @@ All outreach API routes (except unsubscribe) are admin-protected via `requireAdm
 | Component | Role | Key patterns |
 |-----------|------|-------------|
 | `outreach-section.tsx` | Container — fetches all data (stats, templates, lists, campaigns, accounts) via `Promise.all`, manages sub-tab state, passes data to child views. Lazy-loaded in admin page via `React.lazy()`. Exports shared TypeScript interfaces (`Account`, `RecentSend`, `OutreachTemplate`, `OutreachList`, `Campaign`, `AccountFull`). |
-| `dashboard-view.tsx` | KPI cards + account health cards (warmup progress bars) + recent send log table + "Run Send Cycle" button that POSTs to `/api/admin/outreach/send`. |
-| `campaigns-view.tsx` | Campaign table with status badges + start/pause buttons. Create form: name, list selector, template multi-select with weight inputs, delay/jitter/window config. Expandable send log per campaign (fetches `GET /api/admin/outreach/campaigns/[id]`). |
+| `dashboard-view.tsx` | KPI cards + account health cards (warmup progress bars) + recent send log table + "Run Send Cycle" button that POSTs to `/api/admin/outreach/send`. Click any send row to open email preview modal (rendered subject + HTML body in sandboxed iframe). |
+| `campaigns-view.tsx` | Campaign table with status badges + start/pause/edit buttons. Create form: name, list selector, category filter (optional), template multi-select with weight inputs, delay/jitter/window config. Inline edit form for active/paused campaigns. Expandable send log per campaign (fetches `GET /api/admin/outreach/campaigns/[id]`). Click any send to open email preview modal (rendered HTML in iframe). |
 | `contacts-view.tsx` | CSV drag-drop upload zone with two-phase flow (detect → map → import). Contact table with pagination (50/page) + status/city/list filters. Uses `eslint-disable` for `react-hooks/set-state-in-effect`. |
 | `templates-view.tsx` | Template cards with edit/preview/test-send/delete buttons. Create/edit form with name, subject, HTML body (monospace textarea), plain text body, description. Collapsible "Template Variables Guide". Preview rendered in iframe-like panel. Test send prompts for email address, uses first available account. |
 | `accounts-view.tsx` | Account cards showing SMTP host, warmup phase/progress bar, sends today vs limit, status, error info. Add form: all SMTP fields + warmup toggle. Test/pause/remove actions per account. |

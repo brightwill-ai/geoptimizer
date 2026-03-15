@@ -49,7 +49,12 @@ export async function GET() {
     prisma.outreachSend.findMany({
       orderBy: { createdAt: "desc" },
       take: 50,
-      include: {
+      select: {
+        id: true,
+        status: true,
+        sentAt: true,
+        renderedSubject: true,
+        renderedHtml: true,
         contact: { select: { email: true, businessName: true } },
         template: { select: { name: true } },
         account: { select: { label: true } },
@@ -74,6 +79,8 @@ export async function GET() {
       accountLabel: s.account.label,
       status: s.status,
       sentAt: s.sentAt,
+      renderedSubject: s.renderedSubject,
+      renderedHtml: s.renderedHtml,
     })),
   });
 }

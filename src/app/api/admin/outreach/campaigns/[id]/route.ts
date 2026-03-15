@@ -63,6 +63,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (body.sendWindowEnd !== undefined) data.sendWindowEnd = body.sendWindowEnd;
   if (body.timezone !== undefined) data.timezone = body.timezone;
   if (body.allowResendDays !== undefined) data.allowResendDays = body.allowResendDays;
+  if (body.categoryFilter !== undefined) data.categoryFilter = body.categoryFilter || null;
 
   // Update templates if provided
   if (body.templateIds && Array.isArray(body.templateIds)) {

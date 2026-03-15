@@ -134,18 +134,22 @@ export async function runSendCycle(): Promise<SendCycleResult> {
         orderBy: { contact: { createdAt: "asc" } },
       });
 
+      const matchesCategory = (contact: { category: string }) =>
+        !campaign.categoryFilter || contact.category.toLowerCase() === campaign.categoryFilter.toLowerCase();
+
       const eligible = listMembers.find(
         (m) =>
           !sentIds.has(m.contactId) &&
           !recentlySentIds.has(m.contactId) &&
           m.contact.status !== "unsubscribed" &&
-          m.contact.status !== "bounced"
+          m.contact.status !== "bounced" &&
+          matchesCategory(m.contact)
       );
 
       if (!eligible) {
         // Check if campaign is complete
         const totalEligible = listMembers.filter(
-          (m) => m.contact.status !== "unsubscribed" && m.contact.status !== "bounced"
+          (m) => m.contact.status !== "unsubscribed" && m.contact.status !== "bounced" && matchesCategory(m.contact)
         ).length;
         if (sentIds.size >= totalEligible) {
           await prisma.outreachCampaign.update({

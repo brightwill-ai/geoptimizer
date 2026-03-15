@@ -66,6 +66,7 @@ function formatDate(d: string | null) {
 export function DashboardView({ stats, onRefresh }: Props) {
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState<string | null>(null);
+  const [previewSend, setPreviewSend] = useState<RecentSend | null>(null);
 
   const runCycle = async () => {
     setSending(true);
@@ -205,7 +206,11 @@ export function DashboardView({ stats, onRefresh }: Props) {
               </tr>
             )}
             {stats.recentSends.map((send) => (
-              <tr key={send.id}>
+              <tr
+                key={send.id}
+                onClick={() => setPreviewSend(previewSend?.id === send.id ? null : send)}
+                style={{ cursor: "pointer", background: previewSend?.id === send.id ? "#fafafa" : undefined }}
+              >
                 <td style={cellStyle}>{send.contactEmail}</td>
                 <td style={cellStyle}>{send.contactBusiness}</td>
                 <td style={{ ...cellStyle, fontSize: "0.75rem", color: "#6e6e80" }}>{send.templateName}</td>
@@ -217,6 +222,57 @@ export function DashboardView({ stats, onRefresh }: Props) {
           </tbody>
         </table>
       </div>
+
+      {/* Email Preview Modal */}
+      {previewSend && (
+        <div
+          onClick={() => setPreviewSend(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "#ffffff", borderRadius: 12, width: "100%", maxWidth: 700, maxHeight: "85vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
+          >
+            {/* Modal header */}
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5", flexShrink: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "#171717", marginBottom: 4 }}>
+                    {previewSend.renderedSubject}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#6e6e80" }}>
+                    To: {previewSend.contactEmail} ({previewSend.contactBusiness})
+                    &nbsp;&middot;&nbsp;Via: {previewSend.accountLabel}
+                    &nbsp;&middot;&nbsp;{formatDate(previewSend.sentAt)}
+                    &nbsp;&middot;&nbsp;{statusBadge(previewSend.status)}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setPreviewSend(null)}
+                  style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#8e8ea0", cursor: "pointer", padding: "0 4px", lineHeight: 1 }}
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            {/* Email body */}
+            <div style={{ flex: 1, overflow: "auto", padding: 0 }}>
+              {previewSend.renderedHtml ? (
+                <iframe
+                  srcDoc={previewSend.renderedHtml}
+                  style={{ width: "100%", height: "100%", minHeight: 400, border: "none" }}
+                  sandbox="allow-same-origin"
+                  title="Email preview"
+                />
+              ) : (
+                <div style={{ padding: 20, fontSize: "0.85rem", color: "#8e8ea0" }}>
+                  No HTML content available for this send.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

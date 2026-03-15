@@ -224,6 +224,7 @@ model OutreachContact {
   @@index([status])
   @@index([email])
   @@index([city, category])
+  @@index([category])
 }
 
 model OutreachList {
@@ -277,6 +278,7 @@ model OutreachCampaign {
   list            OutreachList @relation(fields: [listId], references: [id])
 
   status          String  @default("draft")
+  categoryFilter  String?
   delayMinutes    Int     @default(4)
   jitterSeconds   Int     @default(30)
   skipWeekends    Boolean @default(false)
@@ -342,4 +344,7 @@ model OutreachSend {
   @@index([contactId])
   @@index([accountId, sentAt])
   @@index([sentAt])
+  @@index([status, contactId])
+  @@index([status, sentAt])
+  @@index([createdAt])
 }
