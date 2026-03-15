@@ -93,6 +93,7 @@ export function ContactsView({ lists, onRefresh }: Props) {
     setLoading(false);
   }, [page, filterStatus, filterCity, filterList]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchContacts(); }, [fetchContacts]);
 
   const handleFileSelect = async (file: File) => {
