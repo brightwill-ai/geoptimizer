@@ -19,6 +19,24 @@ interface OutreachStats {
   totalUnsubscribed: number;
   accounts: Account[];
   recentSends: RecentSend[];
+  totalFailed: number;
+  totalBouncedSends: number;
+  deliveryMetrics: {
+    totalAttempted: number;
+    bounceRate: number;
+    failRate: number;
+    deliveryRate: number;
+  };
+  activeCampaignDetails: {
+    id: string;
+    name: string;
+    status: string;
+    sentCount: number;
+    failedCount: number;
+    totalContacts: number;
+    lastSendAt: string | null;
+    listName: string;
+  }[];
 }
 
 export interface Account {
@@ -41,6 +59,7 @@ export interface RecentSend {
   accountLabel: string;
   status: string;
   sentAt: string | null;
+  errorMessage: string | null;
   renderedSubject: string;
   renderedHtml: string | null;
   renderedText: string | null;
