@@ -9,6 +9,10 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Skip TS check during `next build` — already done in CI before deploy
+  typescript: {
+    ignoreBuildErrors: true,
+  },
 };
 
 export default nextConfig;
