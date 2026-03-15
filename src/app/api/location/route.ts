@@ -4,10 +4,12 @@ export async function GET(request: Request) {
   try {
     // Get IP from headers (proxied through Docker/nginx)
     const forwarded = request.headers.get("x-forwarded-for");
-    const ip = forwarded?.split(",")[0]?.trim() || "auto";
+    const ip = forwarded?.split(",")[0]?.trim() || "";
 
     // Use ip-api.com free tier (45 req/min, no key needed)
-    const res = await fetch(`http://ip-api.com/json/${ip === "127.0.0.1" || ip === "::1" ? "" : ip}?fields=city,regionName,country`, {
+    // Empty string = ip-api auto-detects from requester IP
+    const queryIp = (!ip || ip === "127.0.0.1" || ip === "::1") ? "" : ip;
+    const res = await fetch(`http://ip-api.com/json/${queryIp}?fields=city,regionName,country`, {
       next: { revalidate: 3600 }, // Cache for 1 hour
     });
 
