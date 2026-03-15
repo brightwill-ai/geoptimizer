@@ -123,8 +123,7 @@ function useLocationAutocomplete(query: string, enabled: boolean) {
       setLoading(true);
       try {
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5&dedupe=1`,
-          { headers: { "Accept-Language": "en" } }
+          `/api/location/search?q=${encodeURIComponent(query)}`
         );
         const data = await res.json();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
