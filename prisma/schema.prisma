@@ -331,6 +331,7 @@ model OutreachSend {
 
   renderedSubject String
   renderedHtml    String?
+  renderedText    String?
 
   status       String   @default("pending")
   errorMessage String?

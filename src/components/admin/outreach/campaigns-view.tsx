@@ -58,6 +58,7 @@ interface SendLog {
   sentAt: string | null;
   renderedSubject: string;
   renderedHtml: string | null;
+  renderedText: string | null;
   contact: { email: string; businessName: string };
   template: { name: string };
   account: { label: string };
@@ -503,9 +504,13 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                   sandbox="allow-same-origin"
                   title="Email preview"
                 />
+              ) : previewSend.renderedText ? (
+                <div style={{ padding: 20, fontSize: "0.85rem", color: "#171717", whiteSpace: "pre-wrap", lineHeight: 1.7, fontFamily: "inherit" }}>
+                  {previewSend.renderedText}
+                </div>
               ) : (
                 <div style={{ padding: 20, fontSize: "0.85rem", color: "#8e8ea0" }}>
-                  No HTML content available for this send.
+                  No content available for this send.
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import type { OutreachList } from "./outreach-section";
 
 interface Contact {
@@ -11,9 +11,25 @@ interface Contact {
   category: string;
   city: string;
   cuisineType: string | null;
+  website: string | null;
+  phone: string | null;
   status: string;
+  unsubscribedAt: string | null;
   createdAt: string;
   listMemberships: { list: { id: string; name: string } }[];
+}
+
+interface ContactSend {
+  id: string;
+  status: string;
+  sentAt: string | null;
+  renderedSubject: string;
+  renderedHtml: string | null;
+  renderedText: string | null;
+  errorMessage: string | null;
+  template: { name: string };
+  account: { label: string };
+  campaign: { name: string };
 }
 
 interface Props {
@@ -59,6 +75,11 @@ function statusBadge(status: string) {
   );
 }
 
+function formatDate(d: string | null) {
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
 export function ContactsView({ lists, onRefresh }: Props) {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [total, setTotal] = useState(0);
@@ -67,6 +88,24 @@ export function ContactsView({ lists, onRefresh }: Props) {
   const [filterCity, setFilterCity] = useState("");
   const [filterList, setFilterList] = useState("");
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [contactSends, setContactSends] = useState<Record<string, ContactSend[]>>({});
+  const [previewSend, setPreviewSend] = useState<ContactSend | null>(null);
+
+  const toggleExpand = async (contactId: string) => {
+    if (expandedId === contactId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(contactId);
+    if (!contactSends[contactId]) {
+      try {
+        const res = await fetch(`/api/admin/outreach/contacts/${contactId}`);
+        const data = await res.json();
+        setContactSends((prev) => ({ ...prev, [contactId]: data.sends || [] }));
+      } catch { /* ignore */ }
+    }
+  };
 
   // CSV upload state
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -338,19 +377,81 @@ export function ContactsView({ lists, onRefresh }: Props) {
               <tr><td colSpan={7} style={{ ...cellStyle, textAlign: "center", color: "#8e8ea0", padding: "2rem" }}>No contacts</td></tr>
             )}
             {!loading && contacts.map((c) => (
-              <tr key={c.id}>
-                <td style={cellStyle}>{c.email}</td>
-                <td style={{ ...cellStyle, fontWeight: 500 }}>{c.businessName}</td>
-                <td style={{ ...cellStyle, color: "#6e6e80" }}>{c.city || "—"}</td>
-                <td style={{ ...cellStyle, fontSize: "0.75rem", color: "#6e6e80" }}>{c.category || "—"}</td>
-                <td style={cellStyle}>{statusBadge(c.status)}</td>
-                <td style={{ ...cellStyle, fontSize: "0.7rem", color: "#6e6e80" }}>
-                  {c.listMemberships.map((m) => m.list.name).join(", ") || "—"}
-                </td>
-                <td style={{ ...cellStyle, fontSize: "0.75rem", color: "#6e6e80" }}>
-                  {new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                </td>
-              </tr>
+              <React.Fragment key={c.id}>
+                <tr
+                  onClick={() => toggleExpand(c.id)}
+                  style={{ cursor: "pointer", background: expandedId === c.id ? "#fafafa" : undefined }}
+                >
+                  <td style={cellStyle}>{c.email}</td>
+                  <td style={{ ...cellStyle, fontWeight: 500 }}>{c.businessName}</td>
+                  <td style={{ ...cellStyle, color: "#6e6e80" }}>{c.city || "—"}</td>
+                  <td style={{ ...cellStyle, fontSize: "0.75rem", color: "#6e6e80" }}>{c.category || "—"}</td>
+                  <td style={cellStyle}>{statusBadge(c.status)}</td>
+                  <td style={{ ...cellStyle, fontSize: "0.7rem", color: "#6e6e80" }}>
+                    {c.listMemberships.map((m) => m.list.name).join(", ") || "—"}
+                  </td>
+                  <td style={{ ...cellStyle, fontSize: "0.75rem", color: "#6e6e80" }}>
+                    {new Date(c.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </td>
+                </tr>
+                {expandedId === c.id && (
+                  <tr>
+                    <td colSpan={7} style={{ padding: "14px 16px", background: "#fafafa", borderBottom: "1px solid #f0f0f0" }}>
+                      {/* Contact details */}
+                      <div style={{ fontSize: "0.75rem", color: "#6e6e80", marginBottom: 10 }}>
+                        {c.website && <><strong>Website:</strong> {c.website} &nbsp;&middot;&nbsp;</>}
+                        {c.phone && <><strong>Phone:</strong> {c.phone} &nbsp;&middot;&nbsp;</>}
+                        {c.firstName && <><strong>First Name:</strong> {c.firstName} &nbsp;&middot;&nbsp;</>}
+                        <strong>Added:</strong> {formatDate(c.createdAt)}
+                        {c.unsubscribedAt && (
+                          <span style={{ color: "#dc2626", marginLeft: 12 }}>
+                            <strong>Unsubscribed:</strong> {formatDate(c.unsubscribedAt)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Send history */}
+                      <strong style={{ fontSize: "0.7rem", color: "#8e8ea0" }}>Email History</strong>
+                      {contactSends[c.id] ? (
+                        contactSends[c.id].length > 0 ? (
+                          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 4 }}>
+                            <thead>
+                              <tr>
+                                <th style={{ ...headerCellStyle, padding: "4px 8px", fontSize: "0.65rem" }}>Subject</th>
+                                <th style={{ ...headerCellStyle, padding: "4px 8px", fontSize: "0.65rem" }}>Campaign</th>
+                                <th style={{ ...headerCellStyle, padding: "4px 8px", fontSize: "0.65rem" }}>Template</th>
+                                <th style={{ ...headerCellStyle, padding: "4px 8px", fontSize: "0.65rem" }}>Account</th>
+                                <th style={{ ...headerCellStyle, padding: "4px 8px", fontSize: "0.65rem" }}>Status</th>
+                                <th style={{ ...headerCellStyle, padding: "4px 8px", fontSize: "0.65rem" }}>Sent</th>
+                                <th style={{ ...headerCellStyle, padding: "4px 8px", fontSize: "0.65rem" }}></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {contactSends[c.id].map((s) => (
+                                <tr key={s.id} onClick={(e) => { e.stopPropagation(); setPreviewSend(s); }} style={{ cursor: "pointer" }}>
+                                  <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", maxWidth: 220 }}>{s.renderedSubject}</td>
+                                  <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", color: "#6e6e80" }}>{s.campaign.name}</td>
+                                  <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", color: "#6e6e80" }}>{s.template.name}</td>
+                                  <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.72rem", color: "#6e6e80" }}>{s.account.label}</td>
+                                  <td style={{ ...cellStyle, padding: "4px 8px" }}>{statusBadge(s.status)}</td>
+                                  <td style={{ ...cellStyle, padding: "4px 8px", fontSize: "0.7rem", color: "#6e6e80" }}>{formatDate(s.sentAt)}</td>
+                                  <td style={{ ...cellStyle, padding: "4px 8px" }}>
+                                    <span style={{ fontSize: "0.65rem", color: "#4285f4", textDecoration: "underline" }}>View</span>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        ) : (
+                          <div style={{ fontSize: "0.75rem", color: "#8e8ea0", marginTop: 4 }}>No emails sent to this contact yet.</div>
+                        )
+                      ) : (
+                        <div style={{ fontSize: "0.75rem", color: "#8e8ea0", marginTop: 4 }}>Loading...</div>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
             ))}
           </tbody>
         </table>
@@ -362,6 +463,65 @@ export function ContactsView({ lists, onRefresh }: Props) {
           <button disabled={page <= 1} onClick={() => setPage(page - 1)} style={{ padding: "4px 12px", fontSize: "0.8rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", cursor: page <= 1 ? "not-allowed" : "pointer", opacity: page <= 1 ? 0.5 : 1 }}>Prev</button>
           <span style={{ fontSize: "0.8rem", color: "#6e6e80", alignSelf: "center" }}>{page} / {totalPages}</span>
           <button disabled={page >= totalPages} onClick={() => setPage(page + 1)} style={{ padding: "4px 12px", fontSize: "0.8rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", cursor: page >= totalPages ? "not-allowed" : "pointer", opacity: page >= totalPages ? 0.5 : 1 }}>Next</button>
+        </div>
+      )}
+
+      {/* Email Preview Modal */}
+      {previewSend && (
+        <div
+          onClick={() => setPreviewSend(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: "#ffffff", borderRadius: 12, width: "100%", maxWidth: 700, maxHeight: "85vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.15)" }}
+          >
+            <div style={{ padding: "16px 20px", borderBottom: "1px solid #e5e5e5", flexShrink: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "0.9rem", fontWeight: 600, color: "#171717", marginBottom: 4 }}>
+                    {previewSend.renderedSubject}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "#6e6e80" }}>
+                    {previewSend.campaign.name}
+                    &nbsp;&middot;&nbsp;{previewSend.template.name}
+                    &nbsp;&middot;&nbsp;Via: {previewSend.account.label}
+                    &nbsp;&middot;&nbsp;{formatDate(previewSend.sentAt)}
+                    &nbsp;&middot;&nbsp;{statusBadge(previewSend.status)}
+                  </div>
+                  {previewSend.errorMessage && (
+                    <div style={{ fontSize: "0.72rem", color: "#dc2626", marginTop: 4 }}>
+                      Error: {previewSend.errorMessage}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => setPreviewSend(null)}
+                  style={{ background: "none", border: "none", fontSize: "1.2rem", color: "#8e8ea0", cursor: "pointer", padding: "0 4px", lineHeight: 1 }}
+                >
+                  &times;
+                </button>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflow: "auto", padding: 0 }}>
+              {previewSend.renderedHtml ? (
+                <iframe
+                  srcDoc={previewSend.renderedHtml}
+                  style={{ width: "100%", height: "100%", minHeight: 400, border: "none" }}
+                  sandbox="allow-same-origin"
+                  title="Email preview"
+                />
+              ) : previewSend.renderedText ? (
+                <div style={{ padding: 20, fontSize: "0.85rem", color: "#171717", whiteSpace: "pre-wrap", lineHeight: 1.7, fontFamily: "inherit" }}>
+                  {previewSend.renderedText}
+                </div>
+              ) : (
+                <div style={{ padding: 20, fontSize: "0.85rem", color: "#8e8ea0" }}>
+                  No content available for this send.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -4,6 +4,38 @@ import { verifyAdmin, unauthorizedResponse } from "@/app/api/admin/auth";
 
 type Params = { params: Promise<{ id: string }> };
 
+// GET — contact detail with send history
+export async function GET(_req: NextRequest, { params }: Params) {
+  if (!(await verifyAdmin())) return unauthorizedResponse();
+  const { id } = await params;
+
+  const contact = await prisma.outreachContact.findUnique({
+    where: { id },
+    include: {
+      listMemberships: { include: { list: { select: { id: true, name: true } } } },
+      sends: {
+        orderBy: { createdAt: "desc" },
+        take: 50,
+        select: {
+          id: true,
+          status: true,
+          sentAt: true,
+          renderedSubject: true,
+          renderedHtml: true,
+          renderedText: true,
+          errorMessage: true,
+          template: { select: { name: true } },
+          account: { select: { label: true } },
+          campaign: { select: { name: true } },
+        },
+      },
+    },
+  });
+
+  if (!contact) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json(contact);
+}
+
 // PATCH — update contact
 export async function PATCH(req: NextRequest, { params }: Params) {
   if (!(await verifyAdmin())) return unauthorizedResponse();

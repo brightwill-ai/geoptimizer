@@ -43,6 +43,7 @@ export interface RecentSend {
   sentAt: string | null;
   renderedSubject: string;
   renderedHtml: string | null;
+  renderedText: string | null;
 }
 
 export interface OutreachTemplate {

@@ -264,9 +264,13 @@ export function DashboardView({ stats, onRefresh }: Props) {
                   sandbox="allow-same-origin"
                   title="Email preview"
                 />
+              ) : previewSend.renderedText ? (
+                <div style={{ padding: 20, fontSize: "0.85rem", color: "#171717", whiteSpace: "pre-wrap", lineHeight: 1.7, fontFamily: "inherit" }}>
+                  {previewSend.renderedText}
+                </div>
               ) : (
                 <div style={{ padding: 20, fontSize: "0.85rem", color: "#8e8ea0" }}>
-                  No HTML content available for this send.
+                  No content available for this send.
                 </div>
               )}
             </div>

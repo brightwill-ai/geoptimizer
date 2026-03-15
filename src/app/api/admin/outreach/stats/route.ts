@@ -55,6 +55,7 @@ export async function GET() {
         sentAt: true,
         renderedSubject: true,
         renderedHtml: true,
+        renderedText: true,
         contact: { select: { email: true, businessName: true } },
         template: { select: { name: true } },
         account: { select: { label: true } },
@@ -81,6 +82,7 @@ export async function GET() {
       sentAt: s.sentAt,
       renderedSubject: s.renderedSubject,
       renderedHtml: s.renderedHtml,
+      renderedText: s.renderedText,
     })),
   });
 }

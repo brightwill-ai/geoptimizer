@@ -234,6 +234,7 @@ export async function runSendCycle(): Promise<SendCycleResult> {
             accountId: account.id,
             renderedSubject,
             renderedHtml,
+            renderedText,
             status: "pending",
           },
         });
