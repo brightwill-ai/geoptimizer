@@ -7,6 +7,7 @@ interface Props {
   campaigns: Campaign[];
   lists: OutreachList[];
   templates: OutreachTemplate[];
+  categories: string[];
   onRefresh: () => void;
 }
 
@@ -64,7 +65,7 @@ interface SendLog {
   account: { label: string };
 }
 
-export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props) {
+export function CampaignsView({ campaigns, lists, templates, categories, onRefresh }: Props) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: "",
@@ -242,12 +243,16 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
             </div>
             <div>
               <label style={{ fontSize: "0.7rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 4 }}>Category Filter <span style={{ fontWeight: 400, color: "#b0b0b0" }}>(optional)</span></label>
-              <input
+              <select
                 value={form.categoryFilter}
                 onChange={(e) => setForm({ ...form, categoryFilter: e.target.value })}
-                placeholder="e.g., restaurant, salon, hvac"
-                style={{ width: "100%", padding: "0.6rem 0.8rem", fontSize: "0.8rem", borderRadius: 8, border: "1px solid #e5e5e5", background: "#f7f7f8", boxSizing: "border-box" }}
-              />
+                style={{ width: "100%", padding: "0.6rem 0.8rem", fontSize: "0.8rem", borderRadius: 8, border: "1px solid #e5e5e5", background: "#f7f7f8" }}
+              >
+                <option value="">All categories</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label style={{ fontSize: "0.7rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 4 }}>Delay (minutes)</label>
@@ -376,7 +381,12 @@ export function CampaignsView({ campaigns, lists, templates, onRefresh }: Props)
                             </div>
                             <div>
                               <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Category</label>
-                              <input value={editForm.categoryFilter} onChange={(e) => setEditForm({ ...editForm, categoryFilter: e.target.value })} placeholder="all" style={{ width: "100%", padding: "5px 8px", fontSize: "0.78rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff", boxSizing: "border-box" }} />
+                              <select value={editForm.categoryFilter} onChange={(e) => setEditForm({ ...editForm, categoryFilter: e.target.value })} style={{ width: "100%", padding: "5px 8px", fontSize: "0.78rem", borderRadius: 6, border: "1px solid #e5e5e5", background: "#ffffff" }}>
+                                <option value="">All categories</option>
+                                {categories.map((cat) => (
+                                  <option key={cat} value={cat}>{cat}</option>
+                                ))}
+                              </select>
                             </div>
                             <div>
                               <label style={{ fontSize: "0.65rem", fontWeight: 500, color: "#8e8ea0", display: "block", marginBottom: 3 }}>Delay (min)</label>

@@ -11,4 +11,4 @@ COPY . .
 RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" npm run build
 
 EXPOSE 3000
-CMD sh -c "npx prisma db push && npm start"
+CMD sh -c "npx prisma db push --accept-data-loss && npm start"

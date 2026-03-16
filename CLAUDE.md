@@ -67,8 +67,14 @@ src/
 │   │   │       ├── templates/[id]/test-send/route.ts # POST (send test email)
 │   │   │       ├── campaigns/route.ts    # GET + POST
 │   │   │       ├── campaigns/[id]/route.ts # GET (sends) + PATCH (start/pause) + DELETE
-│   │   │       ├── send/route.ts         # POST (cron-triggered send cycle)
-│   │   │       └── stats/route.ts        # GET (outreach KPIs)
+│   │   │       ├── send/route.ts         # POST (cron-triggered send cycle + warmup cycle)
+│   │   │       ├── stats/route.ts        # GET (outreach KPIs)
+│   │   │       └── warmup/              # Warmup pool system API
+│   │   │           ├── stats/route.ts    # GET (warmup pool KPIs + per-account stats)
+│   │   │           ├── cycle/route.ts    # POST (trigger warmup cycle)
+│   │   │           ├── accounts/[id]/route.ts      # PATCH (warmup settings + IMAP creds)
+│   │   │           ├── accounts/[id]/test-imap/route.ts  # POST (test IMAP connection)
+│   │   │           └── log/route.ts      # GET (warmup activity log)
 │   │   ├── unsubscribe/[token]/route.ts  # GET (public, no auth — marks unsubscribed, redirects)
 │   │   └── report/[token]/route.ts       # GET /api/report/[token] (public report data)
 │   ├── admin/
@@ -86,7 +92,8 @@ src/
 │   │   ├── campaigns-view.tsx            # Campaign table + create form + expandable send detail
 │   │   ├── contacts-view.tsx             # Contact table + filters + CSV upload + column mapper
 │   │   ├── templates-view.tsx            # Template cards + create/edit + preview + CSV guide + test send
-│   │   └── accounts-view.tsx             # Account cards + add form + warmup progress bars
+│   │   ├── accounts-view.tsx             # Account cards + add form + warmup progress bars
+│   │   └── warmup-view.tsx              # Warmup pool dashboard: KPIs, pool accounts, IMAP config, activity log
 │   └── analyze/                          # Analysis feature components
 │       ├── search-step.tsx               # Business name + location (Nominatim autocomplete) + category form
 │       ├── loading-step.tsx              # Provider badges + query progress (tier-aware)
@@ -127,7 +134,10 @@ src/
     │   ├── smtp.ts                       # Nodemailer transport factory + sendEmail()
     │   ├── csv-parser.ts                 # CSV parsing, column detection, contact extraction
     │   ├── bounce-classifier.ts          # SMTP error classification (permanent bounce vs transient failure)
-    │   └── send-engine.ts               # Core send cycle (cron-triggered, stateless, bounce-aware)
+    │   ├── send-engine.ts               # Core send cycle (cron-triggered, stateless, bounce-aware)
+    │   ├── imap.ts                      # IMAP client wrapper (ImapFlow) for warmup pool
+    │   ├── warmup-content.ts            # Warmup conversation topic bank + email generation
+    │   └── warmup-engine.ts             # Core warmup pool cycle (send + IMAP processing)
     └── agents/                           # LLM analysis pipeline
         ├── clients.ts                    # SDK singletons + MODEL_CONFIG
         ├── prompts.ts                    # Prompt templates + BUSINESS_CATEGORIES
@@ -306,11 +316,21 @@ model ActionPlanItem {
 // ─── Outreach System ─────────────────────────────────────────────────
 
 model EmailAccount {
-  id, label, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass (encrypted AES-256-GCM),
+  id, label, accountType @default("outreach"),  // "outreach" | "warmup_only"
+  smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass (encrypted AES-256-GCM),
   fromName @default("William"), fromEmail @unique, replyTo?,
   warmupEnabled, warmupStartDate, warmupDay, warmupPhase, dailyLimit, sentToday, sentTodayDate,
+  // IMAP (for warmup pool receiving)
+  imapHost?, imapPort? @default(993), imapSecure @default(true), imapUser?, imapPass? (encrypted),
+  // Warmup pool settings (separate from cold email warmup)
+  warmupPoolEnabled @default(false), warmupPoolDay @default(0), warmupDailyTarget @default(2),
+  warmupSentToday @default(0), warmupSentTodayDate @default(""),
+  warmupReplyRate @default(30), warmupOpenRate @default(100),
+  warmupSpamRescueRate @default(100), warmupImportantRate @default(50),
+  // IMAP health
+  imapStatus @default("unknown"), imapLastError?, imapLastCheckedAt?,
   status (active|paused|error|disabled), lastErrorAt?, lastError?, consecutiveErrors, totalSent,
-  isActive, createdAt, updatedAt, sends[]
+  isActive, createdAt, updatedAt, sends[], warmupConversations[], warmupEmails[], warmupDailyStats[]
   @@index([isActive, status])
 }
 
@@ -352,6 +372,33 @@ model OutreachSend {
   @@unique([campaignId, contactId])
   @@index([campaignId, status]) @@index([contactId]) @@index([accountId, sentAt]) @@index([sentAt])
   @@index([status, contactId]) @@index([status, sentAt]) @@index([createdAt])
+}
+
+// ─── Warmup Pool System ─────────────────────────────────────────────────
+
+model WarmupConversation {
+  id, senderAccountId, receiverAccountId,
+  threadId @unique, subject, topicKey,
+  turnCount @default(0), maxTurns @default(3),
+  status (active|completed|stale), lastMessageAt?, createdAt, updatedAt, emails[]
+  @@index([senderAccountId, status]) @@index([receiverAccountId, status])
+}
+
+model WarmupEmail {
+  id, conversationId, senderAccountId, receiverAccountId,
+  warmupId @unique, messageId?, inReplyTo?, subject, bodyText, turnNumber,
+  opened @default(false), openedAt?, replied @default(false), repliedAt?,
+  spamRescued @default(false), spamRescuedAt?, markedImportant @default(false), markedImportantAt?,
+  status @default("sent"), sentAt?, errorMessage?, createdAt
+  @@index([conversationId, turnNumber]) @@index([receiverAccountId, status])
+}
+
+model WarmupDailyStats {
+  id, accountId, date,
+  emailsSent @default(0), emailsReceived @default(0), opens @default(0),
+  replies @default(0), spamRescues @default(0), markedImportant @default(0), imapErrors @default(0),
+  createdAt
+  @@unique([accountId, date]) @@index([date])
 }
 ```
 
@@ -495,6 +542,11 @@ Clean light dashboard (Linear/Notion-inspired) on warm beige page:
 | POST | `/api/admin/outreach/send` | Cron-triggered send cycle (admin cookie or Bearer CRON_SECRET) |
 | GET | `/api/admin/outreach/stats` | Outreach KPIs + delivery metrics + campaign progress + recent sends |
 | POST | `/api/webhooks/bounce` | Mark contacts as bounced (admin cookie or Bearer CRON_SECRET) |
+| GET | `/api/admin/outreach/warmup/stats` | Warmup pool KPIs + per-account stats + 7-day chart |
+| POST | `/api/admin/outreach/warmup/cycle` | Trigger warmup cycle (admin cookie or Bearer CRON_SECRET) |
+| PATCH | `/api/admin/outreach/warmup/accounts/[id]` | Update warmup pool settings + IMAP credentials |
+| POST | `/api/admin/outreach/warmup/accounts/[id]/test-imap` | Test IMAP connection for account |
+| GET | `/api/admin/outreach/warmup/log` | Paginated warmup activity log |
 | GET | `/api/unsubscribe/[token]` | Public unsubscribe (marks contact, redirects to confirmation) |
 
 ## Environment Variables
@@ -696,10 +748,69 @@ Two layers:
 
 All templates include `{unsubscribeUrl}` in footer. Run via `npx tsx scripts/outreach/seed-templates.ts` (skips existing by name).
 
+### Warmup Pool System (Instantly-style)
+
+Pool-based email warmup where accounts exchange emails with each other, then the receiving side opens, replies, marks as important, and rescues from spam — building sender reputation with email providers.
+
+#### Architecture
+```
+Accounts in warmup pool (outreach + warmup-only Gmail/Outlook/etc.)
+                    ↓
+Warmup Engine (cron every ~5 min via send route):
+  Phase A: Send warmup emails between pool accounts (SMTP)
+    - Pick random pairings, generate natural conversation content
+    - Track multi-turn threads (WarmupConversation + WarmupEmail)
+    - Custom headers: X-Warmup-Id, X-Warmup-Thread for identification
+  Phase B: Process received emails (IMAP)
+    - Connect to each account's IMAP, search for warmup emails
+    - Mark as read (openRate%), mark important (importantRate%)
+    - Move from spam to inbox (spamRescueRate%)
+    - Track all actions in WarmupEmail + WarmupDailyStats
+```
+
+#### Pool Warmup Ramp Schedule (separate from cold email ramp)
+
+| Pool Day | Daily Target |
+|----------|-------------|
+| 1-2 | 2 |
+| 3-5 | 4 |
+| 6-10 | 8 |
+| 11-15 | 12 |
+| 16-20 | 16 |
+| 21+ | 20 |
+
+Warmup runs **indefinitely** even after cold email capacity maxes out at 50/day.
+
+#### Key Design Decisions
+- **Account types:** `outreach` (cold email + optional warmup) vs `warmup_only` (Gmail/Outlook, never used for cold email)
+- **warmup_only accounts** are filtered out of cold email send engine (`accountType: { not: "warmup_only" }`)
+- **IMAP required** for receiving-side actions (uses `imapflow` npm package)
+- **Gmail/Outlook auth:** App passwords for v1 (2FA → App Passwords). No OAuth2 yet.
+- **Content variation:** 20 conversation topics, each with 5+ subject/opener/reply/closer variants. Plain text only (no HTML)
+- **Min 2 accounts** required for pool warmup
+- **Separate counters:** `warmupSentToday`/`warmupDailyTarget` are independent from cold email `sentToday`/`dailyLimit`
+- **5-min throttle:** Warmup cycle integrated into send route, runs every ~5 min via internal throttle
+
+#### Library Modules (`src/lib/outreach/`)
+
+| Module | Purpose |
+|--------|---------|
+| `imap.ts` | ImapFlow wrapper: createImapClient, findWarmupEmail, markAsRead, markAsImportant, moveFromSpamToInbox, getSpamFolder, testImapConnection |
+| `warmup-content.ts` | 20 conversation topics with subject/opener/reply/closer variants. `generateWarmupEmail()` produces unique plain-text emails |
+| `warmup-engine.ts` | Core `runWarmupCycle()`: send phase (pair accounts, generate content, SMTP send) + receive phase (IMAP search, open, flag, spam rescue). In-memory lock + 5-min throttle |
+
+#### Admin UI (`warmup-view.tsx`)
+New "Warmup" sub-tab in Outreach section (6 sub-tabs total: Dashboard, Warmup, Campaigns, Contacts, Templates, Accounts):
+- KPI row: Pool Size, Sent Today, Opens Today, Replies Today, Spam Rescues
+- Pool account cards: IMAP status dot, type badge, pool day/target, progress bar, mini stats, configure panel (IMAP creds + rate sliders)
+- 7-day activity chart
+- Recent activity log table with email preview modal
+
 ### Cron Setup (VPC)
 ```bash
 */2 * * * * curl -s -X POST http://localhost:3003/api/admin/outreach/send -H "Authorization: Bearer $CRON_SECRET" > /dev/null 2>&1
 ```
+The send route now triggers both cold email send cycle AND warmup cycle in parallel. Warmup cycle has internal 5-min throttle.
 
 ### Key Commands
 ```bash

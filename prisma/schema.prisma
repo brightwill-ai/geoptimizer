@@ -173,6 +173,10 @@ model EmailAccount {
   fromEmail       String   @unique
   replyTo         String?
 
+  // Account type: "outreach" (used for cold email + optional warmup) or "warmup_only" (only warmup pool)
+  accountType     String   @default("outreach")
+
+  // Cold email warmup (rate limiter ramp)
   warmupEnabled   Boolean  @default(true)
   warmupStartDate DateTime @default(now())
   warmupDay       Int      @default(0)
@@ -180,6 +184,29 @@ model EmailAccount {
   dailyLimit      Int      @default(5)
   sentToday       Int      @default(0)
   sentTodayDate   String   @default("")
+
+  // IMAP credentials (for warmup pool receiving)
+  imapHost        String?
+  imapPort        Int?     @default(993)
+  imapSecure      Boolean  @default(true)
+  imapUser        String?
+  imapPass        String?  // encrypted AES-256-GCM, same as smtpPass
+
+  // Warmup pool settings (separate from cold email warmup)
+  warmupPoolEnabled    Boolean @default(false)
+  warmupPoolDay        Int     @default(0)
+  warmupDailyTarget    Int     @default(2)
+  warmupSentToday      Int     @default(0)
+  warmupSentTodayDate  String  @default("")
+  warmupReplyRate      Int     @default(30)
+  warmupOpenRate       Int     @default(100)
+  warmupSpamRescueRate Int     @default(100)
+  warmupImportantRate  Int     @default(50)
+
+  // IMAP health
+  imapStatus        String    @default("unknown")
+  imapLastError     String?
+  imapLastCheckedAt DateTime?
 
   status            String   @default("active")
   lastErrorAt       DateTime?
@@ -192,6 +219,13 @@ model EmailAccount {
   updatedAt DateTime @updatedAt
 
   sends OutreachSend[]
+
+  // Warmup pool relations
+  warmupConversationsAsSender   WarmupConversation[] @relation("WarmupSender")
+  warmupConversationsAsReceiver WarmupConversation[] @relation("WarmupReceiver")
+  warmupEmailsSent              WarmupEmail[]        @relation("WarmupEmailSender")
+  warmupEmailsReceived          WarmupEmail[]        @relation("WarmupEmailReceiver")
+  warmupDailyStats              WarmupDailyStats[]
 
   @@index([isActive, status])
 }
@@ -348,4 +382,90 @@ model OutreachSend {
   @@index([status, contactId])
   @@index([status, sentAt])
   @@index([createdAt])
+}
+
+// ─── Warmup Pool System ─────────────────────────────────────────────────────
+
+model WarmupConversation {
+  id                String       @id @default(cuid())
+  senderAccountId   String
+  senderAccount     EmailAccount @relation("WarmupSender", fields: [senderAccountId], references: [id])
+  receiverAccountId String
+  receiverAccount   EmailAccount @relation("WarmupReceiver", fields: [receiverAccountId], references: [id])
+
+  threadId  String @unique @default(cuid())
+  subject   String
+  topicKey  String
+  turnCount Int    @default(0)
+  maxTurns  Int    @default(3)
+  status    String @default("active") // "active" | "completed" | "stale"
+
+  lastMessageAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  emails WarmupEmail[]
+
+  @@index([senderAccountId, status])
+  @@index([receiverAccountId, status])
+  @@index([status, lastMessageAt])
+}
+
+model WarmupEmail {
+  id                String             @id @default(cuid())
+  conversationId    String
+  conversation      WarmupConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderAccountId   String
+  senderAccount     EmailAccount       @relation("WarmupEmailSender", fields: [senderAccountId], references: [id])
+  receiverAccountId String
+  receiverAccount   EmailAccount       @relation("WarmupEmailReceiver", fields: [receiverAccountId], references: [id])
+
+  warmupId  String @unique @default(cuid())
+  messageId String?
+  inReplyTo String?
+  subject   String
+  bodyText  String
+  turnNumber Int
+
+  // Action tracking
+  opened           Boolean   @default(false)
+  openedAt         DateTime?
+  replied          Boolean   @default(false)
+  repliedAt        DateTime?
+  spamRescued      Boolean   @default(false)
+  spamRescuedAt    DateTime?
+  markedImportant  Boolean   @default(false)
+  markedImportantAt DateTime?
+
+  status       String    @default("sent")
+  sentAt       DateTime?
+  errorMessage String?
+  createdAt    DateTime  @default(now())
+
+  @@index([conversationId, turnNumber])
+  @@index([receiverAccountId, status])
+  @@index([senderAccountId, sentAt])
+  @@index([warmupId])
+  @@index([createdAt])
+}
+
+model WarmupDailyStats {
+  id              String       @id @default(cuid())
+  accountId       String
+  account         EmailAccount @relation(fields: [accountId], references: [id])
+  date            String
+
+  emailsSent      Int @default(0)
+  emailsReceived  Int @default(0)
+  opens           Int @default(0)
+  replies         Int @default(0)
+  spamRescues     Int @default(0)
+  markedImportant Int @default(0)
+  imapErrors      Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@unique([accountId, date])
+  @@index([accountId, date])
+  @@index([date])
 }

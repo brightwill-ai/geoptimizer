@@ -31,6 +31,7 @@ export async function GET() {
     totalBouncedSends,
     totalAttempted30d,
     activeCampaignDetails,
+    distinctCategories,
   ] = await Promise.all([
     prisma.outreachContact.count(),
     prisma.outreachSend.count({ where: { status: "sent" } }),
@@ -93,6 +94,11 @@ export async function GET() {
       orderBy: { lastSendAt: "desc" },
       take: 5,
     }),
+    prisma.outreachContact.findMany({
+      select: { category: true },
+      distinct: ["category"],
+      orderBy: { category: "asc" },
+    }),
   ]);
 
   // Compute delivery metrics (last 30 days)
@@ -113,6 +119,7 @@ export async function GET() {
     totalBounced,
     totalUnsubscribed,
     accounts,
+    categories: distinctCategories.map((c) => c.category),
     recentSends: recentSends.map((s) => ({
       id: s.id,
       contactEmail: s.contact.email,

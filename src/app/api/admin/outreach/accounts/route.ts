@@ -12,6 +12,7 @@ export async function GET() {
     select: {
       id: true,
       label: true,
+      accountType: true,
       smtpHost: true,
       smtpPort: true,
       smtpSecure: true,
@@ -26,6 +27,19 @@ export async function GET() {
       dailyLimit: true,
       sentToday: true,
       sentTodayDate: true,
+      imapHost: true,
+      imapPort: true,
+      imapSecure: true,
+      imapUser: true,
+      imapStatus: true,
+      warmupPoolEnabled: true,
+      warmupPoolDay: true,
+      warmupDailyTarget: true,
+      warmupSentToday: true,
+      warmupReplyRate: true,
+      warmupOpenRate: true,
+      warmupSpamRescueRate: true,
+      warmupImportantRate: true,
       status: true,
       lastError: true,
       lastErrorAt: true,
@@ -44,7 +58,10 @@ export async function POST(req: NextRequest) {
   if (!(await verifyAdmin())) return unauthorizedResponse();
 
   const body = await req.json();
-  const { label, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass, fromName, fromEmail, replyTo, warmupEnabled } = body;
+  const {
+    label, smtpHost, smtpPort, smtpSecure, smtpUser, smtpPass, fromName, fromEmail, replyTo, warmupEnabled,
+    accountType, imapHost, imapPort, imapSecure, imapUser, imapPass, warmupPoolEnabled,
+  } = body;
 
   if (!smtpUser || !smtpPass || !fromEmail) {
     return NextResponse.json({ error: "smtpUser, smtpPass, and fromEmail are required" }, { status: 400 });
@@ -64,6 +81,13 @@ export async function POST(req: NextRequest) {
       fromEmail,
       replyTo: replyTo || null,
       warmupEnabled: warmupEnabled ?? true,
+      accountType: accountType || "outreach",
+      ...(imapHost ? { imapHost } : {}),
+      ...(imapPort ? { imapPort } : {}),
+      ...(imapSecure !== undefined ? { imapSecure } : {}),
+      ...(imapUser ? { imapUser } : {}),
+      ...(imapPass ? { imapPass: encrypt(imapPass) } : {}),
+      ...(warmupPoolEnabled !== undefined ? { warmupPoolEnabled } : {}),
     },
   });
 

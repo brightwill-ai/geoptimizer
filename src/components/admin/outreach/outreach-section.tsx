@@ -6,8 +6,10 @@ import { CampaignsView } from "./campaigns-view";
 import { ContactsView } from "./contacts-view";
 import { TemplatesView } from "./templates-view";
 import { AccountsView } from "./accounts-view";
+import { WarmupView } from "./warmup-view";
+import type { WarmupStats } from "./warmup-view";
 
-type SubTab = "dashboard" | "campaigns" | "contacts" | "templates" | "accounts";
+type SubTab = "dashboard" | "campaigns" | "contacts" | "templates" | "accounts" | "warmup";
 
 interface OutreachStats {
   totalContacts: number;
@@ -17,6 +19,7 @@ interface OutreachStats {
   activeCampaigns: number;
   totalBounced: number;
   totalUnsubscribed: number;
+  categories: string[];
   accounts: Account[];
   recentSends: RecentSend[];
   totalFailed: number;
@@ -111,6 +114,7 @@ export interface Campaign {
 export interface AccountFull {
   id: string;
   label: string;
+  accountType: string;
   smtpHost: string;
   smtpPort: number;
   smtpSecure: boolean;
@@ -123,6 +127,19 @@ export interface AccountFull {
   warmupPhase: string;
   dailyLimit: number;
   sentToday: number;
+  imapHost: string | null;
+  imapPort: number | null;
+  imapSecure: boolean;
+  imapUser: string | null;
+  imapStatus: string;
+  warmupPoolEnabled: boolean;
+  warmupPoolDay: number;
+  warmupDailyTarget: number;
+  warmupSentToday: number;
+  warmupReplyRate: number;
+  warmupOpenRate: number;
+  warmupSpamRescueRate: number;
+  warmupImportantRate: number;
   status: string;
   lastError: string | null;
   lastErrorAt: string | null;
@@ -134,6 +151,7 @@ export interface AccountFull {
 
 const SUB_TABS: { id: SubTab; label: string }[] = [
   { id: "dashboard", label: "Dashboard" },
+  { id: "warmup", label: "Warmup" },
   { id: "campaigns", label: "Campaigns" },
   { id: "contacts", label: "Contacts" },
   { id: "templates", label: "Templates" },
@@ -147,29 +165,33 @@ export function OutreachSection() {
   const [lists, setLists] = useState<OutreachList[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [accounts, setAccounts] = useState<AccountFull[]>([]);
+  const [warmupStats, setWarmupStats] = useState<WarmupStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchAll = useCallback(async () => {
     try {
-      const [statsRes, templatesRes, listsRes, campaignsRes, accountsRes] = await Promise.all([
+      const [statsRes, templatesRes, listsRes, campaignsRes, accountsRes, warmupRes] = await Promise.all([
         fetch("/api/admin/outreach/stats"),
         fetch("/api/admin/outreach/templates"),
         fetch("/api/admin/outreach/lists"),
         fetch("/api/admin/outreach/campaigns"),
         fetch("/api/admin/outreach/accounts"),
+        fetch("/api/admin/outreach/warmup/stats"),
       ]);
-      const [statsData, templatesData, listsData, campaignsData, accountsData] = await Promise.all([
+      const [statsData, templatesData, listsData, campaignsData, accountsData, warmupData] = await Promise.all([
         statsRes.json(),
         templatesRes.json(),
         listsRes.json(),
         campaignsRes.json(),
         accountsRes.json(),
+        warmupRes.json(),
       ]);
       setStats(statsData);
       setTemplates(templatesData);
       setLists(listsData);
       setCampaigns(campaignsData);
       setAccounts(accountsData);
+      setWarmupStats(warmupData);
     } catch { /* ignore */ }
     setLoading(false);
   }, []);
@@ -220,7 +242,7 @@ export function OutreachSection() {
         <DashboardView stats={stats} onRefresh={fetchAll} />
       )}
       {activeTab === "campaigns" && (
-        <CampaignsView campaigns={campaigns} lists={lists} templates={templates} onRefresh={fetchAll} />
+        <CampaignsView campaigns={campaigns} lists={lists} templates={templates} categories={stats?.categories || []} onRefresh={fetchAll} />
       )}
       {activeTab === "contacts" && (
         <ContactsView lists={lists} onRefresh={fetchAll} />
@@ -230,6 +252,9 @@ export function OutreachSection() {
       )}
       {activeTab === "accounts" && (
         <AccountsView accounts={accounts} onRefresh={fetchAll} />
+      )}
+      {activeTab === "warmup" && warmupStats && (
+        <WarmupView stats={warmupStats} onRefresh={fetchAll} />
       )}
     </div>
   );

@@ -25,9 +25,9 @@ export async function runSendCycle(): Promise<SendCycleResult> {
   try {
     const today = new Date().toISOString().slice(0, 10);
 
-    // 1. Daily reset + warmup advancement for all accounts
+    // 1. Daily reset + warmup advancement for all outreach accounts (exclude warmup-only)
     const accounts = await prisma.emailAccount.findMany({
-      where: { isActive: true, status: "active" },
+      where: { isActive: true, status: "active", accountType: { not: "warmup_only" } },
     });
 
     for (const account of accounts) {
@@ -164,9 +164,9 @@ export async function runSendCycle(): Promise<SendCycleResult> {
         continue;
       }
 
-      // e. Pick email account (least-loaded first)
+      // e. Pick email account (least-loaded first, exclude warmup-only)
       const freshAccounts = await prisma.emailAccount.findMany({
-        where: { isActive: true, status: "active" },
+        where: { isActive: true, status: "active", accountType: { not: "warmup_only" } },
         orderBy: { sentToday: "asc" },
       });
       const account = freshAccounts.find((a) => a.sentToday < a.dailyLimit);

@@ -36,6 +36,7 @@ interface SendOptions {
   html: string;
   text?: string;
   replyTo?: string;
+  headers?: Record<string, string>;
 }
 
 export async function sendEmail(
@@ -49,6 +50,7 @@ export async function sendEmail(
     html: options.html,
     text: options.text,
     replyTo: options.replyTo,
+    headers: options.headers,
   });
   return { messageId: info.messageId };
 }
